@@ -28,7 +28,7 @@ node sync.js
 
 # API
 
-## GET /packagename
+### GET /packagename
 
 
 Returns the JSON document for this package. Includes all known dists and metadata. Example:
@@ -38,34 +38,56 @@ Returns the JSON document for this package. Includes all known dists and metadat
    "name":"foo",
    "description":"A fake package.",
    "dist-tags":{"stable":"0.1"},
-   "versions":{"0.1":{"_id":"foo","name":"foo","description":"A fake package", 
+   "versions":{"0.1":{"_id":"foo","name":"foo","description":"A fake package", "version":"0.1",
                             "dist":{"tarball":"http://domain.com/0.1.tgz"}      
               }
   }
 </pre>
 
-<pre>
-GET /packagename/0.1
-</pre>
+### GET /packagename/0.1
 
 Returns the JSON object for a specified release. Example:
 
 <pre>
   {"_id":"foo","name":"foo","description":"A fake package", 
+   "version":"0.1"
    "dist":{"tarball":"http://domain.com/0.1.tgz"}
 </pre>
 
-<pre>
-GET /packagename/stable
-</pre>
+### GET /packagename/stable
 
-
+Returns the JSON object for the specified tag.
 
 <pre>
-PUT /packagename
+  {"_id":"foo","name":"foo","description":"A fake package", 
+   "version":"0.1"
+   "dist":{"tarball":"http://domain.com/0.1.tgz"}
 </pre>
+
+### PUT /packagename
+
+Create or update the entire package info.
+
+MUST include the JSON body of the entire document. Must have content-type:application/json.
+
+If updating this must include the latest _rev.
+
+This method can also remove previous versions and distributions if necessary.
+
+### PUT /packagename/0.1
+
+Create a new release version. 
+
+MUST include all the metadata from package.json along with dist information as the JSON body of the request. MUST have content-type:application/json
+
+### PUT /pacakgename/stable
+
+Link a distribution tag (ie. "stable") to a specific version string. 
+
+MUST but a JSON string as the body. Example:
+
 <pre>
-PUT /packagename/0.1
+"0.1"
 </pre>
-<pre>
-PUT /pacakgename/stable
+
+Must have content-type:application/json.
