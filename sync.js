@@ -91,7 +91,7 @@ function attach (file, group, callback) {
 
 var sync = function () {
   var group = new GroupPromise();
-  attach('design/rewrites.json', group, function (data) {ddoc.rewrite = JSON.parse(data)})
+  attach('design/rewrites.json', group, function (data) {ddoc.rewrites = JSON.parse(data)})
   attach('design/shows/package.js', group, function (data) {ddoc.shows.package = data})
   attach('design/updates/package.js', group, function (data) {ddoc.updates.package = data})
   group.when(function () {

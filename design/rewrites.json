@@ -15,12 +15,12 @@
     },
     {
          "from": "/:pkg",
-         "to": "/_show/package/:pkg",
-         "method": "POST"
+         "to": "/_update/package/:pkg",
+         "method": "PUT"
     },
     {  
          "from": "/:pkg/:version",        
-         "to": "_show/package/:pkg",        
+         "to": "_update/package/:pkg",        
          "method": "PUT",        
          "query": 
         {            
