@@ -104,7 +104,7 @@ var sync = function () {
       }
       db.saveDoc(ddoc, function (error, info) {
         if (error) {
-          sys.puts("Failed to save "+JSON.stringify(info))
+          sys.puts("Failed to save "+JSON.stringify(error))
         } else {
           sys.puts("Saved "+JSON.stringify(info))
         }
