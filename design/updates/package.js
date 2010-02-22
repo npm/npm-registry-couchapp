@@ -1,7 +1,7 @@
 function (doc, req) {
   if (doc) {
     if (req.query.version) {
-      if (typeof(parseInt(req.query.version[0])) == "NaN") {
+      if (isNaN(parseInt(req.query.version[0]))) {
         doc['dist-tags'][req.query.version] = JSON.parse(req.body);
       } else {
         doc.versions[req.query.version] = JSON.parse(req.body);

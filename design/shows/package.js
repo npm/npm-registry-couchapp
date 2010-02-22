@@ -1,9 +1,9 @@
 function (doc, req) {
   if (req.query.version) {
-    if (typeof(parseInt(req.query.version[0])) == "NaN") {
+    if (isNaN(parseInt(req.query.version[0]))) {
       var v = doc.versions[doc['dist-tags'][req.query.version]]
     } else {
-      var v = doc.version[req.query.version]
+      var v = doc.versions[req.query.version]
     }
     if (v == undefined) {
       // 404
