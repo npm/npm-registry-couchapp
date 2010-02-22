@@ -98,18 +98,18 @@ var sync = function () {
     var uri = url.parse(dburl)
     var client = couchdb.createClient(uri.port, uri.hostname);
     db = client.db(uri.pathname.replace('/', ''));
-    var p = db.getDoc('_design/app')
-      p.addCallback(function (doc) {
+    var p = db.getDoc('_design/app', function (error, doc) {
+      if (!error) {
         ddoc._rev = doc._rev;
-        db.saveDoc(ddoc)
-          .addCallback(function (info) {sys.puts("Saved "+JSON.stringify(info))})
-          .addErrback(function (info) {sys.puts("Failed to save "+JSON.stringify(info))})
+      }
+      db.saveDoc(ddoc, function (error, info) {
+        if (error) {
+          sys.puts("Failed to save "+JSON.stringify(info))
+        } else {
+          sys.puts("Saved "+JSON.stringify(info))
+        }
       })
-      p.addErrback(function () { 
-        db.saveDoc(ddoc)
-          .addCallback(function (info) {sys.puts("Saved "+JSON.stringify(info))})
-          .addErrback(function (info) {sys.puts("Failed to save "+JSON.stringify(info))})
-      })
+    })
   }) 
 }
 
