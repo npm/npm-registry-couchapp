@@ -52,9 +52,9 @@ function assertStatus (code) {
   return function (response, body) {
     if (response.statusCode != c) {
       sys.puts("Status is not "+c+" it is "+response.statusCode+'. '+body)
-      throw "Status is not "+c+" it is "+response.statusCode+'. '+body
+      throw "Status is not "+c+" it is "+response.statusCode+'. '+body;
     } else {
-      sys.puts(body)
+      sys.puts(body);
     }
   }
 }
