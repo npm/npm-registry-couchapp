@@ -1,3 +1,6 @@
 [submodule "deps/couchdb"]
 	path = deps/couchdb
 	url = git://github.com/apache/couchdb.git
+[submodule "deps/node-couchdb"]
+	path = deps/node-couchdb
+	url = git@github.com:isaacs/node-couchdb.git
