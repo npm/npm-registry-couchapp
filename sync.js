@@ -23,8 +23,14 @@ var couchdb = require('./deps/node-couchdb/lib/couchdb'),
   },
 
   // be gentle.
-  firstTime = true;
-  
+  firstTime = true,
+
+  // need to see it to believe it.
+  dbExists = false,
+
+  // reuse connection
+  client = db = null;
+
 // parse args
 for (var i=0;i<process.argv.length;i+=1) {
   if (process.argv[i].slice(0,4) == 'http') {
@@ -37,8 +43,6 @@ for (var i=0;i<process.argv.length;i+=1) {
 
 // do it!
 sync();
-
-////// worker functions below.
 
 function sync () {
   var saw = 0, expect = 0;
@@ -72,19 +76,34 @@ function sync () {
 
 // this gets called when all the files get read
 function done () {
-  var uri = url.parse(dburl)
-  var client = couchdb.createClient(uri.port || 5984, uri.hostname || "localhost");
-  db = client.db((uri.pathname || "jsregistry").replace('/', ''));
-  db.getDoc('_design/app', function (error, doc) {
-    if (!error) {
-      ddoc._rev = doc._rev;
+  var uri = url.parse(dburl),
+    dbName = (uri.pathname || "jsregistry").replace('/', '');
+  client = client || couchdb.createClient(uri.port || 5984, uri.hostname || "localhost");
+  db = db || client.db(dbName);
+
+  if (dbExists) return write(db);
+
+  db.exists(function (er, e) {
+    if (e) {
+      dbExists = true;
+      return write(db);
+    } else {
+      db.create(function (er, ok) {
+        if (er) throw er;
+        sys.error("Created database: "+dbName);
+        dbExists = true;
+        write(db);
+      });
     }
+  });
+}
+
+function write (db) {
+  db.getDoc('_design/app', function (error, doc) {
+    if (!error) ddoc._rev = doc._rev;
     db.saveDoc(ddoc, function (error, info) {
-      if (error) {
-        sys.error("Failed to save "+JSON.stringify(error))
-      } else {
-        sys.error("Saved "+JSON.stringify(info))
-      }
+      if (error) sys.error("Failed to save "+JSON.stringify(error))
+      else sys.error("Saved "+JSON.stringify(info))
     });
   });
 }
