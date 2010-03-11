@@ -59,7 +59,7 @@ function sync () {
 
     // if a file changes, then update that bit of the ddoc, and push it up.
     if (dev && firstTime) {
-      process.watchFile(file, {persistent: true, interval: 100}, function (o, n) {
+      fs.watchFile(file, {persistent: true, interval: 100}, function (o, n) {
         if (o.mtime.getTime() === n.mtime.getTime()) return;
         sys.error("Changed: "+file);
         fs.readFile(file, function (er, data) {
