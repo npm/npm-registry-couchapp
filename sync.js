@@ -4,7 +4,7 @@ var couchdb = require('./deps/node-couchdb/lib/couchdb'),
   sys = require('sys'),
   url = require('url'),
 
-  ddoc = {_id:"_design/app",shows:{},updates:{}},
+  ddoc = {_id:"_design/app",shows:{},updates:{}, validate_doc_update:""},
 
   dev = false,
   dburl = "http://localhost:5984/jsregistry",
@@ -16,6 +16,9 @@ var couchdb = require('./deps/node-couchdb/lib/couchdb'),
     },
     "design/shows/package.js" : function (data) {
       ddoc.shows.package = data;
+    },
+    "design/validate_doc_update.js" : function (data) {
+      ddoc.validate_doc_update = data;
     },
     "design/updates/package.js" : function (data) {
       ddoc.updates.package = data;
