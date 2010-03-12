@@ -18,13 +18,16 @@ Where `packages` is the hostname where you'll be running the thing, and `5984` i
 
 Then drop this file in your `/etc/couchdb/local.d` folder.  (If you're using Homebrew or MacPorts, this may be found underneath the package system prefix, either `/usr/local` or `/opt/local`, respectively.)
 
-Now run the sync script.
+Now Install use npm to install couchapp.
 
-    node sync.js
+    git clone git@github.com:mikeal/node.couchapp.js.git
+    cd node.couchapp.js
+    npm install .
+    npm activate couchapp 0.2.0
 
-You can run it in dev mode like this to get file watching and error logging:
+Now run the sync app.js from this repository.
 
-    node sync.js dev
+    couchapp --design app.js --sync --couch http://localhost:5984/jsregistry
 
 # API
 
