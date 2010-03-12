@@ -12,6 +12,7 @@ ddoc.rewrites = [
   { from: "/:pkg/:version", to: "_update/package/:pkg", method: "PUT", 
     query: { version : ":version" }
   },
+  { from: "/:pkg", to: "/../../:pkg", method: "DELETE" },
 ]
 
 ddoc.shows.package = function (doc, req) {
@@ -90,8 +91,13 @@ ddoc.updates.package = function (doc, req) {
   }
 }
 
-ddoc.validate_update_doc = function (newDoc, oldDoc, user) {
+ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   var semver = /v?([0-9]+)\.([0-9]+)\.([0-9]+)([a-zA-Z-][a-zA-Z0-9-]*)?/;
+  
+  if (newDoc._deleted === true) {
+    // Allow document deletion, this eventually will need to do user validation.
+    return true;
+  }
   
   function assert (ok, message) {
     if (!ok) throw {forbidden:message};

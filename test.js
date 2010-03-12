@@ -66,8 +66,8 @@ requestQueue([
   ["/foo", "PUT", undefined, {_id:"foo", description:"new module"}, assertStatus(201)],
   ["/foo/0.1.0", "PUT", undefined, 
     {_id:"foo", description:"new module", dist:{tarball:"http://path/to/tarball"}}, assertStatus(201)],
-  ["/foo/stable", "PUT", undefined, "0.1", assertStatus(201)],
-  ["/foo", "GET", undefined, "0.1", assertStatus(200)],
-  ["/foo/0.1.0", "GET", undefined, "0.1", assertStatus(200)],
-  ["/foo/stable", "GET", undefined, "0.1", assertStatus(200)],
+  ["/foo/stable", "PUT", undefined, "0.1.0", assertStatus(201)],
+  ["/foo", "GET", undefined, "0.1.0", assertStatus(200)],
+  ["/foo/0.1.0", "GET", undefined, "0.1.0", assertStatus(200)],
+  ["/foo/stable", "GET", undefined, "0.1.0", assertStatus(200)],
   ], function () {sys.puts('done')})
