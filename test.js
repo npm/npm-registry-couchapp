@@ -10,7 +10,9 @@ function request (path, method, headers, body, callback) {
     method = "GET"
   }
   if (body) {
-    body = JSON.stringify(body)
+    if (typeof body !== "string") {
+      body = JSON.stringify(body)
+    }
   }
   
   var client = http.createClient(5984, "jsregistry");
@@ -61,12 +63,28 @@ function assertStatus (code) {
 
 // request('/foo', "PUT", undefined, {id:"foo", description:"new module"}, function () {sys.puts('done')})
 
+var sha = require('./deps/sha1'),
+    base64 = require('./deps/base64');
+    
+var userDoc = {//_id:"org.couchdb.user:testuser", 
+               name:"testuser", 
+               password_sha: sha.hex_sha1('pepper' + 'testing'), 
+               salt:"pepper", type:"user", roles:[]}
+var auth = {'Content-Type':'application/json', 
+            accept:'application/json', 
+            // authorization:'Basic ' + base64.encode('testuser:testing'),
+            host:"jsregistry:5984"}
 
 requestQueue([
-  ["/foo", "PUT", undefined, {_id:"foo", description:"new module"}, assertStatus(201)],
-  ["/foo/0.1.0", "PUT", undefined, 
+  ["/adduser/org.couchdb.user:testuser", "PUT", undefined, userDoc, assertStatus(201)],
+  ["/session", "POST", undefined, "user=testuser&password=testing", function (response, body) {
+    sys.puts('s', body, 'd')
+    auth.cookie = response.headers['set-cookie'];
+  }],
+  ["/foo", "PUT", auth, {_id:"foo", description:"new module"}, assertStatus(201)],
+  ["/foo/0.1.0", "PUT", auth, 
     {_id:"foo", description:"new module", dist:{tarball:"http://path/to/tarball"}}, assertStatus(201)],
-  ["/foo/stable", "PUT", undefined, "0.1.0", assertStatus(201)],
+  ["/foo/stable", "PUT", auth, "0.1.0", assertStatus(201)],
   ["/foo", "GET", undefined, "0.1.0", assertStatus(200)],
   ["/foo/0.1.0", "GET", undefined, "0.1.0", assertStatus(200)],
   ["/foo/stable", "GET", undefined, "0.1.0", assertStatus(200)],

@@ -4,15 +4,20 @@ var ddoc = {_id:'_design/app', shows:{}, updates:{}};
 exports.app = ddoc;
 
 ddoc.rewrites = [ 
+  { from: "/adduser/:user", to:"../../../_users/:user", method: "PUT" },
+  { from: "/session", to:"../../../_session", method:"POST" }, 
+  
   { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" },
   { from: "/:pkg/:version", to: "_show/package/:pkg", method: "GET", 
     query: { version: ":version" }
   },
+  
   { from: "/:pkg", to: "/_update/package/:pkg", method: "PUT" },
   { from: "/:pkg/:version", to: "_update/package/:pkg", method: "PUT", 
     query: { version : ":version" }
   },
-  { from: "/:pkg", to: "/../../:pkg", method: "DELETE" },
+  
+  { from: "/:pkg", to: "../../:pkg", method: "DELETE" },
 ]
 
 ddoc.shows.package = function (doc, req) {
@@ -44,7 +49,7 @@ ddoc.updates.package = function (doc, req) {
   function error (reason) {
     return [{forbidden:reason}, JSON.stringify({forbidden:reason})];
   }
-
+  
   if (doc) {
     if (req.query.version) {
       var parsed = semver(req.query.version);
