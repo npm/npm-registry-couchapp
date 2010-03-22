@@ -5,7 +5,6 @@ exports.app = ddoc;
 
 ddoc.rewrites = [ 
   { from: "/adduser/:user", to:"../../../_users/:user", method: "PUT" },
-  { from: "/session", to:"../../../_session", method:"POST" }, 
   
   { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" },
   { from: "/:pkg/:version", to: "_show/package/:pkg", method: "GET", 

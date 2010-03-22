@@ -200,4 +200,5 @@ function binb2b64(binarray)
   }
   return str;
 }
+
 exports.hex_sha1 = hex_sha1;

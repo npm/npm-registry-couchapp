@@ -66,21 +66,21 @@ function assertStatus (code) {
 var sha = require('./deps/sha1'),
     base64 = require('./deps/base64');
     
-var userDoc = {//_id:"org.couchdb.user:testuser", 
+var userDoc = {_id:"org.couchdb.user:testuser", 
                name:"testuser", 
-               password_sha: sha.hex_sha1('pepper' + 'testing'), 
+               password_sha: sha.hex_sha1('testing' + 'pepper'), 
                salt:"pepper", type:"user", roles:[]}
 var auth = {'Content-Type':'application/json', 
             accept:'application/json', 
-            // authorization:'Basic ' + base64.encode('testuser:testing'),
+            authorization:'Basic ' + base64.encode('testuser:testing'),
             host:"jsregistry:5984"}
 
 requestQueue([
   ["/adduser/org.couchdb.user:testuser", "PUT", undefined, userDoc, assertStatus(201)],
-  ["/session", "POST", undefined, "user=testuser&password=testing", function (response, body) {
-    sys.puts('s', body, 'd')
-    auth.cookie = response.headers['set-cookie'];
-  }],
+  // ["/session", "POST", undefined, "user=testuser&password=testing", function (response, body) {
+  //   sys.puts('s', body, 'd')
+  //   auth.cookie = response.headers['set-cookie'];
+  // }],
   ["/foo", "PUT", auth, {_id:"foo", description:"new module"}, assertStatus(201)],
   ["/foo/0.1.0", "PUT", auth, 
     {_id:"foo", description:"new module", dist:{tarball:"http://path/to/tarball"}}, assertStatus(201)],
