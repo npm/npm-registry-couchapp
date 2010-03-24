@@ -29,6 +29,9 @@ ddoc.lists.index = function (head, req) {
     for (var v in row.value.versions) {
       out[row.id].push(v);
     }
+    for (var v in row.value["dist-tags"]) {
+      out[row.id].push(v);
+    }
   }
   send(toJSON(out));
 }
