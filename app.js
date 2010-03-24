@@ -4,7 +4,9 @@ var ddoc = {_id:'_design/app', shows:{}, updates:{}, views:{}, lists:{}};
 exports.app = ddoc;
 
 ddoc.rewrites = [
+  // todo: build a better root index.
   { from: "/", to:"_list/index/listAll", method: "GET" },
+  { from: "/all", to:"_list/index/listAll", method: "GET" },
 
   { from: "/adduser/:user", to:"../../../_users/:user", method: "PUT" },
 
@@ -25,13 +27,13 @@ ddoc.lists.index = function (head, req) {
   var row,
     out = {};
   while (row = getRow()) {
-    out[row.id] = [];
-    for (var v in row.value.versions) {
-      out[row.id].push(v);
+    var p = out[row.id] = {};
+    for (var i in row.value) {
+      if (i === "versions" || i.charAt(0) === "_") continue;
+      p[i] = row.value[i];
     }
-    for (var v in row.value["dist-tags"]) {
-      out[row.id].push(v);
-    }
+    p.versions = [];
+    for (var i in row.value.versions) p.versions.push(i);
   }
   send(toJSON(out));
 }
