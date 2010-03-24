@@ -25,7 +25,10 @@ ddoc.lists.index = function (head, req) {
   var row,
     out = {};
   while (row = getRow()) {
-    out[row.id] = Object.keys(row.value.versions);
+    out[row.id] = [];
+    for (var v in row.value.versions) {
+      out[row.id].push(v);
+    }
   }
   send(toJSON(out));
 }
