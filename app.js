@@ -67,6 +67,15 @@ ddoc.shows.package = function (doc, req) {
 
 ddoc.updates.package = function (doc, req) {
   var semver = /v?([0-9]+)\.([0-9]+)\.([0-9]+)([a-zA-Z-][a-zA-Z0-9-]*)?/;
+  function toISOString(d){
+   function pad(n){return n<10 ? '0'+n : n}
+   return d.getUTCFullYear()+'-'
+        + pad(d.getUTCMonth()+1)+'-'
+        + pad(d.getUTCDate())+'T'
+        + pad(d.getUTCHours())+':'
+        + pad(d.getUTCMinutes())+':'
+        + pad(d.getUTCSeconds())+'Z'}
+  var now = toISOString(new Date());
   function error (reason) {
     return [{forbidden:reason}, JSON.stringify({forbidden:reason})];
   }
@@ -84,6 +93,7 @@ ddoc.updates.package = function (doc, req) {
             " to invalid version: "+req.body);
         }
         doc["dist-tags"][req.query.version] = JSON.parse(req.body);
+        doc.mtime = now;
         return [doc, JSON.stringify({ok:"updated tag"})];
       }
       // adding a new version.
@@ -92,7 +102,9 @@ ddoc.updates.package = function (doc, req) {
         // not supported at this time.
         return error("cannot modify existing version");
       }
-      doc.versions[req.query.version] = JSON.parse(req.body);
+      var body = JSON.parse(req.body);
+      body.ctime = body.mtime = doc.mtime = now;
+      doc.versions[req.query.version] = body;
       return [doc, JSON.stringify({ok:"added version"})];
     }
 
@@ -107,12 +119,17 @@ ddoc.updates.package = function (doc, req) {
         doc[i] = newdoc[i];
       }
     }
+    doc.mtime = now;
     return [doc, JSON.stringify({ok:"updated package metadata"})];
   } else {
     // Create new package doc
     doc = JSON.parse(req.body);
     if (!doc.versions) doc.versions = {};
+    for (var v in doc.versions) {
+      doc.versions[v].ctime = doc.versions[v].mtime = now;
+    }
     if (!doc['dist-tags']) doc['dist-tags'] = {};
+    doc.ctime = doc.mtime = now;
     return [doc, JSON.stringify({ok:"created new entry"})];
   }
 }
