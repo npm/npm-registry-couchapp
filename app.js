@@ -11,6 +11,8 @@ ddoc.rewrites = [
   { from: "/adduser/:user", to:"../../../_users/:user", method: "PUT" },
 
   { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" },
+  { from: "/:pkg/-/:att", to: "../../:pkg/:att", method: "GET" },
+  { from: "/:pkg/-/:att/:rev", to: "../../:pkg/:att", method: "PUT" },
   { from: "/:pkg/:version", to: "_show/package/:pkg", method: "GET",
     query: { version: ":version" }
   },
