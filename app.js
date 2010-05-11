@@ -34,8 +34,10 @@ ddoc.lists.index = function (head, req) {
       if (i === "versions" || i.charAt(0) === "_") continue;
       p[i] = row.value[i];
     }
-    p.versions = [];
-    for (var i in row.value.versions) p.versions.push(i);
+    p.versions = {};
+    for (var i in row.value.versions) {
+      p.versions[i] = "http://"+req.headers.Host+"/"+row.value.name+"/"+i
+    }
   }
   send(toJSON(out));
 }
