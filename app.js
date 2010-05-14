@@ -156,6 +156,7 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   function validUser () {
     if ( !oldDoc || !oldDoc.maintainers ) return true
     // if (isAdmin()) return true
+    if (typeof oldDoc.maintainers !== "object") return true
     for (var i = 0, l = oldDoc.maintainers.length; i < l; i ++) {
       if (oldDoc.maintainers[i].name === user.name) return true
     }
@@ -170,10 +171,13 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   }
   
   if (!validUser()) {
-    throw {forbidden:"user: " + user.name + "] not authorized to modify ["
-                    + newDoc.name + "]" }
+    throw {forbidden:"user: " + user.name + " not authorized to modify "
+                    + newDoc.name }
   }
-
+  if (oldDoc.maintainers && !newDoc.maintainers) {
+    throw {forbidden: "Please upgrade your package manager program"}
+  }
+  
   // make sure all the dist-tags and versions are valid semver
   assert(newDoc["dist-tags"], "must have dist-tags");
   assert(newDoc.versions, "must have versions");
