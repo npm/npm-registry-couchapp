@@ -108,6 +108,7 @@ ddoc.updates.package = function (doc, req) {
       }
       var body = JSON.parse(req.body);
       body.ctime = body.mtime = doc.mtime = now;
+      doc["dist-tags"].latest = body.version;
       doc.versions[req.query.version] = body;
       return [doc, JSON.stringify({ok:"added version"})];
     }
@@ -129,9 +130,12 @@ ddoc.updates.package = function (doc, req) {
     // Create new package doc
     doc = JSON.parse(req.body);
     if (!doc.versions) doc.versions = {};
+    var latest
     for (var v in doc.versions) {
       doc.versions[v].ctime = doc.versions[v].mtime = now;
+      latest = v
     }
+    doc["dist-tags"].latest = latest;
     if (!doc['dist-tags']) doc['dist-tags'] = {};
     doc.ctime = doc.mtime = now;
     return [doc, JSON.stringify({ok:"created new entry"})];
@@ -141,21 +145,34 @@ ddoc.updates.package = function (doc, req) {
 ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   var semver = /v?([0-9]+)\.([0-9]+)\.([0-9]+)([a-zA-Z-][a-zA-Z0-9-]*)?/;
 
-  if (newDoc._deleted === true) {
-    // Allow document deletion, this eventually will need to do user validation.
-    return true;
-  }
-
   function assert (ok, message) {
     if (!ok) throw {forbidden:message};
   }
-
-  // TODO: If the user doesn't have access to update this thing,
-  // then throw an unauthorized error
-
+  
   // if the newDoc is an {error:"blerg"}, then throw that right out.
   // something detected in the _updates/package script.
   if (newDoc.forbidden) throw {forbidden:newDoc.forbidden};
+
+  function validUser () {
+    if ( !oldDoc || !oldDoc.maintainers ) return true
+    // if (isAdmin()) return true
+    for (var i = 0, l = oldDoc.maintainers.length; i < l; i ++) {
+      if (oldDoc.maintainers[i].name === user.name) return true
+    }
+    return false
+  }
+  function isAdmin () { return user.roles.indexOf("_admin") >= 0 }
+
+  if (newDoc._deleted === true) {
+    // Allow document deletion, this eventually will need to do user validation.
+    if (!isAdmin()) throw {forbidden:"Only admins may delete"}
+    return true
+  }
+  
+  if (!validUser()) {
+    throw {forbidden:"user: " + user.name + "] not authorized to modify ["
+                    + newDoc.name + "]" }
+  }
 
   // make sure all the dist-tags and versions are valid semver
   assert(newDoc["dist-tags"], "must have dist-tags");
