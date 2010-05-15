@@ -5,22 +5,24 @@ exports.app = ddoc;
 
 ddoc.rewrites = [
   // todo: build a better root index.
+  
   { from: "/", to:"_list/index/listAll", method: "GET" },
   { from: "/all", to:"_list/index/listAll", method: "GET" },
+  { from: "/all/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" },
+  { from: "/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" },
 
   { from: "/adduser/:user", to:"../../../_users/:user", method: "PUT" },
 
   { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" },
+  { from: "/:pkg/-/jsonp/:jsonp", to: "/_show/package/:pkg", method: "GET" },
+  { from: "/:pkg/:version", to: "_show/package/:pkg", method: "GET" },
+  { from: "/:pkg/:version/-/jsonp/:jsonp", to: "_show/package/:pkg", method: "GET" },
+
   { from: "/:pkg/-/:att", to: "../../:pkg/:att", method: "GET" },
   { from: "/:pkg/-/:att/:rev", to: "../../:pkg/:att", method: "PUT" },
-  { from: "/:pkg/:version", to: "_show/package/:pkg", method: "GET",
-    query: { version: ":version" }
-  },
 
   { from: "/:pkg", to: "/_update/package/:pkg", method: "PUT" },
-  { from: "/:pkg/:version", to: "_update/package/:pkg", method: "PUT",
-    query: { version : ":version" }
-  },
+  { from: "/:pkg/:version", to: "_update/package/:pkg", method: "PUT" },
 
   { from: "/:pkg", to: "../../:pkg", method: "DELETE" },
 ]
@@ -39,7 +41,12 @@ ddoc.lists.index = function (head, req) {
       p.versions[i] = "http://"+req.headers.Host+"/"+row.value.name+"/"+i
     }
   }
-  send(toJSON(out));
+  out._query = req.query
+  out = req.query.jsonp
+      ? req.query.jsonp + "(" + JSON.stringify(out) + ")"
+      : toJSON(out)
+
+  send(out)
 }
 ddoc.views.listAll = {
   map : function (doc) { emit(doc.id, doc) }
@@ -62,9 +69,13 @@ ddoc.shows.package = function (doc, req) {
   } else {
     body = doc;
   }
+  body._query = req.query
+  body = req.query.jsonp
+       ? req.query.jsonp + "(" + JSON.stringify(body) + ")"
+       : toJSON(body)
   return {
     code : code,
-    body : toJSON(body),
+    body : body,
     headers : headers,
   };
 }
@@ -174,7 +185,7 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
     throw {forbidden:"user: " + user.name + " not authorized to modify "
                     + newDoc.name }
   }
-  if (oldDoc.maintainers && !newDoc.maintainers) {
+  if (oldDoc && oldDoc.maintainers && !newDoc.maintainers) {
     throw {forbidden: "Please upgrade your package manager program"}
   }
   
