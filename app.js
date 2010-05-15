@@ -41,7 +41,6 @@ ddoc.lists.index = function (head, req) {
       p.versions[i] = "http://"+req.headers.Host+"/"+row.value.name+"/"+i
     }
   }
-  out._query = req.query
   out = req.query.jsonp
       ? req.query.jsonp + "(" + JSON.stringify(out) + ")"
       : toJSON(out)
@@ -69,7 +68,6 @@ ddoc.shows.package = function (doc, req) {
   } else {
     body = doc;
   }
-  body._query = req.query
   body = req.query.jsonp
        ? req.query.jsonp + "(" + JSON.stringify(body) + ")"
        : toJSON(body)
