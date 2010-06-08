@@ -3,40 +3,38 @@ var couchapp = require('couchapp');
 var ddoc = {_id:'_design/app', shows:{}, updates:{}, views:{}, lists:{}};
 exports.app = ddoc;
 
-ddoc.rewrites = [
-  // todo: build a better root index.
-  
-  { from: "/", to:"_list/index/listAll", method: "GET" },
-  { from: "/all", to:"_list/index/listAll", method: "GET" },
-  { from: "/all/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" },
-  { from: "/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" },
+ddoc.rewrites =
+  [ { from: "/", to:"_list/index/listAll", method: "GET" }
+  , { from: "/all", to:"_list/index/listAll", method: "GET" }
+  , { from: "/all/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
+  , { from: "/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
 
-  { from: "/adduser/:user", to:"../../../_users/:user", method: "PUT" },
+  , { from: "/adduser/:user", to:"../../../_users/:user", method: "PUT" }
 
-  { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" },
-  { from: "/:pkg/-/jsonp/:jsonp", to: "/_show/package/:pkg", method: "GET" },
-  { from: "/:pkg/:version", to: "_show/package/:pkg", method: "GET" },
-  { from: "/:pkg/:version/-/jsonp/:jsonp", to: "_show/package/:pkg", method: "GET" },
+  , { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" }
+  , { from: "/:pkg/-/jsonp/:jsonp", to: "/_show/package/:pkg", method: "GET" }
+  , { from: "/:pkg/:version", to: "_show/package/:pkg", method: "GET" }
+  , { from: "/:pkg/:version/-/jsonp/:jsonp", to: "_show/package/:pkg", method: "GET" }
 
-  { from: "/:pkg/-/:att", to: "../../:pkg/:att", method: "GET" },
-  { from: "/:pkg/-/:att/:rev", to: "../../:pkg/:att", method: "PUT" },
+  , { from: "/:pkg/-/:att", to: "../../:pkg/:att", method: "GET" }
+  , { from: "/:pkg/-/:att/:rev", to: "../../:pkg/:att", method: "PUT" }
 
-  { from: "/:pkg", to: "/_update/package/:pkg", method: "PUT" },
-  { from: "/:pkg/:version", to: "_update/package/:pkg", method: "PUT" },
+  , { from: "/:pkg", to: "/_update/package/:pkg", method: "PUT" }
+  , { from: "/:pkg/:version", to: "_update/package/:pkg", method: "PUT" }
 
-  { from: "/:pkg", to: "../../:pkg", method: "DELETE" },
-]
+  , { from: "/:pkg", to: "../../:pkg", method: "DELETE" }
+  ]
 
 ddoc.lists.index = function (head, req) {
-  var row,
-    out = {};
+  var row
+    , out = {}
   while (row = getRow()) {
-    var p = out[row.id] = {};
+    var p = out[row.id] = {}
     for (var i in row.value) {
-      if (i === "versions" || i.charAt(0) === "_") continue;
-      p[i] = row.value[i];
+      if (i === "versions" || i.charAt(0) === "_") continue
+      p[i] = row.value[i]
     }
-    p.versions = {};
+    p.versions = {}
     for (var i in row.value.versions) {
       p.versions[i] = "http://"+req.headers.Host+"/"+row.value.name+"/"+i
     }
@@ -52,9 +50,9 @@ ddoc.views.listAll = {
 }
 
 ddoc.shows.package = function (doc, req) {
-  var code = 200,
-    headers = {"Content-Type":"application/json"},
-    body = null;
+  var code = 200
+    , headers = {"Content-Type":"application/json"}
+    , body = null
   if (req.query.version) {
     if (isNaN(parseInt(req.query.version[0]))) {
       body = doc.versions[doc['dist-tags'][req.query.version]]
@@ -62,8 +60,8 @@ ddoc.shows.package = function (doc, req) {
       body = doc.versions[req.query.version]
     }
     if (!body) {
-      code = 404;
-      body = {"error" : "version not found: "+req.query.version};
+      code = 404
+      body = {"error" : "version not found: "+req.query.version}
     }
   } else {
     body = doc;
@@ -164,7 +162,7 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
 
   function validUser () {
     if ( !oldDoc || !oldDoc.maintainers ) return true
-    // if (isAdmin()) return true
+    if (isAdmin()) return true
     if (typeof oldDoc.maintainers !== "object") return true
     for (var i = 0, l = oldDoc.maintainers.length; i < l; i ++) {
       if (oldDoc.maintainers[i].name === user.name) return true
@@ -173,16 +171,12 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   }
   function isAdmin () { return user.roles.indexOf("_admin") >= 0 }
 
-  if (newDoc._deleted === true) {
-    // Allow document deletion, this eventually will need to do user validation.
-    if (!isAdmin()) throw {forbidden:"Only admins may delete"}
-    return true
-  }
-  
   if (!validUser()) {
     throw {forbidden:"user: " + user.name + " not authorized to modify "
                     + newDoc.name }
   }
+  if (newDoc._deleted) return true
+
   if (oldDoc && oldDoc.maintainers && !newDoc.maintainers) {
     throw {forbidden: "Please upgrade your package manager program"}
   }
