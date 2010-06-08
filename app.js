@@ -18,11 +18,16 @@ ddoc.rewrites =
 
   , { from: "/:pkg/-/:att", to: "../../:pkg/:att", method: "GET" }
   , { from: "/:pkg/-/:att/:rev", to: "../../:pkg/:att", method: "PUT" }
+  , { from: "/:pkg/-/:att/-rev/:rev", to: "../../:pkg/:att", method: "PUT"
+      , query: { rev : ":rev" }}
+  , { from: "/:pkg/-/:att/:rev", to: "../../:pkg/:att", method: "DELETE" }
+  , { from: "/:pkg/-/:att/-rev/:rev", to: "../../:pkg/:att", method: "DELETE" }
 
   , { from: "/:pkg", to: "/_update/package/:pkg", method: "PUT" }
+  , { from: "/:pkg/-rev/:rev", to: "/_update/package/:pkg", method: "PUT" }
   , { from: "/:pkg/:version", to: "_update/package/:pkg", method: "PUT" }
 
-  , { from: "/:pkg", to: "../../:pkg", method: "DELETE" }
+  , { from: "/:pkg/:rev", to: "../../:pkg", method: "DELETE" }
   ]
 
 ddoc.lists.index = function (head, req) {
@@ -121,15 +126,19 @@ ddoc.updates.package = function (doc, req) {
     }
 
     // update the package info
-    var newdoc = JSON.parse(req.body),
-      changed = false;
+    var newdoc = JSON.parse(req.body)
+      , changed = false
     if (doc._rev && doc._rev !== newdoc._rev) {
-      return error("must supply latest _rev to update existing package");
+      return error( "must supply latest _rev to update existing package" )
     }
     for (var i in newdoc) {
       if (typeof newdoc[i] === "string") {
         doc[i] = newdoc[i];
       }
+    }
+    if (newdoc.versions) {
+      doc.versions = newdoc.versions
+      doc["dist-tags"] = newdoc["dist-tags"]
     }
     doc.mtime = now;
     return [doc, JSON.stringify({ok:"updated package metadata"})];
