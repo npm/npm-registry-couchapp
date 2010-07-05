@@ -10,6 +10,8 @@ ddoc.rewrites =
   , { from: "/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
 
   , { from: "/adduser/:user", to:"../../../_users/:user", method: "PUT" }
+  , { from: "/adduser/:user/-rev/:rev", to:"../../../_users/:user", method: "PUT" }
+  , { from: "/getuser/:user", to:"../../../_users/:user", method: "GET" }
 
   , { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" }
   , { from: "/:pkg/-/jsonp/:jsonp", to: "/_show/package/:pkg", method: "GET" }
@@ -18,8 +20,7 @@ ddoc.rewrites =
 
   , { from: "/:pkg/-/:att", to: "../../:pkg/:att", method: "GET" }
   , { from: "/:pkg/-/:att/:rev", to: "../../:pkg/:att", method: "PUT" }
-  , { from: "/:pkg/-/:att/-rev/:rev", to: "../../:pkg/:att", method: "PUT"
-      , query: { rev : ":rev" }}
+  , { from: "/:pkg/-/:att/-rev/:rev", to: "../../:pkg/:att", method: "PUT" }
   , { from: "/:pkg/-/:att/:rev", to: "../../:pkg/:att", method: "DELETE" }
   , { from: "/:pkg/-/:att/-rev/:rev", to: "../../:pkg/:att", method: "DELETE" }
 
