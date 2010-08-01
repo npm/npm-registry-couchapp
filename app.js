@@ -28,7 +28,7 @@ ddoc.rewrites =
   , { from: "/:pkg/-rev/:rev", to: "/_update/package/:pkg", method: "PUT" }
   , { from: "/:pkg/:version", to: "_update/package/:pkg", method: "PUT" }
 
-  , { from: "/:pkg/:rev", to: "../../:pkg", method: "DELETE" }
+  , { from: "/:pkg/-rev/:rev", to: "../../:pkg", method: "DELETE" }
   ]
 
 ddoc.lists.index = function (head, req) {
@@ -37,13 +37,17 @@ ddoc.lists.index = function (head, req) {
   while (row = getRow()) {
     var p = out[row.id] = {}
     for (var i in row.value) {
-      if (i === "versions" || i.charAt(0) === "_") continue
+      if (i === "versions"
+        || i.charAt(0) === "_"
+        || i === "ctime"
+        ) continue
       p[i] = row.value[i]
     }
     p.versions = {}
     for (var i in row.value.versions) {
       p.versions[i] = "http://"+req.headers.Host+"/"+row.value.name+"/"+i
     }
+    p.url = "http://"+req.headers.Host+"/"+encodeURIComponent(row.value.name)+"/"
   }
   out = req.query.jsonp
       ? req.query.jsonp + "(" + JSON.stringify(out) + ")"
@@ -52,7 +56,9 @@ ddoc.lists.index = function (head, req) {
   send(out)
 }
 ddoc.views.listAll = {
-  map : function (doc) { emit(doc.id, doc) }
+  map : function (doc) {
+    for (var i in doc.versions) return emit(doc.id, doc)
+  }
 }
 
 ddoc.shows.package = function (doc, req) {
@@ -71,6 +77,8 @@ ddoc.shows.package = function (doc, req) {
     }
   } else {
     body = doc;
+    delete body._revisions
+    delete body._attachments
   }
   body = req.query.jsonp
        ? req.query.jsonp + "(" + JSON.stringify(body) + ")"
@@ -133,7 +141,7 @@ ddoc.updates.package = function (doc, req) {
       return error( "must supply latest _rev to update existing package" )
     }
     for (var i in newdoc) {
-      if (typeof newdoc[i] === "string") {
+      if (typeof newdoc[i] === "string" || i === "maintainers") {
         doc[i] = newdoc[i];
       }
     }
