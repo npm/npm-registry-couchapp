@@ -160,6 +160,9 @@ ddoc.updates.package = function (doc, req) {
       doc.versions[v].ctime = doc.versions[v].mtime = now;
       latest = v
     }
+    if (!latest) {
+      return error("not found - tagging a non-existent package?")
+    }
     doc["dist-tags"].latest = latest;
     if (!doc['dist-tags']) doc['dist-tags'] = {};
     doc.ctime = doc.mtime = now;
