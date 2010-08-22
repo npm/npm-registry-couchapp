@@ -160,10 +160,7 @@ ddoc.updates.package = function (doc, req) {
       doc.versions[v].ctime = doc.versions[v].mtime = now;
       latest = v
     }
-    if (!latest) {
-      return error("not found - tagging a non-existent package?")
-    }
-    doc["dist-tags"].latest = latest;
+    if (latest) doc["dist-tags"].latest = latest;
     if (!doc['dist-tags']) doc['dist-tags'] = {};
     doc.ctime = doc.mtime = now;
     return [doc, JSON.stringify({ok:"created new entry"})];
@@ -179,7 +176,7 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   
   // if the newDoc is an {error:"blerg"}, then throw that right out.
   // something detected in the _updates/package script.
-  if (newDoc.forbidden) throw {forbidden:newDoc.forbidden};
+  if (newDoc.forbidden) throw {forbidden:newDoc.forbidden || newDoc.error};
 
   function validUser () {
     if ( !oldDoc || !oldDoc.maintainers ) return true
