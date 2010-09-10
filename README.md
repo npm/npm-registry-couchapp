@@ -1,38 +1,30 @@
 # Install
 
-You'll need CouchDB trunk, we're using some very new features.  The git mirror is linked in as a submodule.  You can get it like this:
+You'll need CouchDB version 1.0.0 or higher.  We're using some newish features.
+I recommend getting one from http://couchone.com/
 
-    git submodule init
-    git submodule update
+Add a vhost config:
 
-and then `cd deps/couchdb` and do the `./bootstrap && ./configure && make && sudo make install` dance.  More information, including how to install the dependencies, available [on the CouchDB wiki](http://wiki.apache.org/couchdb/Installation).
-
-If you already have couch installed via MacPorts or apt-get or Homebrew, you'll probably need to remove it first.
-
-Create a file called `jsregistry.ini` (or anything .ini, really) and put this in it:
-    
     [vhosts]
     packages:5984 = /jsregistry/_design/app/_rewrite
 
 Where `packages` is the hostname where you'll be running the thing, and `5984` is the port that CouchDB is running on.  If you're running on port 80, then omit the port altogether.
 
-Then drop this file in your `/etc/couchdb/local.d` folder.  (If you're using Homebrew or MacPorts, this may be found underneath the package system prefix, either `/usr/local` or `/opt/local`, respectively.)
+Now install couchapp:
 
-Now Install use npm to install couchapp.
-
-    git clone git@github.com:mikeal/node.couchapp.js.git
-    cd node.couchapp.js
-    npm install .
-    npm activate couchapp 0.2.0
+    npm install couchapp
 
 Now run the sync app.js from this repository.
 
     couchapp --design app.js --sync --couch http://localhost:5984/jsregistry
 
+You may need to put a username and password in the URL:
+
+    couchapp --design app.js --sync --couch http://user:pass@localhost:5984/jsregistry
+
 # API
 
 ### GET /packagename
-
 
 Returns the JSON document for this package. Includes all known dists and metadata. Example:
 
@@ -52,14 +44,14 @@ Returns the JSON document for this package. Includes all known dists and metadat
       "description": "A fake package."
     }
 
-### GET /packagename/0.1
+### GET /packagename/0.1.2
 
 Returns the JSON object for a specified release. Example:
 
     {
       "name": "foo",
       "_id": "foo",
-      "version": "0.1",
+      "version": "0.1.2",
       "dist": { "tarball": "http:\/\/domain.com\/0.1.tgz" },
       "description": "A fake package"
     }
@@ -86,7 +78,7 @@ If updating this must include the latest _rev.
 
 This method can also remove previous versions and distributions if necessary.
 
-### PUT /packagename/0.1
+### PUT /packagename/0.1.2
 
 Create a new release version. 
 
@@ -98,6 +90,6 @@ Link a distribution tag (ie. "stable") to a specific version string.
 
 MUST but a JSON string as the body. Example:
 
-    "0.1"
+    "0.1.2"
 
 Must have `content-type:application/json`.
