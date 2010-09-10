@@ -44,8 +44,15 @@ ddoc.lists.index = function (head, req) {
       p[i] = row.value[i]
     }
     p.versions = {}
+    if (row.repository) p.repository = row.repository
+    if (row.description) p.description = row.description
     for (var i in row.value.versions) {
-      if (row.value.versions[i].repository) p.repository = row.value.versions[i].repository
+      if (row.value.versions[i].repository && !row.repository) {
+        p.repository = row.value.versions[i].repository
+      }
+      if (row.value.versions[i].description && !row.description) {
+        p.description = row.value.versions[i].description
+      }
       p.versions[i] = "http://"+req.headers.Host+"/"+row.value.name+"/"+i
     }
     p.url = "http://"+req.headers.Host+"/"+encodeURIComponent(row.value.name)+"/"
@@ -129,9 +136,12 @@ ddoc.updates.package = function (doc, req) {
         return error("cannot modify existing version")
       }
       var body = JSON.parse(req.body)
-      for (var i in body) if (typeof body[i] === "string") {
-        doc[i] = body[i]
-      }
+      // for (var i in body) if (typeof body[i] === "string") {
+      //   doc[i] = body[i]
+      // }
+      if (body.description) doc.description = body.description
+      if (body.author) doc.author = body.author
+      if (body.repository) doc.repository = body.repository
       body.ctime = body.mtime = doc.mtime = now
       doc["dist-tags"].latest = body.version
       doc.versions[req.query.version] = body
