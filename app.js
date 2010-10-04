@@ -37,10 +37,7 @@ ddoc.lists.index = function (head, req) {
   while (row = getRow()) {
     var p = out[row.id] = {}
     for (var i in row.value) {
-      if (i === "versions"
-        || i.charAt(0) === "_"
-        || i === "ctime"
-        ) continue
+      if (i === "versions" || i.charAt(0) === "_") continue
       p[i] = row.value[i]
     }
     p.versions = {}
@@ -141,7 +138,6 @@ ddoc.updates.package = function (doc, req) {
       if (body.description) doc.description = body.description
       if (body.author) doc.author = body.author
       if (body.repository) doc.repository = body.repository
-      body.ctime = now
       doc["dist-tags"].latest = body.version
       doc.versions[req.query.version] = body
       return [doc, JSON.stringify({ok:"added version"})]
@@ -167,12 +163,10 @@ ddoc.updates.package = function (doc, req) {
     if (!doc.versions) doc.versions = {}
     var latest
     for (var v in doc.versions) {
-      doc.versions[v].ctime = now
       latest = v
     }
     if (latest) doc["dist-tags"].latest = latest
     if (!doc['dist-tags']) doc['dist-tags'] = {}
-    doc.ctime = now
     return [doc, JSON.stringify({ok:"created new entry"})]
   }
 }
