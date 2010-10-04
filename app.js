@@ -97,15 +97,6 @@ ddoc.shows.package = function (doc, req) {
 
 ddoc.updates.package = function (doc, req) {
   var semver = /v?([0-9]+)\.([0-9]+)\.([0-9]+)([a-zA-Z-][a-zA-Z0-9-]*)?/
-  function toISOString(d){
-   function pad(n){return n<10 ? '0'+n : n}
-   return d.getUTCFullYear()+'-'
-        + pad(d.getUTCMonth()+1)+'-'
-        + pad(d.getUTCDate())+'T'
-        + pad(d.getUTCHours())+':'
-        + pad(d.getUTCMinutes())+':'
-        + pad(d.getUTCSeconds())+'Z'}
-  var now = toISOString(new Date())
   function error (reason) {
     return [{forbidden:reason}, JSON.stringify({forbidden:reason})]
   }
