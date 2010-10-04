@@ -126,7 +126,6 @@ ddoc.updates.package = function (doc, req) {
             " to invalid version: "+req.body)
         }
         doc["dist-tags"][req.query.version] = JSON.parse(req.body)
-        doc.mtime = now
         return [doc, JSON.stringify({ok:"updated tag"})]
       }
       // adding a new version.
@@ -142,7 +141,7 @@ ddoc.updates.package = function (doc, req) {
       if (body.description) doc.description = body.description
       if (body.author) doc.author = body.author
       if (body.repository) doc.repository = body.repository
-      body.ctime = body.mtime = doc.mtime = now
+      body.ctime = now
       doc["dist-tags"].latest = body.version
       doc.versions[req.query.version] = body
       return [doc, JSON.stringify({ok:"added version"})]
@@ -161,7 +160,6 @@ ddoc.updates.package = function (doc, req) {
       doc.versions = newdoc.versions
       doc["dist-tags"] = newdoc["dist-tags"]
     }
-    doc.mtime = now
     return [doc, JSON.stringify({ok:"updated package metadata"})]
   } else {
     // Create new package doc
@@ -169,12 +167,12 @@ ddoc.updates.package = function (doc, req) {
     if (!doc.versions) doc.versions = {}
     var latest
     for (var v in doc.versions) {
-      doc.versions[v].ctime = doc.versions[v].mtime = now
+      doc.versions[v].ctime = now
       latest = v
     }
     if (latest) doc["dist-tags"].latest = latest
     if (!doc['dist-tags']) doc['dist-tags'] = {}
-    doc.ctime = doc.mtime = now
+    doc.ctime = now
     return [doc, JSON.stringify({ok:"created new entry"})]
   }
 }
