@@ -96,9 +96,23 @@ ddoc.shows.package = function (doc, req) {
 }
 
 ddoc.updates.package = function (doc, req) {
-  var semver = /v?([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9]+-?)?([a-zA-Z-][a-zA-Z0-9-.:]*)?/
+  var semver = /^v?([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9]+-?)?([a-zA-Z-][a-zA-Z0-9-.:]*)?$/
   function error (reason) {
     return [{forbidden:reason}, JSON.stringify({forbidden:reason})]
+  }
+
+  function validVersion (v) {
+    return v.match(semver)
+  }
+  function validName (name) {
+    var n = name.replace('%20', ' ').trim()
+    if (n.charAt(0) === "." || n.match(/[\/@\s]/) || n !== name || !n) {
+      return false
+    }
+    return true
+  }
+  function validPackage (pkg) {
+    return validName(pkg.name) && validVersion(pkg.version)
   }
 
   if (doc) {
@@ -107,8 +121,7 @@ ddoc.updates.package = function (doc, req) {
       if (!parsed) {
         // it's a tag.
         var tag = req.query.version
-        parsed = semver(JSON.parse(req.body))
-        if (!parsed) {
+        if (!validVersion(JSON.parse(req.body))) {
           return error(
             "setting tag "+req.query.version+
             " to invalid version: "+req.body)
@@ -122,10 +135,17 @@ ddoc.updates.package = function (doc, req) {
         // not supported at this time.
         return error("cannot modify existing version")
       }
+      if (!validVersion(req.query.version)) {
+        return error("invalid version: "+req.query.version)
+      }
       var body = JSON.parse(req.body)
-      // for (var i in body) if (typeof body[i] === "string") {
-      //   doc[i] = body[i]
-      // }
+      if (!validName(body.name)) {
+        return error( "Invalid name: "+JSON.stringify(body.name))
+      }
+      if (body.version !== req.query.version) {
+        return error( "version in doc doesn't match version in request: "
+                    + JSON.stringify(body.version) + " !== " + JSON.stringify(req.query.version))
+      }
       if (body.description) doc.description = body.description
       if (body.author) doc.author = body.author
       if (body.repository) doc.repository = body.repository
@@ -154,6 +174,11 @@ ddoc.updates.package = function (doc, req) {
     if (!doc.versions) doc.versions = {}
     var latest
     for (var v in doc.versions) {
+      if (!validVersion(v)) return error("Invalid version: "+JSON.stringify(v))
+      var p = doc.versions[p]
+      if (p.version !== v) return error("Version mismatch: "+JSON.stringify(v)
+                                       +" !== "+JSON.stringify(p.version))
+      if (!validName(p.name)) return error("Invalid name: "+JSON.stringify(p.name))
       latest = v
     }
     if (latest) doc["dist-tags"].latest = latest
@@ -163,7 +188,7 @@ ddoc.updates.package = function (doc, req) {
 }
 
 ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
-  var semver = /v?([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9]+-?)?([a-zA-Z-][a-zA-Z0-9-.:]*)?/
+  var semver = /^v?([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9]+-?)?([a-zA-Z-][a-zA-Z0-9-.:]*)?$/
 
   function assert (ok, message) {
     if (!ok) throw {forbidden:message}
@@ -193,7 +218,7 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   if (oldDoc && oldDoc.maintainers && !newDoc.maintainers) {
     throw {forbidden: "Please upgrade your package manager program"}
   }
-  var n = newDoc.name.trim()
+  var n = newDoc.name.replace('%20', ' ').trim()
   if (n.charAt(0) === "." || n.match(/[\/@\s]/) || n !== newDoc.name || !n) {
     var msg = "Invalid name: "
             + JSON.stringify(newDoc.name)
