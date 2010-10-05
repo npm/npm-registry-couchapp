@@ -96,7 +96,7 @@ ddoc.shows.package = function (doc, req) {
 }
 
 ddoc.updates.package = function (doc, req) {
-  var semver = /v?([0-9]+)\.([0-9]+)\.([0-9]+)([a-zA-Z-][a-zA-Z0-9-]*)?/
+  var semver = /v?([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9]+-?)?([a-zA-Z-][a-zA-Z0-9-.:]*)?/
   function error (reason) {
     return [{forbidden:reason}, JSON.stringify({forbidden:reason})]
   }
@@ -163,12 +163,12 @@ ddoc.updates.package = function (doc, req) {
 }
 
 ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
-  var semver = /v?([0-9]+)\.([0-9]+)\.([0-9]+)([a-zA-Z-][a-zA-Z0-9-]*)?/
+  var semver = /v?([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9]+-?)?([a-zA-Z-][a-zA-Z0-9-.:]*)?/
 
   function assert (ok, message) {
     if (!ok) throw {forbidden:message}
   }
-  
+
   // if the newDoc is an {error:"blerg"}, then throw that right out.
   // something detected in the _updates/package script.
   if (newDoc.forbidden) throw {forbidden:newDoc.forbidden || newDoc.error}
@@ -192,6 +192,13 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
 
   if (oldDoc && oldDoc.maintainers && !newDoc.maintainers) {
     throw {forbidden: "Please upgrade your package manager program"}
+  }
+  var n = newDoc.name.trim()
+  if (n.charAt(0) === "." || n.match(/[\/@\s]/) || n !== newDoc.name || !n) {
+    var msg = "Invalid name: "
+            + JSON.stringify(newDoc.name)
+            + " may not start with '.' or contain '/' or '@' or whitespace"
+    throw {forbidden:msg}
   }
   
   // make sure all the dist-tags and versions are valid semver
