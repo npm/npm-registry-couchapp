@@ -1,7 +1,49 @@
 var couchapp = require('couchapp')
+  , ddoc = {_id:'_design/app', shows:{}, updates:{}, views:{}, lists:{}}
+  , fs = require("fs")
 
-var ddoc = {_id:'_design/app', shows:{}, updates:{}, views:{}, lists:{}}
 exports.app = ddoc
+
+ddoc.language = "javascript"
+// there has GOT to be a better way than this...
+ddoc.semver = [ 'var expr = exports.expression = '
+                + require("npm/utils/semver").expressions.parse.toString()
+              , 'function valid (v) { return v && typeof v === "string" && v.match(expr) }'
+              , 'function clean (v) {'
+                , 'v = valid(v)'
+                , 'if (!v) return v'
+                , "return [v[1]||'0', v[2]||'0', v[3]||'0'].join('.') + (v[4]||'') + (v[5]||'')"
+              ,'}'
+              , 'exports.valid = valid'
+              , 'exports.clean = clean'
+              ].join("\n")
+ddoc.valid =  [ 'function validName (name) {'
+                , 'if (!name) return false'
+                , 'var n = name.replace("%20", " ")'
+                , 'n = n.replace(/^\s+|\s+$/g, "")'
+                , 'if (!n || n.charAt(0) === "." || n.match(/[\/@\s]/) || n !== name || !n) {'
+                  , 'return false'
+                , '}'
+                , 'return n'
+                , '}'
+                , 'function validPackage (pkg) {'
+                  , 'return validName(pkg.name) && semver.valid(pkg.version)'
+                , '}'
+                , 'exports.name = validName'
+                , 'exports.package = validPackage'
+                ].join("\n")
+
+
+
+ddoc.shows.requirey = function () {
+  return { code : 200
+         , body : toJSON([require("semver").expression.toString(), typeof ("asdf".match),
+          require("semver").clean("0.2.4-1"),
+          require("semver").valid("0.2.4-1")
+         ])
+         , headers : {}
+         }
+}
 
 ddoc.rewrites =
   [ { from: "/", to:"_list/index/listAll", method: "GET" }
@@ -34,25 +76,45 @@ ddoc.rewrites =
 ddoc.lists.index = function (head, req) {
   var row
     , out = {}
+    , semver = require("semver")
+
   while (row = getRow()) {
     var p = out[row.id] = {}
-    for (var i in row.value) {
+    var doc = row.value
+    // legacy kludge
+    for (var v in doc.versions) {
+      var clean = semver.clean(v)
+      if (clean !== v) {
+        var x = doc.versions[v]
+        delete doc.versions[v]
+        x.version = v = clean
+        doc.versions[clean] = x
+      }
+    }
+    for (var tag in doc["dist-tags"]) {
+      var clean = semver.clean(doc["dist-tags"][tag])
+      if (!clean) delete doc["dist-tags"][tag]
+      else doc["dist-tags"][tag] = clean
+    }
+    // end kludge
+    
+    for (var i in doc) {
       if (i === "versions" || i.charAt(0) === "_") continue
-      p[i] = row.value[i]
+      p[i] = doc[i]
     }
     p.versions = {}
     if (row.repository) p.repository = row.repository
     if (row.description) p.description = row.description
-    for (var i in row.value.versions) {
-      if (row.value.versions[i].repository && !row.repository) {
-        p.repository = row.value.versions[i].repository
+    for (var i in doc.versions) {
+      if (doc.versions[i].repository && !row.repository) {
+        p.repository = doc.versions[i].repository
       }
-      if (row.value.versions[i].description && !row.description) {
-        p.description = row.value.versions[i].description
+      if (doc.versions[i].description && !row.description) {
+        p.description = doc.versions[i].description
       }
-      p.versions[i] = "http://"+req.headers.Host+"/"+row.value.name+"/"+i
+      p.versions[i] = "http://"+req.headers.Host+"/"+doc.name+"/"+i
     }
-    p.url = "http://"+req.headers.Host+"/"+encodeURIComponent(row.value.name)+"/"
+    p.url = "http://"+req.headers.Host+"/"+encodeURIComponent(doc.name)+"/"
   }
   out = req.query.jsonp
       ? req.query.jsonp + "(" + JSON.stringify(out) + ")"
@@ -61,21 +123,37 @@ ddoc.lists.index = function (head, req) {
   send(out)
 }
 ddoc.views.listAll = {
-  map : function (doc) {
-    for (var i in doc.versions) return emit(doc.id, doc)
-  }
+  map : function (doc) { return emit(doc._id, doc) }
 }
 
 ddoc.shows.package = function (doc, req) {
-  var code = 200
+  var semver = require("semver")
+    , code = 200
     , headers = {"Content-Type":"application/json"}
     , body = null
-  if (req.query.version) {
-    if (isNaN(parseInt(req.query.version[0]))) {
-      body = doc.versions[doc['dist-tags'][req.query.version]]
-    } else {
-      body = doc.versions[req.query.version]
+  // legacy kludge
+  for (var v in doc.versions) {
+    var clean = semver.clean(v)
+    if (clean !== v) {
+      var p = doc.versions[v]
+      delete doc.versions[v]
+      p.version = v = clean
+      doc.versions[clean] = p
     }
+  }
+  for (var tag in doc["dist-tags"]) {
+    var clean = semver.clean(doc["dist-tags"][tag])
+    if (!clean) delete doc["dist-tags"][tag]
+    else doc["dist-tags"][tag] = clean
+  }
+  // end kludge
+  if (req.query.version) {
+    var ver = req.query.version
+    // if not a valid version, then treat as a tag.
+    if (!semver.valid(ver)) {
+      ver = doc["dist-tags"][ver]
+    }
+    body = doc.versions[ver]
     if (!body) {
       code = 404
       body = {"error" : "version not found: "+req.query.version}
@@ -96,61 +174,52 @@ ddoc.shows.package = function (doc, req) {
 }
 
 ddoc.updates.package = function (doc, req) {
-  var semver = /^v?([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9]+-?)?([a-zA-Z-][a-zA-Z0-9-.:]*)?$/
+  var semver = require("semver")
+  var valid = require("valid")
   function error (reason) {
     return [{forbidden:reason}, JSON.stringify({forbidden:reason})]
   }
 
-  function validVersion (v) {
-    return v.match(semver)
-  }
-  function validName (name) {
-    var n = name.replace('%20', ' ').trim()
-    if (n.charAt(0) === "." || n.match(/[\/@\s]/) || n !== name || !n) {
-      return false
-    }
-    return true
-  }
-  function validPackage (pkg) {
-    return validName(pkg.name) && validVersion(pkg.version)
-  }
-
   if (doc) {
     if (req.query.version) {
-      var parsed = semver(req.query.version)
+      var parsed = semver.valid(req.query.version)
       if (!parsed) {
         // it's a tag.
         var tag = req.query.version
-        if (!validVersion(JSON.parse(req.body))) {
+          , ver = JSON.parse(req.body)
+        if (!semver.valid(ver)) {
           return error(
-            "setting tag "+req.query.version+
+            "setting tag "+tag+
             " to invalid version: "+req.body)
         }
-        doc["dist-tags"][req.query.version] = JSON.parse(req.body)
+        doc["dist-tags"][tag] = semver.clean(ver)
         return [doc, JSON.stringify({ok:"updated tag"})]
       }
       // adding a new version.
-      if (req.query.version in doc.versions) {
+      var ver = req.query.version
+      if (!semver.valid(ver)) {
+        return error("invalid version: "+ver)
+      }
+      if ((ver in doc.versions) || (semver.clean(ver) in doc.versions)) {
         // attempting to overwrite an existing version.
         // not supported at this time.
         return error("cannot modify existing version")
       }
-      if (!validVersion(req.query.version)) {
-        return error("invalid version: "+req.query.version)
-      }
       var body = JSON.parse(req.body)
-      if (!validName(body.name)) {
+      if (!valid.name(body.name)) {
         return error( "Invalid name: "+JSON.stringify(body.name))
       }
-      if (body.version !== req.query.version) {
+      body.version = semver.clean(body.version)
+      ver = semver.clean(ver)
+      if (body.version !== ver) {
         return error( "version in doc doesn't match version in request: "
-                    + JSON.stringify(body.version) + " !== " + JSON.stringify(req.query.version))
+                    + JSON.stringify(body.version) + " !== " + JSON.stringify(ver))
       }
       if (body.description) doc.description = body.description
       if (body.author) doc.author = body.author
       if (body.repository) doc.repository = body.repository
       doc["dist-tags"].latest = body.version
-      doc.versions[req.query.version] = body
+      doc.versions[ver] = body
       return [doc, JSON.stringify({ok:"added version"})]
     }
 
@@ -174,12 +243,12 @@ ddoc.updates.package = function (doc, req) {
     if (!doc.versions) doc.versions = {}
     var latest
     for (var v in doc.versions) {
-      if (!validVersion(v)) return error("Invalid version: "+JSON.stringify(v))
+      if (!semver.valid(v)) return error("Invalid version: "+JSON.stringify(v))
       var p = doc.versions[p]
       if (p.version !== v) return error("Version mismatch: "+JSON.stringify(v)
                                        +" !== "+JSON.stringify(p.version))
-      if (!validName(p.name)) return error("Invalid name: "+JSON.stringify(p.name))
-      latest = v
+      if (!valid.name(p.name)) return error("Invalid name: "+JSON.stringify(p.name))
+      latest = semver.clean(v)
     }
     if (latest) doc["dist-tags"].latest = latest
     if (!doc['dist-tags']) doc['dist-tags'] = {}
@@ -188,7 +257,8 @@ ddoc.updates.package = function (doc, req) {
 }
 
 ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
-  var semver = /^v?([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9]+-?)?([a-zA-Z-][a-zA-Z0-9-.:]*)?$/
+  var semver = require("semver")
+  var valid = require("valid")
 
   function assert (ok, message) {
     if (!ok) throw {forbidden:message}
@@ -218,8 +288,8 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   if (oldDoc && oldDoc.maintainers && !newDoc.maintainers) {
     throw {forbidden: "Please upgrade your package manager program"}
   }
-  var n = newDoc.name.replace('%20', ' ').trim()
-  if (n.charAt(0) === "." || n.match(/[\/@\s]/) || n !== newDoc.name || !n) {
+  var n = valid.name(newDoc.name)
+  if (!valid.name(n) || n !== newDoc.name || !n) {
     var msg = "Invalid name: "
             + JSON.stringify(newDoc.name)
             + " may not start with '.' or contain '/' or '@' or whitespace"
@@ -231,13 +301,13 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   assert(newDoc.versions, "must have versions")
 
   for (var i in newDoc["dist-tags"]) {
-    assert(semver(newDoc["dist-tags"][i]),
+    assert(semver.valid(newDoc["dist-tags"][i]),
       "dist-tag "+i+" is not a valid version: "+newDoc["dist-tags"][i])
     assert(newDoc["dist-tags"][i] in newDoc.versions,
       "dist-tag "+i+" refers to non-existent version: "+newDoc["dist-tags"][i])
   }
   for (var i in newDoc.versions) {
-    assert(semver(i),
+    assert(semver.valid(i),
       "version "+i+" is not a valid version")
   }
 }
