@@ -20,8 +20,8 @@ ddoc.semver = [ 'var expr = exports.expression = '
 ddoc.valid =  [ 'function validName (name) {'
                 , 'if (!name) return false'
                 , 'var n = name.replace("%20", " ")'
-                , 'n = n.replace(/^\s+|\s+$/g, "")'
-                , 'if (!n || n.charAt(0) === "." || n.match(/[\/@\s]/) || n !== name || !n) {'
+                , 'n = n.replace(/^\\s+|\\s+$/g, "")'
+                , 'if (!n || n.charAt(0) === "." || n.match(/[\\/@\\s]/) || n !== name) {'
                   , 'return false'
                 , '}'
                 , 'return n'
@@ -39,7 +39,8 @@ ddoc.shows.requirey = function () {
   return { code : 200
          , body : toJSON([require("semver").expression.toString(), typeof ("asdf".match),
           require("semver").clean("0.2.4-1"),
-          require("semver").valid("0.2.4-1")
+          require("semver").valid("0.2.4-1"),
+          new Date().toISOString(),"hi"
          ])
          , headers : {}
          }
@@ -139,6 +140,20 @@ ddoc.shows.package = function (doc, req) {
       delete doc.versions[v]
       p.version = v = clean
       doc.versions[clean] = p
+    }
+    if (doc.versions[v].dist.tarball) {
+      var t = doc.versions[v].dist.tarball
+      t = t.replace(/^https?:\/\/[^\/:]+(:[0-9]+)?/, '')
+      doc.versions[v].dist.tarball = t
+      var h
+      for (var i in req.headers) {
+        if (i.toLowerCase() === 'host') {
+          h = req.headers[i]
+          break
+        }
+      }
+      h = h ? 'http://' + h : h
+      doc.versions[v].dist.tarball = h + t
     }
   }
   for (var tag in doc["dist-tags"]) {
@@ -264,7 +279,8 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
 
   // if the newDoc is an {error:"blerg"}, then throw that right out.
   // something detected in the _updates/package script.
-  if (newDoc.forbidden) throw {forbidden:newDoc.forbidden || newDoc.error}
+  assert(!newDoc.forbidden && !newDoc._deleted, newDoc.forbidden)
+  if (newDoc._deleted && (oldDoc.forbidden || newDoc.forbidden)) return
 
   function validUser () {
     if ( !oldDoc || !oldDoc.maintainers ) return true
