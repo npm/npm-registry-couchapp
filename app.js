@@ -97,7 +97,7 @@ ddoc.lists.index = function (head, req) {
       else doc["dist-tags"][tag] = clean
     }
     // end kludge
-    
+
     for (var i in doc) {
       if (i === "versions" || i.charAt(0) === "_") continue
       p[i] = doc[i]
@@ -188,9 +188,7 @@ ddoc.updates.package = function (doc, req) {
         var tag = req.query.version
           , ver = JSON.parse(req.body)
         if (!semver.valid(ver)) {
-          return error(
-            "setting tag "+tag+
-            " to invalid version: "+req.body)
+          return error("setting tag "+tag+" to invalid version: "+req.body)
         }
         doc["dist-tags"][tag] = semver.clean(ver)
         return [doc, JSON.stringify({ok:"updated tag"})]
@@ -283,7 +281,7 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
     throw {forbidden:"user: " + user.name + " not authorized to modify "
                     + newDoc.name }
   }
-  if (newDoc._deleted) return true
+  if (newDoc._deleted) return
 
   if (oldDoc && oldDoc.maintainers && !newDoc.maintainers) {
     throw {forbidden: "Please upgrade your package manager program"}
