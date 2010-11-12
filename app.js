@@ -279,8 +279,7 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
 
   // if the newDoc is an {error:"blerg"}, then throw that right out.
   // something detected in the _updates/package script.
-  assert(!newDoc.forbidden && !newDoc._deleted, newDoc.forbidden)
-  if (newDoc._deleted && (oldDoc.forbidden || newDoc.forbidden)) return
+  assert(!newDoc.forbidden || newDoc._deleted, newDoc.forbidden)
 
   function validUser () {
     if ( !oldDoc || !oldDoc.maintainers ) return true
