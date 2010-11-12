@@ -293,23 +293,17 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   }
   function isAdmin () { return user.roles.indexOf("_admin") >= 0 }
 
-  if (!validUser()) {
-    throw {forbidden:"user: " + user.name + " not authorized to modify "
-                    + newDoc.name }
-  }
+  assert(validUser(), "user: " + user.name + " not authorized to modify "
+                      + newDoc.name )
   if (newDoc._deleted) return
 
-  if (oldDoc && oldDoc.maintainers && !newDoc.maintainers) {
-    throw {forbidden: "Please upgrade your package manager program"}
-  }
+  assert(newDoc.maintainers, "Please upgrade your package manager program")
   var n = valid.name(newDoc.name)
-  if (!valid.name(n) || n !== newDoc.name || !n) {
-    var msg = "Invalid name: "
-            + JSON.stringify(newDoc.name)
-            + " may not start with '.' or contain '/' or '@' or whitespace"
-    throw {forbidden:msg}
-  }
-  
+  assert(valid.name(n) && n === newDoc.name && n
+        , "Invalid name: "
+          + JSON.stringify(newDoc.name)
+          + " may not start with '.' or contain '/' or '@' or whitespace")
+
   // make sure all the dist-tags and versions are valid semver
   assert(newDoc["dist-tags"], "must have dist-tags")
   assert(newDoc.versions, "must have versions")
@@ -321,7 +315,6 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
       "dist-tag "+i+" refers to non-existent version: "+newDoc["dist-tags"][i])
   }
   for (var i in newDoc.versions) {
-    assert(semver.valid(i),
-      "version "+i+" is not a valid version")
+    assert(semver.valid(i), "version "+i+" is not a valid version")
   }
 }
