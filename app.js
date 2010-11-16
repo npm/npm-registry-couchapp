@@ -19,19 +19,20 @@ ddoc.semver = [ 'var expr = exports.expression = '
               ].join("\n")
 ddoc.valid =  [ 'function validName (name) {'
                 , 'if (!name) return false'
+                , 'if (name === "favicon.ico") return false'
                 , 'var n = name.replace("%20", " ")'
                 , 'n = n.replace(/^\\s+|\\s+$/g, "")'
                 , 'if (!n || n.charAt(0) === "." || n.match(/[\\/@\\s]/) || n !== name) {'
                   , 'return false'
                 , '}'
                 , 'return n'
-                , '}'
-                , 'function validPackage (pkg) {'
-                  , 'return validName(pkg.name) && semver.valid(pkg.version)'
-                , '}'
-                , 'exports.name = validName'
-                , 'exports.package = validPackage'
-                ].join("\n")
+              , '}'
+              , 'function validPackage (pkg) {'
+                , 'return validName(pkg.name) && semver.valid(pkg.version)'
+              , '}'
+              , 'exports.name = validName'
+              , 'exports.package = validPackage'
+              ].join("\n")
 
 
 
@@ -48,6 +49,7 @@ ddoc.shows.requirey = function () {
 
 ddoc.rewrites =
   [ { from: "/", to:"_list/index/listAll", method: "GET" }
+  , { from : "/favicon.ico", to:"../../npm/favicon.ico", method:"GET" }
   , { from: "/all", to:"_list/index/listAll", method: "GET" }
   , { from: "/all/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
   , { from: "/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
