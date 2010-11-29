@@ -118,7 +118,7 @@ ddoc.lists.index = function (head, req) {
       }
       p.versions[i] = "http://"+req.headers.Host+"/"+doc.name+"/"+i
     }
-    p.url = "http://"+req.headers.Host+"/"+encodeURIComponent(doc.name)+"/"
+    if (!p.url) p.url = "http://"+req.headers.Host+"/"+encodeURIComponent(doc.name)+"/"
   }
   out = req.query.jsonp
       ? req.query.jsonp + "(" + JSON.stringify(out) + ")"
@@ -135,6 +135,19 @@ ddoc.shows.package = function (doc, req) {
     , code = 200
     , headers = {"Content-Type":"application/json"}
     , body = null
+  if (doc.url) { 
+    // the package specifies a URL, redirect to it
+    code = 301
+    var url = doc.url
+    if (req.query.version) {
+      url += '/' + req.query.version // add the version to the URL if necessary
+      delete req.query.version // stay out of the version branch below
+    }
+    headers.Location = url
+    doc = {
+      location: url
+    }
+  }
   // legacy kludge
   for (var v in doc.versions) {
     var clean = semver.clean(v)
