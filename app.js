@@ -84,9 +84,9 @@ ddoc.lists.index = function (head, req) {
   while (row = getRow()) {
     if (!row.id) continue
     var p = out[row.id] = {}
-    var doc = row.value
+      , doc = row.value
     // legacy kludge
-    for (var v in doc.versions) {
+    if (doc.versions) for (var v in doc.versions) {
       var clean = semver.clean(v)
       if (clean !== v) {
         var x = doc.versions[v]
@@ -95,7 +95,7 @@ ddoc.lists.index = function (head, req) {
         doc.versions[clean] = x
       }
     }
-    for (var tag in doc["dist-tags"]) {
+    if (doc["dist-tags"]) for (var tag in doc["dist-tags"]) {
       var clean = semver.clean(doc["dist-tags"][tag])
       if (!clean) delete doc["dist-tags"][tag]
       else doc["dist-tags"][tag] = clean
@@ -109,16 +109,19 @@ ddoc.lists.index = function (head, req) {
     p.versions = {}
     if (row.repository) p.repository = row.repository
     if (row.description) p.description = row.description
-    for (var i in doc.versions) {
-      if (doc.versions[i].repository && !row.repository) {
-        p.repository = doc.versions[i].repository
+    if (doc.url) p.url = doc.url
+    else {
+      for (var i in doc.versions) {
+        if (doc.versions[i].repository && !row.repository) {
+          p.repository = doc.versions[i].repository
+        }
+        if (doc.versions[i].description && !row.description) {
+          p.description = doc.versions[i].description
+        }
+        p.versions[i] = "http://"+req.headers.Host+"/"+doc.name+"/"+i
       }
-      if (doc.versions[i].description && !row.description) {
-        p.description = doc.versions[i].description
-      }
-      p.versions[i] = "http://"+req.headers.Host+"/"+doc.name+"/"+i
+      p.url = "http://"+req.headers.Host+"/"+encodeURIComponent(doc.name)+"/"
     }
-    if (!p.url) p.url = "http://"+req.headers.Host+"/"+encodeURIComponent(doc.name)+"/"
   }
   out = req.query.jsonp
       ? req.query.jsonp + "(" + JSON.stringify(out) + ")"
@@ -144,12 +147,10 @@ ddoc.shows.package = function (doc, req) {
       delete req.query.version // stay out of the version branch below
     }
     headers.Location = url
-    doc = {
-      location: url
-    }
+    doc = { location: url, _rev: doc._rev }
   }
   // legacy kludge
-  for (var v in doc.versions) {
+  if (doc.versions) for (var v in doc.versions) {
     var clean = semver.clean(v)
     if (clean !== v) {
       var p = doc.versions[v]
@@ -172,7 +173,7 @@ ddoc.shows.package = function (doc, req) {
       doc.versions[v].dist.tarball = h + t
     }
   }
-  for (var tag in doc["dist-tags"]) {
+  if (doc["dist-tags"]) for (var tag in doc["dist-tags"]) {
     var clean = semver.clean(doc["dist-tags"][tag])
     if (!clean) delete doc["dist-tags"][tag]
     else doc["dist-tags"][tag] = clean
@@ -213,6 +214,9 @@ ddoc.updates.package = function (doc, req) {
 
   if (doc) {
     if (req.query.version) {
+      if (doc.url) {
+        return error(doc.name+" is hosted elsewhere: "+doc.url)
+      }
       var parsed = semver.valid(req.query.version)
       if (!parsed) {
         // it's a tag.
@@ -259,11 +263,17 @@ ddoc.updates.package = function (doc, req) {
     if (doc._rev && doc._rev !== newdoc._rev) {
       return error( "must supply latest _rev to update existing package" )
     }
+    if (newdoc.url && (newdoc.versions || newdoc["dist-tags"])) {
+      return error("Do not supply versions or dist-tags for packages "+
+                   "hosted elsewhere. Just a URL is sufficient.")
+    }
     for (var i in newdoc) if (typeof newdoc[i] === "string" || i === "maintainers") {
       doc[i] = newdoc[i]
     }
     if (newdoc.versions) {
       doc.versions = newdoc.versions
+    }
+    if (newdoc["dist-tags"]) {
       doc["dist-tags"] = newdoc["dist-tags"]
     }
     return [doc, JSON.stringify({ok:"updated package metadata"})]
@@ -271,6 +281,13 @@ ddoc.updates.package = function (doc, req) {
     // Create new package doc
     doc = JSON.parse(req.body)
     if (!doc._id) doc._id = doc.name
+    if (doc.url) {
+      if (doc.versions || doc["dist-tags"]) {
+        return error("Do not supply versions or dist-tags for packages "+
+                     "hosted elsewhere. Just a URL is sufficient.")
+      }
+      return [doc, JSON.stringify({ok:"created new entry"})]
+    }
     if (!doc.versions) doc.versions = {}
     var latest
     for (var v in doc.versions) {
@@ -325,6 +342,11 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   assert(newDoc.name === newDoc._id,
          "Invalid _id: " + JSON.stringify(newDoc._id) + "\n" +
          "Must match 'name' field ("+JSON.stringify(newDoc.name)+")")
+  if (newDoc.url) {
+    assert(!newDoc["dist-tags"], "redirected packages can't have dist-tags")
+    assert(!newDoc.versions, "redirected packages can't have versions")
+    return
+  }
   // make sure all the dist-tags and versions are valid semver
   assert(newDoc["dist-tags"], "must have dist-tags")
   assert(newDoc.versions, "must have versions")
