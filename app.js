@@ -82,6 +82,7 @@ ddoc.lists.index = function (head, req) {
     , semver = require("semver")
 
   while (row = getRow()) {
+    if (!row.id) continue
     var p = out[row.id] = {}
     var doc = row.value
     // legacy kludge
@@ -230,6 +231,7 @@ ddoc.updates.package = function (doc, req) {
         return error( "version in doc doesn't match version in request: "
                     + JSON.stringify(body.version) + " !== " + JSON.stringify(ver))
       }
+      body._id = body.name + "@" + body.version
       if (body.description) doc.description = body.description
       if (body.author) doc.author = body.author
       if (body.repository) doc.repository = body.repository
@@ -255,6 +257,7 @@ ddoc.updates.package = function (doc, req) {
   } else {
     // Create new package doc
     doc = JSON.parse(req.body)
+    if (!doc._id) doc._id = doc.name
     if (!doc.versions) doc.versions = {}
     var latest
     for (var v in doc.versions) {
@@ -274,6 +277,8 @@ ddoc.updates.package = function (doc, req) {
 ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   var semver = require("semver")
   var valid = require("valid")
+  // admins can do ANYTHING (even break stuff)
+  if (isAdmin()) return
 
   function assert (ok, message) {
     if (!ok) throw {forbidden:message}
@@ -304,7 +309,9 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
         , "Invalid name: "
           + JSON.stringify(newDoc.name)
           + " may not start with '.' or contain '/' or '@' or whitespace")
-
+  assert(newDoc.name === newDoc._id,
+         "Invalid _id: " + JSON.stringify(newDoc._id) + "\n" +
+         "Must match 'name' field ("+JSON.stringify(newDoc.name)+")")
   // make sure all the dist-tags and versions are valid semver
   assert(newDoc["dist-tags"], "must have dist-tags")
   assert(newDoc.versions, "must have versions")
