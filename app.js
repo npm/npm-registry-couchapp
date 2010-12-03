@@ -118,6 +118,7 @@ ddoc.lists.index = function (head, req) {
         if (doc.versions[i].description && !row.description) {
           p.description = doc.versions[i].description
         }
+        if (doc.versions[i].keywords) p.keywords = doc.versions[i].keywords
         p.versions[i] = "http://"+req.headers.Host+"/"+doc.name+"/"+i
       }
       p.url = "http://"+req.headers.Host+"/"+encodeURIComponent(doc.name)+"/"
