@@ -1,5 +1,4 @@
-var couchapp = require('couchapp')
-  , ddoc = {_id:'_design/app', shows:{}, updates:{}, views:{}, lists:{}}
+var ddoc = {_id:'_design/app', shows:{}, updates:{}, views:{}, lists:{}}
   , fs = require("fs")
 
 exports.app = ddoc
@@ -49,14 +48,23 @@ ddoc.shows.requirey = function () {
 
 ddoc.rewrites =
   [ { from: "/", to:"_list/index/listAll", method: "GET" }
-  , { from : "/favicon.ico", to:"../../npm/favicon.ico", method:"GET" }
-  , { from: "/all", to:"_list/index/listAll", method: "GET" }
-  , { from: "/all/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
+  , { from: "/-/all", to:"_list/index/listAll", method: "GET" }
+  , { from: "/-/all/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
   , { from: "/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
 
+  , { from : "/favicon.ico", to:"../../npm/favicon.ico", method:"GET" }
+
+  // DEPRECATED: Remove when npm dings 0.3.x
   , { from: "/adduser/:user", to:"../../../_users/:user", method: "PUT" }
   , { from: "/adduser/:user/-rev/:rev", to:"../../../_users/:user", method: "PUT" }
   , { from: "/getuser/:user", to:"../../../_users/:user", method: "GET" }
+
+  , { from: "/-/users", to:"../../../_users/_design/_auth/_list/index/listAll"
+    , method: "GET" }
+  , { from: "/-/user/:user", to:"../../../_users/:user", method: "PUT" }
+  , { from: "/-/user/:user/-rev/:rev", to:"../../../_users/:user"
+    , method: "PUT" }
+  , { from: "/-/user/:user", to:"../../../_users/:user", method: "GET" }
 
   , { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" }
   , { from: "/:pkg/-/jsonp/:jsonp", to: "/_show/package/:pkg", method: "GET" }
