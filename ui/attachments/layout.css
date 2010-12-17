@@ -1,0 +1,105 @@
+@font-face {
+	font-family: 'HattoriHanzoLight';
+	src: url('fonts/Hattori_Hanzo-webfont.eot');
+	src: local('☺'), url('fonts/Hattori_Hanzo-webfont.woff') format('woff'),
+	     url('fonts/Hattori_Hanzo-webfont.ttf') format('truetype'), 
+	     url('fonts/Hattori_Hanzo-webfont.svg#webfontrd3huYzV') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'CantarellRegular';
+	src: url('fonts/Cantarell-Regular-webfont.eot');
+	src: local('☺'), url('fonts/Cantarell-Regular-webfont.woff') format('woff'), 
+	     url('fonts/Cantarell-Regular-webfont.ttf') format('truetype'), 
+	     url('fonts/Cantarell-Regular-webfont.svg#webfontaI1yI6ue') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+html {
+  font: normal 100% CantarellRegular;
+  background-color:#C4C4C4;
+  color:#404040;
+} 
+
+div.spacer { clear:both; }
+
+div#title {
+  font-size:40px;
+  text-align:center;
+  padding-bottom:20px;
+}
+
+div#search-box {
+  width:96%;
+  padding-left:2%;
+  padding-right:2%;
+}
+div#search-box-title {
+  font-size:30px;
+  padding-right:4px;
+}
+div#search-box-input {
+}
+input#search-input {
+  width:70%;
+  font-size:30px;
+  font-family:CantarellRegular;
+  color:#404040;
+  background-color:#E8E8E8;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+}
+div#results {
+  font-size:20px;
+  width:96%;
+  padding-left:2%;
+  padding-right:2%;
+  padding-top:4px;
+}
+div.result {
+  background-color:#B3B3B3;
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  width:100%;
+  border-style:solid;
+  border-width:1px;
+  border-color:#636363;
+  padding-left:5px;
+}
+div.result-container {
+  padding-bottom:4px;
+}
+span.result-name {
+  padding-right:10px;
+}
+span.result-desc {
+}
+span.result-tags {
+  float:right;
+  font-size:16px;
+  padding-right:2px;
+}
+span.tag {
+  padding-left:5px;
+  cursor:pointer;
+  color:#878787;
+}
+span.desc-term {
+  color:#FCFCFC;
+}
+
+a:link, a:visited {
+  color:#3232CD;
+}
+
+div.package {
+  text-align:center;
+}
+
+/* Package Page */
+
