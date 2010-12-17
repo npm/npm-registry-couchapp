@@ -30,6 +30,29 @@ var request = function (options, callback) {
   $.ajax(options)
 }
 
+function prettyDate(time) {
+  if (time.indexOf('.') !== -1) time = time.slice(0, time.indexOf('.'))+'Z'
+	var date = new Date((time || "").replace(/-/g,"/").replace(/[TZ]/g," ")),
+	    date = new Date(date.getTime() - (date.getTimezoneOffset() * 1000 * 60))
+  		diff = (((new Date()).getTime() - date.getTime()) / 1000),
+  		day_diff = Math.floor(diff / 86400)
+  		;
+  
+  if (day_diff === -1) return "now"
+	if ( day_diff >= 31) return day_diff + ' days ago';
+	if ( isNaN(day_diff) || day_diff < 0 || day_diff >= 31 ) return;
+	
+	return day_diff == 0 && (
+			diff < 60 && "just now" ||
+			diff < 120 && "1 minute ago" ||
+			diff < 3600 && Math.floor( diff / 60 ) + " minutes ago" ||
+			diff < 7200 && "1 hour ago" ||
+			diff < 86400 && Math.floor( diff / 3600 ) + " hours ago") ||
+		day_diff == 1 && "Yesterday" ||
+		day_diff < 7 && day_diff + " days ago" ||
+		day_diff < 31 && Math.ceil( day_diff / 7 ) + " weeks ago";
+}
+
 $.expr[":"].exactly = function(obj, index, meta, stack){ 
   return ($(obj).text() == meta[3])
 }
@@ -67,6 +90,7 @@ app.index = function () {
     , docs = {}
     , currentSearch = ''
     , lastSearchForPage = ''
+    , limit = 20
     ;
     
   $('div#content').html(
@@ -76,13 +100,53 @@ app.index = function () {
         '<input id="search-input"></input>' +
       '</div>' +
     '</div>' +
-    '<div id="results"></div>'
+    '<div id="results"></div>' +
+    '<div class="spacer"></div>' +
+    '<div id="top-packages">' +
+      '<div id="latest-packages"><div class="top-title">Latest Updates</div></div>' +
+      '<div id="top-dep-packages"><div class="top-title">Most Dependended On</div></div>' +
+    '</div>'
   )
+  
+  request({url:'/_view/updated?descending=true&limit='+limit+'&include_docs=true'}, function (err, resp) {
+    resp.rows.forEach(function (row) {
+      docs[row.doc._id] = row.doc;
+      $('<div class="top-package"></div>')
+      .append('<div class="top-package-title"><a href="#/'+row.doc._id+'">'+row.doc._id+'</a></div>')
+      .append('<div class="top-package-updated">'+prettyDate(row.doc.mtime) +'</div>')
+      .append('<div class="spacer"></div>')
+      .appendTo('div#latest-packages')
+    })
+  })
+  
+  request({url:'/_view/dependencies?group=true'}, function (err, resp) {
+    var results = {};
+    resp.rows.forEach(function (row) {
+      if (!results[row.value]) results[row.value] = [];
+      results[row.value].push(row.key);
+    })
+    var keys = Object.keys(results);
+    keys.sort(function(a,b){return a - b;});
+    keys.reverse();
+    for (var i=0;i<limit;i++) {
+      if ($('div.top-package-dep').length == limit) return;
+      results[keys[i]].forEach(function (r) {
+        if ($('div.top-package-dep').length == limit) return;
+        $('<div class="top-package"></div>')
+        .append('<div class="top-package-title"><a href="#/'+r+'">'+r+'</a></div>')
+        .append('<div class="top-package-dep">'+keys[i]+'</div>')
+        .append('<div class="spacer"></div>')
+        .appendTo('div#top-dep-packages')
+      });
+    }
+  })
     
   var updateResults = function () {
     currentSearch = $('input#search-input').val().toLowerCase();
     currentTerms = currentSearch.split(' ');
     if (lastSearchForPage === currentSearch) return;
+    if (currentSearch == '') $('div#top-packages').show();
+    else $('div#top-packages').hide();
     var docsInPage = {}
       , ranked = {}
       ;
@@ -149,7 +213,8 @@ app.index = function () {
           '<div class="result">' + 
             '<span class="result-name"><a href="#/'+doc._id+'">'+doc._id+'</a></span>' + 
             '<span class="result-desc">'+(doc.htmlDescription || '') + '</span>' +
-            '<span class="result-tags"></span>' +
+            '<div class="result-tags"></div>' +
+            '<div class="spacer"></div>' +
           '</div>' +
         '</div>' +
         '<div class="spacer"></div>'
@@ -157,7 +222,7 @@ app.index = function () {
       
       if (doc.tags.length > 0) {
         doc.tags.forEach(function (tag) {
-          result.find('span.result-tags').append('<span class="tag">'+tag+'</span>')
+          result.find('div.result-tags').append('<span class="tag">'+tag+'</span>')
         })
       }
       
@@ -166,12 +231,22 @@ app.index = function () {
         $('input#search-input').val($(this).text()).change();
       })
     })})
+    
+    // $('span.result-tags').each(function () {
+    //   var p = $(this).parent();
+    //   $(this).css({right: p.position().left+p.width(), top:p.position().top})
+    // })
+    
     lastSearchForPage = currentSearch;
   }  
   
   var handleChange = function () {
     currentSearch = $('input#search-input').val().toLowerCase();
     currentTerms = currentSearch.split(' ')
+    if (currentSearch === '') {
+      $('div#results').html('')
+      $('div#top-packages').show();
+    }
     lastSearchForPage = ''
     var terms = currentTerms
       , c = currentSearch
@@ -256,6 +331,15 @@ app.showPackage = function () {
             '<a href="'+doc.versions[doc['dist-tags'][i]].dist.tarball+'">'+i+'</a>' + 
           '</div>'
         )
+      }
+      if (doc['dist-tags'].latest) {
+        if (doc.versions[doc['dist-tags'].latest].dependencies) {
+          var deps = $('<div class="package-deps">dependencies: </div>');
+          for (i in doc.versions[doc['dist-tags'].latest].dependencies) {
+            deps.append('<a class="dep-link" href="#/'+i+'">'+i+'</a>')
+          }
+          deps.appendTo(package);
+        }
       }
     }
     

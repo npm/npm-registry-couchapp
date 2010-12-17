@@ -74,13 +74,14 @@ span.result-name {
 span.result-desc {
   color:#6B6B6B;
 }
-span.result-tags {
-  float:right;
+div.result-tags {
+  text-align:right;
   font-size:16px;
-  padding-right:2px;
+  padding-right:4px;
+  float:right;
 }
 span.tag {
-  padding-left:5px;
+  padding-left:6px;
   cursor:pointer;
   color:#878787;
 }
@@ -90,11 +91,49 @@ span.desc-term {
 
 a:link, a:visited {
   color:#3232CD;
+  text-decoration:none;
+}
+
+a.dep-link {
+  padding-right:7px;
 }
 
 div.package {
   text-align:center;
 }
 
-/* Package Page */
+div.package-title {
+  font-size:20px;
+}
 
+div#latest-packages {
+  width:50%;
+  float:left;
+}
+
+div#top-dep-packages {
+  width:50%;
+  float:left;
+}
+
+div.top-title {
+  text-align:center;
+}
+
+div.top-package {
+  width:100%;
+}
+div.top-package-title {
+  padding-right:7px;
+  float:left;
+}
+div.top-package-updated {
+  float:right;
+  text-align:right;
+  padding-right:15px;
+}
+div.top-package-dep {
+  float:right;
+  text-align:right;
+  padding-right:15px;
+}

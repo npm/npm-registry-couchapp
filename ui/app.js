@@ -74,10 +74,19 @@ function packageSearch (doc) {
   }
 }
 
-ddoc.views = 
-  { search: 
-    { map: packageSearch
+function dependencies (doc) {
+  if (doc['dist-tags'] && doc['dist-tags'].latest) {
+    var dist = doc.versions[doc['dist-tags'].latest];
+    for (i in dist.dependencies) {
+      emit(i, dist.dependencies[i])
     }
+  }
+}
+
+ddoc.views = 
+  { search: { map: packageSearch }
+  , dependencies: {map: dependencies, reduce:"_count"}
+  , updated: {map: function (doc) {if (doc.mtime) emit(doc.mtime, 1) }}
   }
   ;
 
