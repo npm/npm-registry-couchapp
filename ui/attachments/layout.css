@@ -1,13 +1,13 @@
-@font-face {
-	font-family: 'HattoriHanzoLight';
-	src: url('fonts/Hattori_Hanzo-webfont.eot');
-	src: local('☺'), url('fonts/Hattori_Hanzo-webfont.woff') format('woff'),
-	     url('fonts/Hattori_Hanzo-webfont.ttf') format('truetype'), 
-	     url('fonts/Hattori_Hanzo-webfont.svg#webfontrd3huYzV') format('svg');
-	font-weight: normal;
-	font-style: normal;
+/*@font-face {
+  font-family: 'HattoriHanzoLight';
+  src: url('fonts/Hattori_Hanzo-webfont.eot');
+  src: local('☺'), url('fonts/Hattori_Hanzo-webfont.woff') format('woff'),
+       url('fonts/Hattori_Hanzo-webfont.ttf') format('truetype'), 
+       url('fonts/Hattori_Hanzo-webfont.svg#webfontrd3huYzV') format('svg');
+  font-weight: normal;
+  font-style: normal;
 }
-
+*/
 @font-face {
 	font-family: 'CantarellRegular';
 	src: url('fonts/Cantarell-Regular-webfont.eot');
@@ -61,14 +61,8 @@ div#results {
   padding-top:4px;
 }
 div.result {
-  background-color:#B3B3B3;
-  -moz-border-radius: 10px;
-  -webkit-border-radius: 10px;
-  border-radius: 10px;
+  background-color:#F5F5F5;
   width:100%;
-  border-style:solid;
-  border-width:1px;
-  border-color:#636363;
   padding-left:5px;
 }
 div.result-container {
@@ -78,6 +72,7 @@ span.result-name {
   padding-right:10px;
 }
 span.result-desc {
+  color:#6B6B6B;
 }
 span.result-tags {
   float:right;
@@ -90,7 +85,7 @@ span.tag {
   color:#878787;
 }
 span.desc-term {
-  color:#FCFCFC;
+  color:#141414;
 }
 
 a:link, a:visited {

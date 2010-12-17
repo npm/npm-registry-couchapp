@@ -1,3 +1,18 @@
+if (!Object.keys) {
+  Object.keys = function (obj) {
+    var keys = [];
+    for (i in obj) keys.push(i);
+    return keys;
+  }
+}
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function (cb) {
+    for (var i=0;i<this.length;i++) {
+      cb(this[i]);
+    }
+  }
+}
+
 var request = function (options, callback) {
   options.success = function (obj) {
     callback(null, obj);
@@ -87,7 +102,7 @@ app.index = function () {
       if (doc._id.toLowerCase() === currentSearch) doc.rank += 1000      
       
       if (doc['dist-tags'] && doc['dist-tags'].latest) {
-        var tags = doc.versions[doc['dist-tags'].latest].keywords || [];
+        var tags = doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags || [];
       } else { 
         var tags = [];
       }
@@ -195,7 +210,6 @@ app.index = function () {
               docs[row.id] = row.doc;
             })
             lastSearchForPage = ''
-            console.log('calling refresh')
             updateResults();
           })
         })
@@ -216,7 +230,6 @@ app.showPackage = function () {
     var package = $('div.package')
     .append('<div class="package-title">'+doc._id+'</div>')
     .append('<div class="package-description">'+doc.description+'</div>')
-    console.log(doc.versions[doc['dist-tags'].latest])
     if (doc['dist-tags'] && doc['dist-tags'].latest && (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags)) {
       package.append(
         '<div class="package-tags">tags: ' +
@@ -255,7 +268,6 @@ app.showPackage = function () {
         )
       }
     }
-    
     
   })
 }
