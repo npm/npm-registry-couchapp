@@ -94,8 +94,12 @@ ddoc.lists.index = function (head, req) {
     var p = out[row.id] = {}
       , doc = row.value
     // legacy kludge
+    delete doc.mtime
+    delete doc.ctime
     if (doc.versions) for (var v in doc.versions) {
       var clean = semver.clean(v)
+      delete doc.versions[v].ctime
+      delete doc.versions[v].mtime
       if (clean !== v) {
         var x = doc.versions[v]
         delete doc.versions[v]
@@ -147,7 +151,13 @@ ddoc.shows.package = function (doc, req) {
     , code = 200
     , headers = {"Content-Type":"application/json"}
     , body = null
-  if (doc.url) { 
+  delete doc.ctime
+  delete doc.mtime
+  Object.keys(doc.versions).forEach(function (v) {
+    delete doc.versions[v].ctime
+    delete doc.versions[v].mtime
+  })
+  if (doc.url) {
     // the package specifies a URL, redirect to it
     code = 301
     var url = doc.url
@@ -221,6 +231,21 @@ ddoc.updates.package = function (doc, req) {
     return [{forbidden:reason}, JSON.stringify({forbidden:reason})]
   }
 
+  function ok (doc, message) {
+    delete doc.mtime
+    delete doc.ctime
+    var time = doc.time = doc.time || {}
+    time.modified = (new Date()).toISOString()
+    time.created = time.created || time.modified
+    for (var v in doc.versions) {
+      var ver = doc.versions[v]
+      delete ver.ctime
+      delete ver.mtime
+      time[v] = time[v] || (new Date()).toISOString()
+    }
+    return [doc, JSON.stringify({ok:message})]
+  }
+
   if (doc) {
     if (req.query.version) {
       if (doc.url) {
@@ -235,7 +260,7 @@ ddoc.updates.package = function (doc, req) {
           return error("setting tag "+tag+" to invalid version: "+req.body)
         }
         doc["dist-tags"][tag] = semver.clean(ver)
-        return [doc, JSON.stringify({ok:"updated tag"})]
+        return ok(doc, "updated tag")
       }
       // adding a new version.
       var ver = req.query.version
@@ -263,7 +288,7 @@ ddoc.updates.package = function (doc, req) {
       if (body.repository) doc.repository = body.repository
       doc["dist-tags"].latest = body.version
       doc.versions[ver] = body
-      return [doc, JSON.stringify({ok:"added version"})]
+      return ok(doc, "added version")
     }
 
     // update the package info
@@ -285,7 +310,7 @@ ddoc.updates.package = function (doc, req) {
     if (newdoc["dist-tags"]) {
       doc["dist-tags"] = newdoc["dist-tags"]
     }
-    return [doc, JSON.stringify({ok:"updated package metadata"})]
+    return ok(doc, "updated package metadata")
   } else {
     // Create new package doc
     doc = JSON.parse(req.body)
@@ -295,7 +320,7 @@ ddoc.updates.package = function (doc, req) {
         return error("Do not supply versions or dist-tags for packages "+
                      "hosted elsewhere. Just a URL is sufficient.")
       }
-      return [doc, JSON.stringify({ok:"created new entry"})]
+      return ok(doc, "created new entry")
     }
     if (!doc.versions) doc.versions = {}
     var latest
@@ -309,7 +334,7 @@ ddoc.updates.package = function (doc, req) {
     }
     if (latest) doc["dist-tags"].latest = latest
     if (!doc['dist-tags']) doc['dist-tags'] = {}
-    return [doc, JSON.stringify({ok:"created new entry"})]
+    return ok(doc, "created new entry")
   }
 }
 
@@ -342,7 +367,24 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
                       + newDoc.name )
   if (newDoc._deleted) return
 
-  assert(newDoc.maintainers, "Please upgrade your package manager program")
+  assert(Array.isArray(newDoc.maintainers),
+         "maintainers should be a list of owners")
+  newDoc.maintainers.forEach(function (m) {
+    assert(m.name && m.email, "Maintainer should have name and email: "+
+           JSON.stringify(m))
+  })
+
+  assert(!newDoc.ctime,
+         "ctime is deprecated. Use time.created.")
+  assert(!newDoc.mtime,
+         "mtime is deprecated. Use time.modified.")
+  assert(newDoc.time, "time object required. {created, modified}")
+  var c = new Date(newDoc.time.created)
+    , m = new Date(newDoc.time.modified)
+  assert(c.toString() !== "Invalid Date" &&
+         m.toString() !== "Invalid Date", "invalid created/modified time: "
+         + JSON.stringify(newDoc.time))
+
   var n = valid.name(newDoc.name)
   assert(valid.name(n) && n === newDoc.name && n
         , "Invalid name: "
