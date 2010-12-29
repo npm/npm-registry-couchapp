@@ -118,6 +118,10 @@ ddoc.lists.index = function (head, req) {
       p[i] = doc[i]
     }
     p.versions = {}
+    if (doc.repositories && Array.isArray(doc.repositories)) {
+      doc.repository = doc.repositories[0]
+      delete doc.repositories
+    }
     if (doc.repository) p.repository = doc.repository
     if (doc.description) p.description = doc.description
     if (doc.url) p.url = doc.url
