@@ -118,15 +118,15 @@ ddoc.lists.index = function (head, req) {
       p[i] = doc[i]
     }
     p.versions = {}
-    if (row.repository) p.repository = row.repository
-    if (row.description) p.description = row.description
+    if (doc.repository) p.repository = doc.repository
+    if (doc.description) p.description = doc.description
     if (doc.url) p.url = doc.url
     else {
       for (var i in doc.versions) {
-        if (doc.versions[i].repository && !row.repository) {
+        if (doc.versions[i].repository && !doc.repository) {
           p.repository = doc.versions[i].repository
         }
-        if (doc.versions[i].description && !row.description) {
+        if (doc.versions[i].description && !doc.description) {
           p.description = doc.versions[i].description
         }
         if (doc.versions[i].keywords) p.keywords = doc.versions[i].keywords
