@@ -35,6 +35,17 @@ ddoc.valid =  [ 'function validName (name) {'
 
 
 ddoc.shows.requirey = function () {
+  function ISODateString(d){
+   function pad(n){return n<10 ? '0'+n : n}
+   return d.getUTCFullYear()+'-'
+        + pad(d.getUTCMonth()+1)+'-'
+        + pad(d.getUTCDate())+'T'
+        + pad(d.getUTCHours())+':'
+        + pad(d.getUTCMinutes())+':'
+        + pad(d.getUTCSeconds())+'Z'}
+  Date.prototype.toISOString = Date.prototype.toISOString
+    || function () { return ISODateString(this) }
+
   return { code : 200
          , body : toJSON([require("semver").expression.toString(), typeof ("asdf".match),
           require("semver").clean("0.2.4-1"),
@@ -150,6 +161,17 @@ ddoc.views.listAll = {
 }
 
 ddoc.shows.package = function (doc, req) {
+  function ISODateString(d){
+   function pad(n){return n<10 ? '0'+n : n}
+   return d.getUTCFullYear()+'-'
+        + pad(d.getUTCMonth()+1)+'-'
+        + pad(d.getUTCDate())+'T'
+        + pad(d.getUTCHours())+':'
+        + pad(d.getUTCMinutes())+':'
+        + pad(d.getUTCSeconds())+'Z'}
+  Date.prototype.toISOString = Date.prototype.toISOString
+    || function () { return ISODateString(this) }
+
   var semver = require("semver")
     , code = 200
     , headers = {"Content-Type":"application/json"}
@@ -214,8 +236,13 @@ ddoc.shows.package = function (doc, req) {
     }
   } else {
     body = doc
-    delete body._revisions
-    delete body._attachments
+    for (var i in body) if (i.charAt(0) === "_" && i !== "_id" && i !== "_rev") {
+      delete body[i]
+    }
+    for (var i in body.time) {
+      if (!body.versions[i]) delete body.time[i]
+      else body.time[i] = new Date(body.time[i]).toISOString()
+    }
   }
   body = req.query.jsonp
        ? req.query.jsonp + "(" + JSON.stringify(body) + ")"
@@ -228,6 +255,17 @@ ddoc.shows.package = function (doc, req) {
 }
 
 ddoc.updates.package = function (doc, req) {
+  function ISODateString(d){
+   function pad(n){return n<10 ? '0'+n : n}
+   return d.getUTCFullYear()+'-'
+        + pad(d.getUTCMonth()+1)+'-'
+        + pad(d.getUTCDate())+'T'
+        + pad(d.getUTCHours())+':'
+        + pad(d.getUTCMinutes())+':'
+        + pad(d.getUTCSeconds())+'Z'}
+  Date.prototype.toISOString = Date.prototype.toISOString
+    || function () { return ISODateString(this) }
+
   var semver = require("semver")
   var valid = require("valid")
   function error (reason) {
