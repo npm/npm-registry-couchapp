@@ -228,7 +228,7 @@ ddoc.shows.package = function (doc, req) {
     , body = null
   delete doc.ctime
   delete doc.mtime
-  Object.keys(doc.versions).forEach(function (v) {
+  if (doc.versions) Object.keys(doc.versions).forEach(function (v) {
     delete doc.versions[v].ctime
     delete doc.versions[v].mtime
   })
