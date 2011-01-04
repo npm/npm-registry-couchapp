@@ -43,8 +43,33 @@ ddoc.shows.requirey = function () {
         + pad(d.getUTCHours())+':'
         + pad(d.getUTCMinutes())+':'
         + pad(d.getUTCSeconds())+'Z'}
-  Date.prototype.toISOString = Date.prototype.toISOString
-    || function () { return ISODateString(this) }
+  if (!Date.prototype.toISOString) {
+    Date.prototype.toISOString = function () { return ISODateString(this) }
+    Date.parse = function (s) {
+      // s is something like "2010-12-29T07:31:06Z"
+      s = s.split("T")
+      var ds = s[0]
+        , ts = s[1]
+        , d = new Date()
+      ds = ds.split("-")
+      ts = ts.split(":")
+      var tz = ts[2].substr(2)
+      ts[2] = ts[2].substr(0, 2)
+      d.setUTCFullYear(+ds[0])
+      d.setUTCMonth(+ds[1]-1)
+      d.setUTCDate(+ds[2])
+      d.setUTCHours(+ts[0])
+      d.setUTCMinutes(+ts[1])
+      d.setUTCSeconds(+ts[2])
+      d.setUTCMilliseconds(0)
+      return d.getTime()
+      return [d.getTime(), d.toUTCString(), ds, ts, tz]
+    }
+    Object.keys = Object.keys
+      || function (o) { var a = []
+                        for (var i in o) a.push(i)
+                        return a }
+  }
 
   return { code : 200
          , body : toJSON([require("semver").expression.toString(), typeof ("asdf".match),
@@ -161,16 +186,41 @@ ddoc.views.listAll = {
 }
 
 ddoc.shows.package = function (doc, req) {
-  function ISODateString(d){
-   function pad(n){return n<10 ? '0'+n : n}
-   return d.getUTCFullYear()+'-'
-        + pad(d.getUTCMonth()+1)+'-'
-        + pad(d.getUTCDate())+'T'
-        + pad(d.getUTCHours())+':'
-        + pad(d.getUTCMinutes())+':'
-        + pad(d.getUTCSeconds())+'Z'}
-  Date.prototype.toISOString = Date.prototype.toISOString
-    || function () { return ISODateString(this) }
+  if (!Date.prototype.toISOString) {
+    function ISODateString(d){
+      function pad(n){return n<10 ? '0'+n : n}
+      return d.getUTCFullYear()+'-'
+           + pad(d.getUTCMonth()+1)+'-'
+           + pad(d.getUTCDate())+'T'
+           + pad(d.getUTCHours())+':'
+           + pad(d.getUTCMinutes())+':'
+           + pad(d.getUTCSeconds())+'Z'}
+    Date.prototype.toISOString = function () { return ISODateString(this) }
+    Date.parse = function (s) {
+      // s is something like "2010-12-29T07:31:06Z"
+      s = s.split("T")
+      var ds = s[0]
+        , ts = s[1]
+        , d = new Date()
+      ds = ds.split("-")
+      ts = ts.split(":")
+      var tz = ts[2].substr(2)
+      ts[2] = ts[2].substr(0, 2)
+      d.setUTCFullYear(+ds[0])
+      d.setUTCMonth(+ds[1]-1)
+      d.setUTCDate(+ds[2])
+      d.setUTCHours(+ts[0])
+      d.setUTCMinutes(+ts[1])
+      d.setUTCSeconds(+ts[2])
+      d.setUTCMilliseconds(0)
+      return d.getTime()
+      return [d.getTime(), d.toUTCString(), ds, ts, tz]
+    }
+    Object.keys = Object.keys
+      || function (o) { var a = []
+                        for (var i in o) a.push(i)
+                        return a }
+  }
 
   var semver = require("semver")
     , code = 200
@@ -241,7 +291,7 @@ ddoc.shows.package = function (doc, req) {
     }
     for (var i in body.time) {
       if (!body.versions[i]) delete body.time[i]
-      else body.time[i] = new Date(body.time[i]).toISOString()
+      else body.time[i] = new Date(Date.parse(body.time[i])).toISOString()
     }
   }
   body = req.query.jsonp
@@ -263,8 +313,33 @@ ddoc.updates.package = function (doc, req) {
         + pad(d.getUTCHours())+':'
         + pad(d.getUTCMinutes())+':'
         + pad(d.getUTCSeconds())+'Z'}
-  Date.prototype.toISOString = Date.prototype.toISOString
-    || function () { return ISODateString(this) }
+  if (!Date.prototype.toISOString) {
+    Date.prototype.toISOString = function () { return ISODateString(this) }
+    Date.parse = function (s) {
+      // s is something like "2010-12-29T07:31:06Z"
+      s = s.split("T")
+      var ds = s[0]
+        , ts = s[1]
+        , d = new Date()
+      ds = ds.split("-")
+      ts = ts.split(":")
+      var tz = ts[2].substr(2)
+      ts[2] = ts[2].substr(0, 2)
+      d.setUTCFullYear(+ds[0])
+      d.setUTCMonth(+ds[1]-1)
+      d.setUTCDate(+ds[2])
+      d.setUTCHours(+ts[0])
+      d.setUTCMinutes(+ts[1])
+      d.setUTCSeconds(+ts[2])
+      d.setUTCMilliseconds(0)
+      return d.getTime()
+      return [d.getTime(), d.toUTCString(), ds, ts, tz]
+    }
+    Object.keys = Object.keys
+      || function (o) { var a = []
+                        for (var i in o) a.push(i)
+                        return a }
+  }
 
   var semver = require("semver")
   var valid = require("valid")
@@ -380,6 +455,45 @@ ddoc.updates.package = function (doc, req) {
 }
 
 ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
+  function ISODateString(d){
+   function pad(n){return n<10 ? '0'+n : n}
+   return d.getUTCFullYear()+'-'
+        + pad(d.getUTCMonth()+1)+'-'
+        + pad(d.getUTCDate())+'T'
+        + pad(d.getUTCHours())+':'
+        + pad(d.getUTCMinutes())+':'
+        + pad(d.getUTCSeconds())+'Z'}
+  if (!Date.prototype.toISOString) {
+    Date.prototype.toISOString = function () { return ISODateString(this) }
+    Date.parse = function (s) {
+      // s is something like "2010-12-29T07:31:06Z"
+      s = s.split("T")
+      var ds = s[0]
+        , ts = s[1]
+        , d = new Date()
+      ds = ds.split("-")
+      ts = ts.split(":")
+      var tz = ts[2].substr(2)
+      ts[2] = ts[2].substr(0, 2)
+      d.setUTCFullYear(+ds[0])
+      d.setUTCMonth(+ds[1]-1)
+      d.setUTCDate(+ds[2])
+      d.setUTCHours(+ts[0])
+      d.setUTCMinutes(+ts[1])
+      d.setUTCSeconds(+ts[2])
+      d.setUTCMilliseconds(0)
+      return d.getTime()
+      return [d.getTime(), d.toUTCString(), ds, ts, tz]
+    }
+    Object.keys = Object.keys
+      || function (o) { var a = []
+                        for (var i in o) a.push(i)
+                        return a }
+  }
+
+  Array.isArray = Array.isArray
+    || function (a) { return a instanceof Array
+                        || (typeof a === "object" && typeof a.length === "number") }
   var semver = require("semver")
   var valid = require("valid")
   // admins can do ANYTHING (even break stuff)
@@ -420,11 +534,12 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   assert(!newDoc.mtime,
          "mtime is deprecated. Use time.modified.")
   assert(newDoc.time, "time object required. {created, modified}")
-  var c = new Date(newDoc.time.created)
-    , m = new Date(newDoc.time.modified)
+  var c = new Date(Date.parse(newDoc.time.created))
+    , m = new Date(Date.parse(newDoc.time.modified))
   assert(c.toString() !== "Invalid Date" &&
          m.toString() !== "Invalid Date", "invalid created/modified time: "
-         + JSON.stringify(newDoc.time))
+         + JSON.stringify(newDoc.time)
+         + " " + c.toString() + " " + m.toString())
 
   var n = valid.name(newDoc.name)
   assert(valid.name(n) && n === newDoc.name && n
