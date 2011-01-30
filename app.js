@@ -16,11 +16,13 @@ ddoc.semver = [ 'var expr = exports.expression = '
               , 'exports.valid = valid'
               , 'exports.clean = clean'
               ].join("\n")
-ddoc.valid =  [ 'function validName (name) {'
+ddoc.valid =  [ 'var semver = require("semver")'
+              , 'function validName (name) {'
                 , 'if (!name) return false'
                 , 'if (name === "favicon.ico") return false'
                 , 'var n = name'
-                , 'if (!n || n.charAt(0) === "." || n.match(/[\\/@:%\\s]/)) {'
+                , 'if (!n || n.charAt(0) === "."'
+                    , '|| n.match(/[\\/\\(\\)&\\?#\\|<>@:%\\s\\\\]/)) {'
                   , 'return false'
                 , '}'
                 , 'return n'
@@ -166,8 +168,16 @@ ddoc.lists.index = function (head, req) {
         if (doc.versions[i].repository && !doc.repository) {
           p.repository = doc.versions[i].repository
         }
-        if (doc.versions[i].description && !doc.description) {
-          p.description = doc.versions[i].description
+        var md = p.description
+          , vd = doc.versions[i].description
+        md = md && md.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()
+        vd = vd && vd.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()
+        if (vd && vd !== md) {
+          p.descriptions = p.descriptions || {}
+          p.descriptions[i] = doc.versions[i].description
+          if (!p.description) {
+            p.description = doc.versions[i].description
+          }
         }
         if (doc.versions[i].keywords) p.keywords = doc.versions[i].keywords
         p.versions[i] = "http://"+req.headers.Host+"/"+doc.name+"/"+i
@@ -183,6 +193,69 @@ ddoc.lists.index = function (head, req) {
 }
 ddoc.views.listAll = {
   map : function (doc) { return emit(doc._id, doc) }
+}
+
+ddoc.views.orphanAttachments = {
+  map : function (doc) {
+    if (!doc || !doc._attachments) return
+    var orphans = []
+      , size = 0
+    for (var i in doc._attachments) {
+      var n = i.substr(doc._id.length + 1).replace(/\.tgz$/, "")
+               .replace(/^v/, "")
+      if (!doc.versions[n] && i.match(/\.tgz$/)) {
+        orphans.push(i)
+        size += doc._attachments[i].length
+      }
+    }
+    if (orphans.length) emit(doc._id, {size:size, orphans:orphans})
+  }
+}
+ddoc.lists.passthrough = function (head, req) {
+  var out = {}
+    , row
+  while (row = getRow()) {
+    if (!row.id) continue
+    out[row.id] = row.value
+  }
+  send(toJSON(out))
+}
+
+ddoc.views.howBigIsYourPackage = {
+  map : function (doc) {
+    var s = 0
+      , c = 0
+    if (!doc) return
+    for (var i in doc._attachments) {
+      s += doc._attachments[i].length
+      c ++
+    }
+    if (s === 0) return
+    emit (doc._id, {_id: doc._id, size: s, count: c, avg: s/c})
+  }
+}
+
+ddoc.lists.size = function (head, req) {
+  var row
+    , out = []
+    , max = 0
+  while (row = getRow()) {
+    if (!row.id) continue
+    out.push(row.value)
+  }
+  out = out.sort(function (a, b) {
+             max = Math.max(max, a.size, b.size)
+             return a.size > b.size ? -1 : 1
+           })
+           .reduce(function (l, r) {
+             l[r._id] = { size: r.size
+                        , count: r.count
+                        , avg: r.avg
+                        , rel: r.size / max
+                        }
+             return l
+           }, {})
+  send(JSON.stringify(out))
 }
 
 ddoc.shows.package = function (doc, req) {
@@ -246,6 +319,7 @@ ddoc.shows.package = function (doc, req) {
   // legacy kludge
   if (doc.versions) for (var v in doc.versions) {
     var clean = semver.clean(v)
+    doc.versions[v].directories = doc.versions[v].directories || {}
     if (clean !== v) {
       var p = doc.versions[v]
       delete doc.versions[v]
@@ -255,16 +329,22 @@ ddoc.shows.package = function (doc, req) {
     if (doc.versions[v].dist.tarball) {
       var t = doc.versions[v].dist.tarball
       t = t.replace(/^https?:\/\/[^\/:]+(:[0-9]+)?/, '')
-      doc.versions[v].dist.tarball = t
-      var h
-      for (var i in req.headers) {
-        if (i.toLowerCase() === 'host') {
-          h = req.headers[i]
-          break
+      if (!t.match(/^\/[^\/]+\/_design\/app\/_rewrite/)) {
+        doc.versions[v].dist.tarball = t
+        // doc.versions[v].dist._headers = req.headers
+        // doc.versions[v].dist._query = req.query
+        // doc.versions[v].dist._path = req.path
+        // doc.versions[v].dist._requested_path = req.requested_path
+        var h
+        for (var i in req.headers) {
+          if (i.toLowerCase() === 'host') {
+            h = req.headers[i]
+            break
+          }
         }
+        h = h ? 'http://' + h : ""
+        doc.versions[v].dist.tarball = h + t
       }
-      h = h ? 'http://' + h : h
-      doc.versions[v].dist.tarball = h + t
     }
   }
   if (doc["dist-tags"]) for (var tag in doc["dist-tags"]) {
