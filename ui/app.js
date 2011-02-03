@@ -86,7 +86,7 @@ function dependencies (doc) {
 ddoc.views = 
   { search: { map: packageSearch }
   , dependencies: {map: dependencies, reduce:"_count"}
-  , updated: {map: function (doc) {if (doc.mtime) emit(doc.mtime, 1) }}
+  , updated: {map: function (doc) {if (doc.time && doc.time.modified) emit(doc.time.modified, 1) }}
   }
   ;
 

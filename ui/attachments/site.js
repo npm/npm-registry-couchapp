@@ -90,7 +90,7 @@ app.index = function () {
     , docs = {}
     , currentSearch = ''
     , lastSearchForPage = ''
-    , limit = 20
+    , limit = 15
     ;
     
   $('div#content').html(
@@ -113,7 +113,7 @@ app.index = function () {
       docs[row.doc._id] = row.doc;
       $('<div class="top-package"></div>')
       .append('<div class="top-package-title"><a href="#/'+row.doc._id+'">'+row.doc._id+'</a></div>')
-      .append('<div class="top-package-updated">'+prettyDate(row.doc.mtime) +'</div>')
+      .append('<div class="top-package-updated">'+prettyDate(row.doc.time.modified) +'</div>')
       .append('<div class="spacer"></div>')
       .appendTo('div#latest-packages')
     })
@@ -303,8 +303,17 @@ app.showPackage = function () {
   $('div#content').html('<div class="package"></div>')
   request({url:'/api/'+id}, function (err, doc) {
     var package = $('div.package')
-    .append('<div class="package-title">'+doc._id+'</div>')
-    .append('<div class="package-description">'+doc.description+'</div>')
+    package.append('<div class="package-title">'+doc._id+'</div>')
+    package.append('<div class="package-description">'+doc.description+'</div>')
+    
+    if (doc.repository && doc.repository.type === 'git' && (
+          doc.repository.url.slice(0, 'http://github.com'.length) === 'http://github.com' ||
+          doc.repository.url.slice(0, 'https://github.com'.length) === 'https://github.com'
+          ) 
+        ) {
+          package.append('<a class="github" href="'+doc.repository.url.replace('.git', '')+'">github</a>')
+    }
+    
     if (doc['dist-tags'] && doc['dist-tags'].latest && (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags)) {
       package.append(
         '<div class="package-tags">tags: ' +
@@ -324,35 +333,49 @@ app.showPackage = function () {
       })
     }
     
+    if (doc['dist-tags'] && doc['dist-tags'].latest) {
+      if (doc.versions[doc['dist-tags'].latest].dependencies) {
+        var deps = $('<div class="package-deps">dependencies: </div>');
+        for (i in doc.versions[doc['dist-tags'].latest].dependencies) {
+          deps.append('<a class="dep-link" href="#/'+i+'">'+i+'</a>')
+        }
+        deps.appendTo(package);
+      }
+    }
+    
     if (doc['dist-tags']) {
       for (i in doc['dist-tags']) {
         package.append(
           '<div class="package-download">' +
-            '<a href="'+doc.versions[doc['dist-tags'][i]].dist.tarball+'">'+i+'</a>' + 
+            '<a href="'+doc.versions[doc['dist-tags'][i]].dist.tarball.replace('jsregistry:5984', 'registry.npmjs.org').replace('packages:5984', 'registry.npmjs.org')+'">'+i+'</a> ('+doc.versions[doc['dist-tags'][i]].version+')' + 
           '</div>'
         )
       }
-      if (doc['dist-tags'].latest) {
-        if (doc.versions[doc['dist-tags'].latest].dependencies) {
-          var deps = $('<div class="package-deps">dependencies: </div>');
-          for (i in doc.versions[doc['dist-tags'].latest].dependencies) {
-            deps.append('<a class="dep-link" href="#/'+i+'">'+i+'</a>')
-          }
-          deps.appendTo(package);
-        }
-      }
+      package.append('<br/>')
+      
     }
     
     if (doc.versions) {
       for (i in doc.versions) {
         package.append(
           '<div class="package-download">' +
-            '<a href="'+doc.versions[i].dist.tarball+'">'+i+'</a>' + 
+            '<a href="'+doc.versions[i].dist.tarball.replace('jsregistry:5984', 'registry.npmjs.org').replace('packages:5984', 'registry.npmjs.org')+'">'+i+'</a>' + 
           '</div>'
         )
       }
     }
-    
+
+    request({url:'/_view/dependencies?reduce=false&key="'+id+'"'}, function (e, resp) {
+      if (resp.rows.length === 0) return;
+      var deps = ''
+      deps += '<h4>Packages that depend on '+id+'</h4><div class="dependencies">'
+      for (var i=0;i<resp.rows.length;i++) {
+        deps += '<div class="dep"><a class="dep" href="/#/' +
+                 resp.rows[i].id+'">'+resp.rows[i].id+'</a></div>'
+      }
+      deps += '</div>'
+      package.append(deps)
+    })
   })
 }
 

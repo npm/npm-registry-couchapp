@@ -137,3 +137,16 @@ div.top-package-dep {
   text-align:right;
   padding-right:15px;
 }
+
+div.dependencies {
+  width:80%;
+  text-align:left;
+  padding-left:10%;
+  padding-right:10%;
+}
+a.dep {
+  margin-right:10px;
+}
+div.dep {
+  float:left;
+}
