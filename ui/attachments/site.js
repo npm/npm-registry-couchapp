@@ -12,6 +12,15 @@ if (!Array.prototype.forEach) {
     }
   }
 }
+if (!Object.keys) {
+  Object.keys = function (obj) {
+    var keys = [];
+    for (i in obj) {
+      keys.push(i);
+    }
+    return keys;
+  }
+}
 
 var request = function (options, callback) {
   options.success = function (obj) {
@@ -105,11 +114,14 @@ app.index = function () {
         '<input id="search-input"></input>' +
       '</div>' +
     '</div>' +
-    '<div id="results"></div>' +
-    '<div class="spacer"></div>' +
-    '<div id="top-packages">' +
-      '<div id="latest-packages"><div class="top-title">Latest Updates</div></div>' +
-      '<div id="top-dep-packages"><div class="top-title">Most Dependended On</div></div>' +
+    '<div id="main-container">' +
+      '<div id="results"></div>' +
+      '<div class="spacer"></div>' +
+      '<div id="top-packages">' +
+        '<div id="latest-packages"><div class="top-title">Latest Updates</div></div>' +
+        '<div id="top-dep-packages"><div class="top-title">Most Dependended On</div></div>' +
+      '</div>' +
+      '<div class="spacer"></div>' +
     '</div>'
   )
   
@@ -310,80 +322,222 @@ app.index = function () {
 app.showPackage = function () {
   var id = this.params.id;
   clearContent();
-  $('div#content').html('<div class="package"></div>')
+  $('div#content').html('<div id="main-container"></div>')
   request({url:'/api/'+id}, function (err, doc) {
-    var package = $('div.package')
+    var package = $('div#main-container')
+    
     package.append('<div class="package-title">'+doc._id+'</div>')
-    package.append('<div class="package-description">'+doc.description+'</div>')
+    // package.append('<div class="package-description">'+doc.description+'</div>')
+    
+    if (doc['dist-tags'] && doc['dist-tags'].latest) {
+      if (doc.versions[doc['dist-tags'].latest].homepage) {
+        package.append('<div class="pkg-link"><a href="'+doc.versions[doc['dist-tags'].latest].homepage+'">'+doc.versions[doc['dist-tags'].latest].homepage+'</a>')
+      }
+    }
     
     if (doc.repository && doc.repository.type === 'git' && (
           doc.repository.url.slice(0, 'http://github.com'.length) === 'http://github.com' ||
           doc.repository.url.slice(0, 'https://github.com'.length) === 'https://github.com'
           ) 
         ) {
-          package.append('<a class="github" href="'+doc.repository.url.replace('.git', '')+'">github</a>')
+          package.append('<div class="pkg-link"><a class="github" href="'+doc.repository.url.replace('.git', '')+'">github</a></div>')
     }
+     
     
-    if (doc['dist-tags'] && doc['dist-tags'].latest && (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags)) {
-      package.append(
-        '<div class="package-tags">tags: ' +
-        (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags).join(', ') +
-        '</div>'
-      )
-    }
+    package.append('<div class="spacer"></div>')
     
-    if (doc.author) {
-      package.append('<div class="author">author: '+doc.author.name+'</div>')
-    }
+    // if (doc['dist-tags'] && doc['dist-tags'].latest && (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags)) {
+    //   package.append(
+    //     '<div class="package-tags">tags: ' +
+    //     (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags).join(', ') +
+    //     '</div>'
+    //   )
+    // }
     
-    if (doc.maintainers && doc.maintainers.length > 0) {
-      var maintainers = $('<div class="package-maintainers"></div>').appendTo(package);
-      doc.maintainers.forEach(function (m) {
-        maintainers.append('<div class="package-maintainer">maintainer: '+m.name+'   </div>')
-      })
-    }
+    // if (doc.author) {
+    //   package.append('<div class="author">author: '+doc.author.name+'</div>')
+    // }
+    // 
+    // if (doc.maintainers && doc.maintainers.length > 0) {
+    //   var maintainers = $('<div class="package-maintainers"></div>').appendTo(package);
+    //   doc.maintainers.forEach(function (m) {
+    //     maintainers.append('<div class="package-maintainer">maintainer: '+m.name+'   </div>')
+    //   })
+    // }
     
-    if (doc['dist-tags'] && doc['dist-tags'].latest) {
-      if (doc.versions[doc['dist-tags'].latest].dependencies) {
-        var deps = $('<div class="package-deps">dependencies: </div>');
-        for (i in doc.versions[doc['dist-tags'].latest].dependencies) {
-          deps.append('<a class="dep-link" href="#/'+i+'">'+i+'</a>')
-        }
-        deps.appendTo(package);
+    package.append(
+      '<div id="versions-container">' + 
+        '<div id="version-list"></div>' + 
+        '<div id="version-info"></div>' +
+        '<div class="spacer"></div>' +
+      '</div>'
+    )
+    
+    var showVersion = function (version) {
+      var v = doc.versions[version];
+      
+      $('div#version-info').html(
+        '<div class="version-info-cell">' +
+          '<div class="version-info-key">Description</div>' +
+          '<div class="version-info-value">'+v.description+'</div>' +
+        '</div>' + 
+        '<div class="spacer"></div>' +
+        '<div class="version-info-cell">' +
+          '<div class="version-info-key">Version</div>' +
+          '<div class="version-info-value">'+v.version+'</div>' +
+        '</div>' + 
+        '<div class="spacer"></div>'
+      );
+      
+      if (v.tags) {
+        var h = '[ ';
+        v.tags.forEach(function (tag) {
+          if (tag !== v.tags[0]) h += ', '
+          h += ('<a href="/#/_tags/'+tag+'">'+tag+'</a>')
+        })
+        h += ' ]'
+        $('div#version-info').append(
+          '<div class="version-info-cell">' +
+            '<div class="version-info-key">Tags</div>' +
+            '<div class="version-info-value">' + h + '</div>' +
+          '</div>' +
+          '<div class="spacer"></div>' 
+        )
       }
+      
+      if (v.dependencies) {
+        var h = ''
+        for (i in v.dependencies) {
+          h += '<a class="dep-link" href="#/'+i+'">'+i+'</a> '
+        }
+        $('div#version-info').append('<div class="version-info-cell">' +
+            '<div class="version-info-key">Dependencies</div>' +
+            '<div class="version-info-value">' + h + '</div>' +
+          '</div>' +
+          '<div class="spacer"></div>'
+        )
+      }
+      
+      if (v.homepage) {
+        $('div#version-info').append(
+          '<div class="version-info-cell">' +
+            '<div class="version-info-key">Homepage</div>' +
+            '<div class="version-info-value">' + v.homepage + '</div>' +
+          '</div>' +
+          '<div class="spacer"></div>'
+        )
+      }
+      if (v.repository) {
+        $('div#version-info').append(
+          '<div class="version-info-cell">' +
+            '<div class="version-info-key">Repository</div>' +
+            '<div class="version-info-value">' + 
+              v.repository.type + ':    <a href="' + v.repository.url + '">'+ v.repository.url + '</a>' +
+            '</div>' +
+          '</div>' +
+          '<div class="spacer"></div>'
+        )
+      }
+      if (v.bugs) {
+        var bugs = $(
+          '<div class="version-info-cell">' +
+            '<div class="version-info-key">Bugs</div>' +
+            '<div class="version-info-value"></div>' +
+          '</div>' +
+          '<div class="spacer"></div>'
+        )
+        var bugsHtml = ''
+        if (v.bugs.email) {
+          bugsHtml+= '<div>email:    ' + '<a href="mailto='+v.bugs.email+'">'+v.bugs.email+'</a></div>'
+        }
+        if (v.bugs.url) {
+          bugsHtml += '<div>url:    ' + '<a href="'+v.bugs.url+'">'+v.bugs.url+'</a></div>'
+        }
+        bugs.find('div.version-info-value').html(bugsHtml)
+        $('div#version-info').append(bugs)
+      }
+      if (v.engines) {
+        $(
+          '<div class="version-info-cell">' +
+            '<div class="version-info-key">Engines</div>' +
+            '<div class="version-info-value">'+JSON.stringify(v.engines)+'</div>' +
+          '</div>' +
+          '<div class="spacer"></div>'
+        )
+        .appendTo('div#version-info')
+      }
+      if (v.licenses) {
+        var lic = $(
+          '<div class="version-info-cell">' +
+            '<div class="version-info-key">Licenses</div>' +
+            '<div class="version-info-value">'+JSON.stringify(v.engines)+'</div>' +
+          '</div>' +
+          '<div class="spacer"></div>'
+        )
+        for (i in v.licenses) {
+          lic.find('div.version-info-value').html(
+            '<a href="'+v.licenses[i].url+'">'+v.licenses[i].type+'</a>'
+          )
+        }
+        lic.appendTo('div#version-info')
+      }
+      
+      //  +
+      // '<div class="version-info-cell">' +
+      //   '<span class="version-info-key">Author</span>' +
+      //   '<span class="version-info-value">'+v.description+'<span>' +
+      // '</div>' +
+      // '<div class="version-info-cell">' +
+      //   '<span class="version-info-key">Repository</span>' +
+      //   '<span class="version-info-value">'+v.description+'<span>' +
+      // '</div>' +
+      
     }
+    showVersion(doc['dist-tags'].latest);
     
     if (doc['dist-tags']) {
       for (i in doc['dist-tags']) {
-        package.append(
-          '<div class="package-download">' +
-            '<a href="'+doc.versions[doc['dist-tags'][i]].dist.tarball.replace('jsregistry:5984', 'registry.npmjs.org').replace('packages:5984', 'registry.npmjs.org')+'">'+i+'</a> ('+doc.versions[doc['dist-tags'][i]].version+')' + 
-          '</div>'
-        )
+        $('<div class="package-download">' +
+            '<div id="'+doc['dist-tags'][i]+'" class="version-link">'+
+              '<a href="' + doc.versions[doc['dist-tags'][i]].dist.tarball.replace('jsregistry:5984', 'registry.npmjs.org').replace('packages:5984', 'registry.npmjs.org')+'">'+i+'</a>  ('+doc.versions[doc['dist-tags'][i]].version+')' + 
+            '</div>' +
+          '</div>')
+          .addClass('version-selected')
+          .appendTo('div#version-list')
+          ;
       }
       package.append('<br/>')
-      
     }
     
     if (doc.versions) {
-      for (i in doc.versions) {
-        package.append(
+      var versions = Object.keys(doc.versions);
+      versions.reverse();
+      versions.forEach(function (i) {
+        $('div#version-list').append(
           '<div class="package-download">' +
-            '<a href="'+doc.versions[i].dist.tarball.replace('jsregistry:5984', 'registry.npmjs.org').replace('packages:5984', 'registry.npmjs.org')+'">'+i+'</a>' + 
+            '<div id="'+i+'" class="version-link">'+
+              '<a href="'+doc.versions[i].dist.tarball.replace('jsregistry:5984', 'registry.npmjs.org').replace('packages:5984', 'registry.npmjs.org')+'">'+i+'</a>' + 
+            '</div>' +
           '</div>'
         )
-      }
+      })
     }
+    
+    $('div.version-link').mouseover(function () {
+      $('div.version-selected').removeClass('version-selected');
+      $(this).parent().addClass('version-selected');
+      showVersion(this.id)
+    })
 
     request({url:'/_view/dependencies?reduce=false&key="'+id+'"'}, function (e, resp) {
       if (resp.rows.length === 0) return;
       var deps = ''
-      deps += '<h4>Packages that depend on '+id+'</h4><div class="dependencies">'
+      deps += '<h4>Packages that depend on '+id+'</h4><div class="dependencies"><p>'
       for (var i=0;i<resp.rows.length;i++) {
-        deps += '<div class="dep"><a class="dep" href="/#/' +
-                 resp.rows[i].id+'">'+resp.rows[i].id+'</a></div>'
+        deps += '<span class="dep"><a class="dep" href="/#/' +
+                 resp.rows[i].id+'">'+resp.rows[i].id+'</a></span> '
       }
-      deps += '</div>'
+      deps += '</p></div>'
       package.append(deps)
     })
   })
@@ -427,7 +581,21 @@ $(function () {
     this.get('', app.index);
     this.get("#/", app.index);
     this.get("#/_all", app.alldoc);
+    this.get("#/_install", function () {
+      clearContent();
+      request({url:'/install.html', dataType:'html'}, function (e, resp) {
+        $('div#content').html('<div id="main-container">'+resp+'</div>');
+      })
+    });
+    this.get("#/_publish", function () {
+      clearContent();
+      request({url:'/publish.html', dataType:'html'}, function (e, resp) {
+        $('div#content').html('<div id="main-container">'+resp+'</div>');
+      })
+    });
     this.get("#/:id", app.showPackage);
+    
+    
   })
   app.s.run();
 });
