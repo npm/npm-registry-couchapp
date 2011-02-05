@@ -228,6 +228,9 @@ app.index = function () {
     for (var i=0;i<keys.length;i++) keys[i] = parseInt(keys[i])
     keys.sort(function(a,b){return a - b;});
     keys.reverse();
+    if (keys.length === 0) {
+      $('div#results').html('<div>No Results</div>')
+    }
     keys.forEach(function (i) { ranked[i].forEach(function (doc) {
       var result = $(
         '<div class="result-container">' +

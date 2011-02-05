@@ -232,7 +232,7 @@ div.version-link {
 div#howto {
   position:fixed;
   background-color:white;
-  bottom:1px;
+  bottom:0px;
   width:100%;
 }
 div.howto-link {
