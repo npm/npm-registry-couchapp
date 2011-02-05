@@ -413,7 +413,7 @@ app.alldoc = function () {
       limit += 100;
       $('<div id="more-all">Load 100 more</div>')
         .click(function () {fetch();})
-        .appendTo('body')
+        .appendTo(c)
         ;
     })
   }
