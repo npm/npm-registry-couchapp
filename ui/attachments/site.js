@@ -343,6 +343,9 @@ app.showPackage = function () {
     if (doc.time && doc.time.modified) {
       package.append('<div class="last-updated">Last updated: '+prettyDate(doc.time.modified)+'</div>')
     }
+    if (doc.author && doc.author.name) {
+      package.append('<div class="author">by: <a href="/#/_author/'+encodeURIComponent(doc.author.name)+'">'+doc.author.name+'</div>')
+    }
     
     // if (doc['dist-tags'] && doc['dist-tags'].latest && (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags)) {
     //   package.append(
@@ -352,9 +355,7 @@ app.showPackage = function () {
     //   )
     // }
     
-    // if (doc.author) {
-    //   package.append('<div class="author">author: '+doc.author.name+'</div>')
-    // }
+
     // 
     // if (doc.maintainers && doc.maintainers.length > 0) {
     //   var maintainers = $('<div class="package-maintainers"></div>').appendTo(package);
