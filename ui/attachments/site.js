@@ -83,6 +83,11 @@ var param = function( a ) {
 	}
 }
 
+function clearContent () {
+  $('div#content').html('')
+  $('div#totals').html('')
+}
+
 var app = {};
 app.index = function () {
   var currentTerms = []
@@ -92,7 +97,7 @@ app.index = function () {
     , lastSearchForPage = ''
     , limit = 15
     ;
-    
+  clearContent();
   $('div#content').html(
     '<div id="search-box">' +
       '<div id="search-box-title">Find packages...</div>' +
@@ -107,6 +112,10 @@ app.index = function () {
       '<div id="top-dep-packages"><div class="top-title">Most Dependended On</div></div>' +
     '</div>'
   )
+  
+  request({url:'/api/_all_docs?limit=0'}, function (err, resp) {
+    $('div#totals').html('<a href="/#/_all">' + (resp.total_rows - 1) +' total modules</a>')
+  })
   
   request({url:'/_view/updated?descending=true&limit='+limit+'&include_docs=true'}, function (err, resp) {
     resp.rows.forEach(function (row) {
@@ -300,6 +309,7 @@ app.index = function () {
 
 app.showPackage = function () {
   var id = this.params.id;
+  clearContent();
   $('div#content').html('<div class="package"></div>')
   request({url:'/api/'+id}, function (err, doc) {
     var package = $('div.package')
@@ -379,11 +389,44 @@ app.showPackage = function () {
   })
 }
 
+app.alldoc = function () {
+  var c = $('div#content')
+    , limit = 100
+    ;
+  clearContent();
+  var fetch = function () {
+    $('div#more-all').remove();
+    request({url:'/api/_all_docs?include_docs=true&limit='+limit+'&skip='+(limit - 100)}, function (err, resp) {
+      var h = ''
+      resp.rows.forEach(function (row) {
+        if (row.id[0] !== '_') {
+          h += (
+            '<div class="all-package">' + 
+              '<div class="all-package-name"><a href="/#/'+row.id+'">' + row.id + '</a></div>' +
+              '<div class="all-package-desc">' + row.doc.description + '</div>' +
+            '</div>' +
+            '<div class="spacer"></div>'
+          )
+        }
+      })
+      c.append(h);
+      limit += 100;
+      $('<div id="more-all">Load 100 more</div>')
+        .click(function () {fetch();})
+        .appendTo('body')
+        ;
+    })
+  }
+  fetch();
+  
+}
+
 $(function () { 
   app.s = $.sammy(function () {
     // Index of all databases
     this.get('', app.index);
     this.get("#/", app.index);
+    this.get("#/_all", app.alldoc);
     this.get("#/:id", app.showPackage);
   })
   app.s.run();

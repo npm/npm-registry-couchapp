@@ -150,3 +150,24 @@ a.dep {
 div.dep {
   float:left;
 }
+div#totals {
+  float:right;
+  position:absolute;
+  top:10px;
+  right:10px;
+}
+div.all-package {
+  width:100%;
+}
+div.all-package-name {
+  width:20%;
+  float:left;
+}
+div.all-package-desc {
+  width:80%;
+  float:left;
+}
+div#more-all {
+  cursor:pointer;
+  color:blue;
+}
