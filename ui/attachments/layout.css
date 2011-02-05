@@ -186,7 +186,7 @@ div.all-package {
 }
 div.all-package-name {
   width:18%;
-  padding-left:2%;
+  padding-right:2%;
   float:left;
 }
 div.all-package-desc {
@@ -239,4 +239,59 @@ div.howto-link {
   float:left;
   padding-left:10px;
   padding-right:10px;
+}
+span.browse-link {
+  padding-left:20px;
+}
+span.browse-link a {
+  font-style:italic;
+}
+div#browse-anchors {
+  margin-left:10%;
+  margin-right:10%;
+  width:80%;
+}
+div#browse-anchors a {
+  margin-right:20px;
+  padding: 3px 5px 3px 5px;
+  background-color:white;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+}
+span.expand-tags {
+  padding-left:10px;
+  font-size:12px;
+  cursor:pointer;
+  color:#FF1D4E;
+}
+a.tag-val {
+  padding-right:10px;
+  padding-left:5px;
+}
+div.all-package-author {
+  width:30%;
+  float:left;
+}
+
+div.all-package-auth-list {
+  width:70%;
+  float:left;
+}
+div.all-package-deps {
+  width:50%;
+  float:left;
+}
+div.all-package-deps-value {
+  width:50%;
+  float:left;
+}
+div.tags-pkg-name {
+  float:left;
+  width:30%;
+  font-size:30px;
+}
+div.tags-pkg-desc {
+  float:left;
+  width:70%;
 }

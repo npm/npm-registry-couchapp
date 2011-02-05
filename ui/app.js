@@ -87,6 +87,22 @@ ddoc.views =
   { search: { map: packageSearch }
   , dependencies: {map: dependencies, reduce:"_count"}
   , updated: {map: function (doc) {if (doc.time && doc.time.modified) emit(doc.time.modified, 1) }}
+  , tags: 
+    { map: function (doc) {
+             if (doc['dist-tags'] && doc['dist-tags'].latest) {
+              doc.versions[doc['dist-tags'].latest].tags.forEach(function (t) {emit(t, 1)})
+             }
+           }
+    , reduce: "_sum"
+    }
+  , author:
+    { map: function (doc) {
+             if (doc.author && doc.author.name) {
+               emit(doc.author.name, 1);
+             }
+           }
+    , reduce: "_sum"
+    }
   }
   ;
 

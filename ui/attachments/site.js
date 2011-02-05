@@ -12,15 +12,6 @@ if (!Array.prototype.forEach) {
     }
   }
 }
-if (!Object.keys) {
-  Object.keys = function (obj) {
-    var keys = [];
-    for (i in obj) {
-      keys.push(i);
-    }
-    return keys;
-  }
-}
 
 var request = function (options, callback) {
   options.success = function (obj) {
@@ -112,6 +103,7 @@ app.index = function () {
       '<div id="search-box-title">Find packages...</div>' +
       '<div id="search-box-input">' +
         '<input id="search-input"></input>' +
+        '<span class="browse-link">or <a href="/#/_browse/all">browse packages</a>.</span>' +
       '</div>' +
     '</div>' +
     '<div id="main-container">' +
@@ -126,7 +118,7 @@ app.index = function () {
   )
   
   request({url:'/api/_all_docs?limit=0'}, function (err, resp) {
-    $('div#totals').html('<a href="/#/_all">' + (resp.total_rows - 1) +' total modules</a>')
+    $('div#totals').html('<a href="/#/_browse/all">' + (resp.total_rows - 1) +' total packages</a>')
   })
   
   request({url:'/_view/updated?descending=true&limit='+limit+'&include_docs=true'}, function (err, resp) {
@@ -348,6 +340,9 @@ app.showPackage = function () {
      
     
     package.append('<div class="spacer"></div>')
+    if (doc.time && doc.time.modified) {
+      package.append('<div class="last-updated">Last updated: '+prettyDate(doc.time.modified)+'</div>')
+    }
     
     // if (doc['dist-tags'] && doc['dist-tags'].latest && (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags)) {
     //   package.append(
@@ -529,6 +524,10 @@ app.showPackage = function () {
     $('div.version-link').mouseover(function () {
       $('div.version-selected').removeClass('version-selected');
       $(this).parent().addClass('version-selected');
+      $('div#version-info').css(
+        { top: $(this).position().top - $(this).parent().parent().position().top 
+        , position:'relative'
+        })
       showVersion(this.id)
     })
 
@@ -546,36 +545,180 @@ app.showPackage = function () {
   })
 }
 
-app.alldoc = function () {
-  var c = $('div#content')
-    , limit = 100
+app.browse = function () {
+  var limit = 100
     ;
   clearContent();
-  var fetch = function () {
+  
+  $(
+    '<div id="browse-anchors">' +
+      '<a href="/#/_browse/all">all</a>' +
+      '<a href="/#/_browse/tags">tags</a>' +
+      '<a href="/#/_browse/author">author</a>' +
+      '<a href="/#/_browse/updated">updated</a>' +
+      '<a href="/#/_browse/deps">depended on</a>' +
+    '</div>'
+  )
+  .appendTo('div#content')
+  
+  var c = $('<div id="main-container"></div>')
+    .appendTo('div#content')
+    ;
+  var fetch = function (url, cb) {
     $('div#more-all').remove();
-    request({url:'/api/_all_docs?include_docs=true&limit='+limit+'&skip='+(limit - 100)}, function (err, resp) {
-      var h = ''
-      resp.rows.forEach(function (row) {
-        if (row.id[0] !== '_') {
-          h += (
-            '<div class="all-package">' + 
-              '<div class="all-package-name"><a href="/#/'+row.id+'">' + row.id + '</a></div>' +
-              '<div class="all-package-desc">' + row.doc.description + '</div>' +
-            '</div>' +
-            '<div class="spacer"></div>'
-          )
-        }
-      })
-      c.append(h);
+    request({url:url(limit)}, function (err, resp) {
+      cb(resp);
       limit += 100;
       $('<div id="more-all">Load 100 more</div>')
-        .click(function () {fetch();})
+        .click(function () {fetch(url, cb);})
         .appendTo(c)
         ;
     })
   }
-  fetch();
   
+  var routes = {};
+  routes.all = function () {
+    fetch( 
+      function (limit) {
+        return '/api/_all_docs?include_docs=true&limit='+limit+'&skip='+(limit - 100) 
+      }
+      , function (r) {
+        var h = ''
+        r.rows.forEach(function (row) {
+          if (row.id[0] !== '_') {
+            h += (
+              '<div class="all-package">' + 
+                '<div class="all-package-name"><a href="/#/'+row.id+'">' + row.id + '</a></div>' +
+                '<div class="all-package-desc">' + row.doc.description + '</div>' +
+              '</div>' +
+              '<div class="spacer"></div>'
+            )
+          }
+        });
+      c.append(h);
+      }
+    );
+    $('a:exactly("all")').css('text-decoration', 'underline');
+  }
+  routes.tags = function () {
+    request({url:'/_view/tags?group=true'}, function (e, resp) {
+      resp.rows.forEach(function (row) {
+        c.append(
+          '<div class="all-package">' + 
+            '<div class="all-package-name"><a href="/#/_tag/'+encodeURIComponent(row.key)+'">' + row.key + '</a></div>' +
+            '<div class="all-package-desc">' + row.value + '</div>' +
+          '</div>' +
+          '<div class="spacer"></div>'
+        )
+      })
+      
+      request({url:'/_view/tags?reduce=false'}, function (e, resp) {
+        resp.rows.forEach(function (row) {
+          $('div.all-package-name:exactly("'+row.key+'")').next().append('<a href="/#/'+row.id+'" class="tag-val">'+row.id+'</a>')
+        })
+        $(self).remove();
+      })
+    })
+    $('a:exactly("tags")').css('text-decoration', 'underline');
+  }
+  routes.author = function () {
+    request({url:'/_view/author?group=true'}, function (e, resp) {
+      resp.rows.forEach(function (row) {
+        c.append(
+          '<div class="all-package">' + 
+            '<div class="all-package-author"><a href="/#/_author/'+encodeURIComponent(row.key)+'">' + row.key + '</a></div>' +
+            '<div class="all-package-auth-list">' + row.value + '</div>' +
+          '</div>' +
+          '<div class="spacer"></div>'
+        )
+      })
+      
+      request({url:'/_view/author?reduce=false'}, function (e, resp) {
+        resp.rows.forEach(function (row) {
+          $('div.all-package-author:exactly("'+row.key+'")').next().append('<a href="/#/'+row.id+'" class="tag-val">'+row.id+' </a>')
+        })
+        $(self).remove();
+      })
+    })
+    $('a:exactly("author")').css('text-decoration', 'underline');
+  }
+  routes.updated = function () {
+    request({url:'/_view/updated'}, function (e, resp) {
+      resp.rows.forEach(function (row) {
+        c.append(
+          '<div class="all-package">' + 
+            '<div class="all-package-name">'+ prettyDate(row.key) +'</div>' +
+            '<div class="all-package-value"><a href="/#/'+encodeURIComponent(row.id)+'">' + row.id + '</a></div>' +
+          '</div>' +
+          '<div class="spacer"></div>'
+        )
+      })
+    })
+    $('a:exactly("updated")').css('text-decoration', 'underline');
+  }
+  routes.deps = function () {
+    request({url:'/_view/dependencies?group=true'}, function (e, resp) {
+      var deps = {};
+      resp.rows.forEach(function (row) {
+        if (!deps[row.value]) deps[row.value] = []
+        deps[row.value].push(row)
+      })
+      var keys = Object.keys(deps);
+      keys.sort(function(a,b){return a - b;});
+      keys.reverse();
+      keys.forEach(function (k) {
+        deps[k].forEach(function (row) {
+          c.append(
+            '<div class="all-package">' + 
+              '<div class="all-package-deps"><a href="/#/'+encodeURIComponent(row.key)+'">' + row.key + '</a></div>' +
+              '<div class="all-package-deps-value">'+row.value+'</div>' +
+            '</div>' +
+            '<div class="spacer"></div>'
+          )
+        })
+      })
+    })
+    $('a:exactly("depended on")').css('text-decoration', 'underline');
+  }
+  if (this.params.view) routes[this.params.view]();
+}
+app.tags = function () {
+  var tag = this.params.tag;
+  clearContent();
+  $('div#content')
+  .append('<h2 style="text-align:center">tag: '+tag+'</h2>')
+  .append('<div id="main-container"></div>');
+  request({url:'/_view/tags?reduce=false&include_docs=true&key="'+tag+'"'}, function (e, resp) {
+    resp.rows.forEach(function (row) {
+      $('div#main-container').append(
+        '<div class="all-package">' + 
+          '<div class="tags-pkg-name"><a href="/#/'+encodeURIComponent(row.key)+'">' + row.id + '</a></div>' +
+          '<div class="tags-pkg-desc">'+row.doc.description+'</div>' +
+        '</div>' +
+        '<div class="spacer"></div>'
+      );
+      
+    })
+  })
+}
+app.author = function () {
+  var author = this.params.author;
+  clearContent();
+  $('div#content')
+  .append('<h2 style="text-align:center">author: '+author+'</h2>')
+  .append('<div id="main-container"></div>');
+  request({url:'/_view/author?reduce=false&include_docs=true&key="'+author+'"'}, function (e, resp) {
+    resp.rows.forEach(function (row) {
+      $('div#main-container').append(
+        '<div class="all-package">' + 
+          '<div class="tags-pkg-name"><a href="/#/'+encodeURIComponent(row.id)+'">' + row.id + '</a></div>' +
+          '<div class="tags-pkg-desc">'+row.doc.description+'</div>' +
+        '</div>' +
+        '<div class="spacer"></div>'
+      );
+      
+    })
+  })
 }
 
 $(function () { 
@@ -583,7 +726,10 @@ $(function () {
     // Index of all databases
     this.get('', app.index);
     this.get("#/", app.index);
-    this.get("#/_all", app.alldoc);
+    this.get("#/_browse", app.browse);
+    this.get("#/_browse/:view", app.browse);
+    this.get("#/_tag/:tag", app.tags);
+    this.get("#/_author/:author", app.author);
     this.get("#/_install", function () {
       clearContent();
       request({url:'/install.html', dataType:'html'}, function (e, resp) {
