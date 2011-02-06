@@ -722,12 +722,143 @@ app.author = function () {
     })
   })
 }
+app.analytics = function () {
+  clearContent();
+  var view = this.params.view || "thisweek";
+  $('div#content').html(
+    '<div id="browse-anchors">' +
+      '<a href="/#/_analytics/thisweek">This Week</a>' +
+      '<a href="/#/_analytics/30days">30 Days</a>' +
+      '<a href="/#/_analytics/alltime">All Time</a>' +
+    '</div>' +
+    '<div id="main-container">' +
+      '<div id="analytics-created"></div>' +
+      '<div id="analytics-latest"></div>' +
+      '<div id="analytics-updated"></div>' +
+    '</div>'  
+  )
+  
+   $('a:exactly("'+{thisweek:'This Week', '30days':'30 Days', alltime:'All Time'}[view]+'")').css('text-decoration', 'underline');
+  
+  $.getScript('/highcharts/highcharts.js', function () {
+    var dt = new Date();
+    if (view == 'thisweek') {
+      dt.setDate(dt.getDate() - 7);
+    }
+    if (view == '30days') {
+      dt.setDate(dt.getDate() - 30);
+    }
+    
+    var series = [];
+    
+    var extract = function (resp, name) {
+      var times = {};
+      resp.rows.reverse();
+      resp.rows.forEach(function (row) {
+        if (view === 'thisweek') {
+          var t = row.key[1].slice(0, 10);
+        }
+        if (view === '30days') {
+          var t = row.key[1].slice(8, 10);
+        }
+        if (view === 'alltime') {
+          var t = row.key[1].slice(0, 7);
+        }
+        
+        if (!times[t]) times[t] = 0;
+        times[t] += 1;
+      })
+      var x = {name:name, data:[]};
+      for (i in times) {
+        x.data.push(times[i]);
+      }
+      series.push(x);
+      if (series.length === 3) graph(times);
+    }
+    
+    graphNames = 
+      { thisweek: 'This Week'
+      , '30days': '30 Days' 
+      , alltime: 'All Time'
+      }
+    
+    var graph = function (times) {
+      chart = new Highcharts.Chart(
+        {
+          chart: {
+             renderTo: 'analytics-created',
+             defaultSeriesType: 'line'
+          },
+          title: {
+             text: graphNames[view]
+          },
+          xAxis: {
+             categories: Object.keys(times)
+          },
+          tooltip: {
+             enabled: false,
+             formatter: function() {
+                return '<b>'+ this.series.name +'</b><br/>'+
+                   this.x +': '+ this.y +'Â°C';
+             }
+          },
+          plotOptions: {
+             line: {
+                dataLabels: {
+                   enabled: true
+                },
+                enableMouseTracking: false
+             }
+          },
+          series: series
+       });
+    }
+    
+    if (view === 'thisweek' || view === '30days') {
+      var endkey = dt.toISOString().slice(0, 10);
+    }
+    if (view === 'alltime') {
+      var endkey = null;
+    }
+    
+    request({url:'/_view/analytics?'+param(
+      {reduce:'false'
+      , descending:'true'
+      , endkey:JSON.stringify(['created', endkey])
+      , startkey:JSON.stringify(['created', new Date()])
+      })}, 
+      function (e, resp) {
+        extract(resp, 'created')
+    })
+    request({url:'/_view/analytics?'+param(
+      {reduce:'false'
+      , descending:'true'
+      , endkey:JSON.stringify(['update', endkey])
+      , startkey:JSON.stringify(['update', new Date()])
+      })}, 
+      function (e, resp) {
+        
+        extract(resp, 'updated')
+    })
+    request({url:'/_view/analytics?'+param(
+      {reduce:'false'
+      , descending:'true'
+      , endkey:JSON.stringify(['latest', endkey])
+      , startkey:JSON.stringify(['latest', new Date()])
+      })}, 
+      function (e, resp) {
+        extract(resp, 'latest')
+    })
+  })
+}
 
 $(function () { 
   app.s = $.sammy(function () {
     // Index of all databases
     this.get('', app.index);
     this.get("#/", app.index);
+    this.get("#/_analytics", app.analytics);
+    this.get("#/_analytics/:view", app.analytics);
     this.get("#/_browse", app.browse);
     this.get("#/_browse/:view", app.browse);
     this.get("#/_tag/:tag", app.tags);

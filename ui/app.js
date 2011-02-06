@@ -103,6 +103,22 @@ ddoc.views =
            }
     , reduce: "_sum"
     }
+  , analytics: 
+    { map: function (doc) {
+             if (doc.time) {
+               if (doc.time.modified) {
+                 emit(['latest', doc.time.modified], 1);
+               }
+               if (doc.time.created) {
+                 emit(['created', doc.time.created], 1);
+               }
+               for (i in doc.time) {
+                 emit(['update', doc.time[i]], 1);
+               }
+             }
+           }
+    , reduce: "_sum"
+    }
   }
   ;
 
