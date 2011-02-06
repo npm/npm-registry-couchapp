@@ -295,3 +295,10 @@ div.tags-pkg-desc {
   float:left;
   width:70%;
 }
+
+div#more {
+  float:right;
+  position:absolute;
+  bottom:0px;
+  right:30px;
+}

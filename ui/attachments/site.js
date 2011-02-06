@@ -875,6 +875,12 @@ $(function () {
         $('div#content').html('<div id="main-container">'+resp+'</div>');
       })
     });
+    this.get("#/_more", function () {
+      clearContent();
+      request({url:'/more.html', dataType:'html'}, function (e, resp) {
+        $('div#content').html('<div id="main-container">'+resp+'</div>');
+      })
+    });
     this.get("#/:id", app.showPackage);
     
     
