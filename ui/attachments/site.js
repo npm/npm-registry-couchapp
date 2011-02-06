@@ -645,6 +645,7 @@ app.browse = function () {
   }
   routes.updated = function () {
     request({url:'/_view/updated'}, function (e, resp) {
+      resp.rows.reverse();
       resp.rows.forEach(function (row) {
         c.append(
           '<div class="all-package">' + 
