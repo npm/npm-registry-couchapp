@@ -232,7 +232,7 @@ div.version-link {
 div#howto {
   position:fixed;
   background-color:white;
-  bottom:0px;
+  bottom:18px;
   width:100%;
 }
 div.howto-link {
@@ -298,7 +298,14 @@ div.tags-pkg-desc {
 
 div#more {
   float:right;
-  position:absolute;
-  bottom:0px;
+  position:fixed;
+  bottom:18px;
   right:30px;
+}
+div#bottom-liner {
+  position:fixed;
+  bottom:0px;
+  height:18px;
+  width:100%;
+  background-color: #EBEBEB;
 }
