@@ -1,4 +1,33 @@
-# Install
+# Project layout
+
+registry/ is the JSON API for the package registry.
+www/ is the code for search.npmjs.org, soon to be www.npmjs.org
+
+# Installing www
+
+You'll need CouchDB version 1.0.0 or higher.  We're using some newish features.
+I recommend getting one from http://couchone.com/
+
+Add a vhost config:
+
+    [vhosts]
+    search:5984 = /search/_design/app/_rewrite
+
+Where `packages` is the hostname where you'll be running the thing, and `5984` is the port that CouchDB is running on.  If you're running on port 80, then omit the port altogether.
+
+Now install couchapp:
+
+    npm install couchapp
+
+Now run the sync app.js from this repository.
+
+    couchapp --design www/app.js --sync --couch http://localhost:5984/search
+
+You may need to put a username and password in the URL:
+
+    couchapp --design www/app.js --sync --couch http://user:pass@localhost:5984/search
+
+# Installing registry
 
 You'll need CouchDB version 1.0.0 or higher.  We're using some newish features.
 I recommend getting one from http://couchone.com/
@@ -16,11 +45,11 @@ Now install couchapp:
 
 Now run the sync app.js from this repository.
 
-    couchapp --design app.js --sync --couch http://localhost:5984/jsregistry
+    couchapp --design registry/app.js --sync --couch http://localhost:5984/jsregistry
 
 You may need to put a username and password in the URL:
 
-    couchapp --design app.js --sync --couch http://user:pass@localhost:5984/jsregistry
+    couchapp --design registry/app.js --sync --couch http://user:pass@localhost:5984/jsregistry
 
 # API
 
