@@ -1,6 +1,7 @@
 # Project layout
 
 registry/ is the JSON API for the package registry.
+
 www/ is the code for search.npmjs.org, soon to be www.npmjs.org
 
 # Installing www
