@@ -1,12 +1,12 @@
 var ddoc = {_id:'_design/app', shows:{}, updates:{}, views:{}, lists:{}}
   , fs = require("fs")
 
-exports.app = ddoc
+module.exports = ddoc
 
 ddoc.language = "javascript"
 // there has GOT to be a better way than this...
 ddoc.semver = [ 'var expr = exports.expression = '
-                + require("npm/utils/semver").expressions.parse.toString()
+                + require("semver").expressions.parse.toString()
               , 'function valid (v) { return v && typeof v === "string" && v.match(expr) }'
               , 'function clean (v) {'
                 , 'v = valid(v)'
@@ -19,7 +19,7 @@ ddoc.semver = [ 'var expr = exports.expression = '
 ddoc.valid =  [ 'var semver = require("semver")'
               , 'function validName (name) {'
                 , 'if (!name) return false'
-                , 'var n = name.replace(/^\\s|\\s$, "")'
+                , 'var n = name.replace(/^\\s|\\s$/, "")'
                 , 'if (!n || n.charAt(0) === "."'
                     , '|| n.match(/[\\/\\(\\)&\\?#\\|<>@:%\\s\\\\]/)'
                     , '|| n.toLowerCase() === "node_modules"'
@@ -34,8 +34,6 @@ ddoc.valid =  [ 'var semver = require("semver")'
               , 'exports.name = validName'
               , 'exports.package = validPackage'
               ].join("\n")
-
-
 
 ddoc.shows.requirey = function () {
   function ISODateString(d){
@@ -78,7 +76,7 @@ ddoc.shows.requirey = function () {
          , body : toJSON([require("semver").expression.toString(), typeof ("asdf".match),
           require("semver").clean("0.2.4-1"),
           require("semver").valid("0.2.4-1"),
-          new Date().toISOString(),"hi"
+          new Date().toISOString(),"hi",require("valid")
          ])
          , headers : {}
          }
