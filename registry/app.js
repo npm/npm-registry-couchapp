@@ -105,7 +105,8 @@ ddoc.rewrites =
   , { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" }
   , { from: "/:pkg/-/jsonp/:jsonp", to: "/_show/package/:pkg", method: "GET" }
   , { from: "/:pkg/:version", to: "_show/package/:pkg", method: "GET" }
-  , { from: "/:pkg/:version/-/jsonp/:jsonp", to: "_show/package/:pkg", method: "GET" }
+  , { from: "/:pkg/:version/-/jsonp/:jsonp", to: "_show/package/:pkg"
+    , method: "GET" }
 
   , { from: "/:pkg/-/:att", to: "../../:pkg/:att", method: "GET" }
   , { from: "/:pkg/-/:att/:rev", to: "../../:pkg/:att", method: "PUT" }
@@ -116,6 +117,8 @@ ddoc.rewrites =
   , { from: "/:pkg", to: "/_update/package/:pkg", method: "PUT" }
   , { from: "/:pkg/-rev/:rev", to: "/_update/package/:pkg", method: "PUT" }
   , { from: "/:pkg/:version", to: "_update/package/:pkg", method: "PUT" }
+  , { from: "/:pkg/:version/-pre/:pre", to: "_update/package/:pkg"
+    , method: "PUT" }
 
   , { from: "/:pkg/-rev/:rev", to: "../../:pkg", method: "DELETE" }
   ]
@@ -481,7 +484,7 @@ ddoc.updates.package = function (doc, req) {
       if (body.description) doc.description = body.description
       if (body.author) doc.author = body.author
       if (body.repository) doc.repository = body.repository
-      doc["dist-tags"].latest = body.version
+      if (!req.query.pre) doc["dist-tags"].latest = body.version
       doc.versions[ver] = body
       return ok(doc, "added version")
     }
