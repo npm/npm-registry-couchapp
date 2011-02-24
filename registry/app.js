@@ -213,6 +213,22 @@ ddoc.views.orphanAttachments = {
     if (orphans.length) emit(doc._id, {size:size, orphans:orphans})
   }
 }
+
+ddoc.views.noMain = {
+  map : function (doc) {
+    if (!doc || !doc.versions) return
+    var obj = {}
+    for (var i in doc.versions) {
+      if (doc.versions[i].main) return
+      if (!doc.versions[i].overlay &&
+          !( doc.versions[i].directories
+          && doc.versions[i].directories.lib )) continue
+      obj[i] = doc.versions[i].directories.lib
+    }
+    emit(doc._id, doc._id)
+  }
+}
+
 ddoc.lists.passthrough = function (head, req) {
   var out = {}
     , row
