@@ -38,7 +38,7 @@ I recommend getting one from http://couchone.com/
 Add a vhost config:
 
     [vhosts]
-    packages:5984 = /jsregistry/_design/app/_rewrite
+    packages:5984 = /registry/_design/app/_rewrite
 
 Where `packages` is the hostname where you'll be running the thing, and
 `5984` is the port that CouchDB is running on.  If you're running on port
@@ -50,11 +50,11 @@ Now install couchapp:
 
 Now run the sync app.js from this repository.
 
-    couchapp push registry/app.js http://localhost:5984/jsregistry
+    couchapp push registry/app.js http://localhost:5984/registry
 
 You may need to put a username and password in the URL:
 
-    couchapp push registry/app.js http://user:pass@localhost:5984/jsregistry
+    couchapp push registry/app.js http://user:pass@localhost:5984/registry
 
 # API
 
