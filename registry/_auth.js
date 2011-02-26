@@ -39,6 +39,9 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
   if (!oldDoc && encodeURIComponent(newDoc.name).indexOf("%") !== -1) {
     throw({forbidden: 'name cannot contain any non-urlsafe characters'})
   }
+  if (!oldDoc && newDoc.name.toLowerCase() !== newDoc.name) {
+    throw({forbidden: 'name must be lowercase'})
+  }
   if (newDoc.password_sha && !newDoc.salt) {
     throw({forbidden : 'Users with password_sha must have a salt.'
           +'See /_utils/script/couch.js for example code.'});
