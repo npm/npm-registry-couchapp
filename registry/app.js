@@ -214,19 +214,43 @@ ddoc.views.orphanAttachments = {
   }
 }
 
-ddoc.views.noMain = {
-  map : function (doc) {
-    if (!doc || !doc.versions) return
-    var obj = {}
-    for (var i in doc.versions) {
-      if (doc.versions[i].main) return
-      if (!doc.versions[i].overlay &&
-          !( doc.versions[i].directories
-          && doc.versions[i].directories.lib )) continue
-      obj[i] = doc.versions[i].directories.lib
+ddoc.views.noMain =
+  { map : function (doc) {
+      if (!doc || !doc.versions) return
+      var obj = {}
+      for (var i in doc.versions) {
+        if (doc.versions[i].main) return
+        if (!doc.versions[i].overlay &&
+            !( doc.modules )) continue
+        obj[i] = doc.versions[i].directories.lib
+      }
+      var m = doc.maintainers[0]
+      emit(m.email, doc._id)
     }
-    emit(doc._id, doc._id)
-  }
+  , reduce : function (keys, values, rereduce) {
+      var out = {}
+      if (!rereduce) {
+        keys.forEach(function (key, i, keys) {
+          var val = values[i]
+          key = key[0]
+          out[key] = out[key] || []
+          out[key].push(val)
+        })
+      } else {
+        // values is an array of previous "out" objects.
+        // merge them all together.
+        values.forEach(function (val) {
+          val.forEach(function (kv) {
+            var i = kv[0], val = kv[1]
+            out[i] = out[i] || []
+            out[i] = out[i].concat(val)
+          })
+        })
+      }
+      // now make out into an array of [key,val] pairs
+      // because erlang fucks idiots.
+      return out
+   }
 }
 
 ddoc.lists.passthrough = function (head, req) {
@@ -619,6 +643,8 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
   assert(validUser(), "user: " + user.name + " not authorized to modify "
                       + newDoc.name )
   if (newDoc._deleted) return
+
+  assert(newDoc._id, "Empty id not allowed")
 
   assert(Array.isArray(newDoc.maintainers),
          "maintainers should be a list of owners")
