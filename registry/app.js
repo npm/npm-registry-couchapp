@@ -197,6 +197,23 @@ ddoc.views.listAll = {
   map : function (doc) { return emit(doc._id, doc) }
 }
 
+ddoc.views.nodeWafInstall = {
+  map : function (doc) {
+    if (!doc || !doc.versions || !doc["dist-tags"]) return
+    var v = doc["dist-tags"].latest
+    if (!v in doc.versions) return
+    if (!doc.versions[v].scripts) return
+    for (var i in doc.versions[v].scripts) {
+      if (doc.versions[v].scripts[i].indexOf("node-waf") !== -1 ||
+          doc.versions[v].scripts[i].indexOf("make") !== -1) {
+        emit(doc._id, doc.versions[v]._id)
+        return
+      }
+    }
+  }
+}
+
+
 ddoc.views.orphanAttachments = {
   map : function (doc) {
     if (!doc || !doc._attachments) return
