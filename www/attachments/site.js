@@ -465,30 +465,30 @@ app.showPackage = function () {
         $('div#version-info').append(bugs)
       }
       if (v.engines) {
+	    var eng = [];
+        for (i in v.engines) { eng.push( i + ' (' + v.engines[i] + ')' ); }
         $(
           '<div class="version-info-cell">' +
-            '<div class="version-info-key">Engines</div>' +
-            '<div class="version-info-value">'+JSON.stringify(v.engines)+'</div>' +
+            '<div class="version-info-key">Licenses</div>' +
+            '<div class="version-info-value">'+eng.join(', ')+'</div>' +
           '</div>' +
           '<div class="spacer"></div>'
-        )
-        .appendTo('div#version-info')
+        ).appendTo('div#version-info');
       }
       if (v.licenses) {
-        var lic = $(
+	    h = '';
+        for (i in v.licenses) {
+          h += '<a href="'+v.licenses[i].url+'">'+v.licenses[i].type+'</a>';
+        }
+        $(
           '<div class="version-info-cell">' +
             '<div class="version-info-key">Licenses</div>' +
-            '<div class="version-info-value">'+JSON.stringify(v.engines)+'</div>' +
+            '<div class="version-info-value">'+h+'</div>' +
           '</div>' +
           '<div class="spacer"></div>'
-        )
-        for (i in v.licenses) {
-          lic.find('div.version-info-value').html(
-            '<a href="'+v.licenses[i].url+'">'+v.licenses[i].type+'</a>'
-          )
-        }
-        lic.appendTo('div#version-info')
+        ).appendTo('div#version-info');
       }
+
       
       //  +
       // '<div class="version-info-cell">' +
