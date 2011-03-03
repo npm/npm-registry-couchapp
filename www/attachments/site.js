@@ -274,7 +274,6 @@ app.index = function () {
         var qs = param(
           { startkey: JSON.stringify(term)
           , endkey: JSON.stringify(term+'ZZZZZZZZZZZZZZZZZZZ')
-          , reduce: 'false'
           }
         )
         ;
