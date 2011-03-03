@@ -53,6 +53,12 @@ function prettyDate(time) {
 		day_diff < 31 && Math.ceil( day_diff / 7 ) + " weeks ago";
 }
 
+function isGithubUrl(url) {
+  return url.slice(0, 'http://github.com'.length) === 'http://github.com' ||
+         url.slice(0, 'https://github.com'.length) === 'https://github.com' ||
+		 url.slice(0, 'git://github.com'.length) === 'git://github.com';
+}
+
 $.expr[":"].exactly = function(obj, index, meta, stack){ 
   return ($(obj).text() == meta[3])
 }
@@ -330,12 +336,15 @@ app.showPackage = function () {
       }
     }
     
-    if (doc.repository && doc.repository.type === 'git' && (
-          doc.repository.url.slice(0, 'http://github.com'.length) === 'http://github.com' ||
-          doc.repository.url.slice(0, 'https://github.com'.length) === 'https://github.com'
-          ) 
-        ) {
-          package.append('<div class="pkg-link"><a class="github" href="'+doc.repository.url.replace('.git', '')+'">github</a></div>')
+	if (typeof doc.repository === 'string') {
+		repositoryUrl = doc.repository;
+		doc.repository = {
+			type: (isGithubUrl(repositoryUrl) ? 'git' : 'unknown'),
+			url: repositoryUrl
+		}
+	}	
+    if (doc.repository && doc.repository.type === 'git' && isGithubUrl(doc.repository.url) ) {
+          package.append('<div class="pkg-link"><a class="github" href="' + doc.repository.url.replace('.git', '').replace('git://', 'https://') + '">github</a></div>')
     }
      
     
