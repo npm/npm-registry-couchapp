@@ -1,20 +1,20 @@
- var couchapp = require('couchapp')
+var couchapp = require('couchapp')
   , path = require('path')
-  ;
 
-ddoc = 
+
+ddoc =
   { _id:'_design/ui'
-  , rewrites : 
+  , rewrites :
     [ {from:"/", to:'index.html'}
     , {from:"/api", to:'../../'}
     , {from:"/api/*", to:'../../*'}
     , {from:"/*", to:'*'}
     ]
   }
-  ;
+
 
 function packageSearch (doc) {
-  var descriptionBlacklist = 
+  var descriptionBlacklist =
     [ "for"
     , "and"
     , "in"
@@ -28,7 +28,7 @@ function packageSearch (doc) {
     , "to"
     , "as"
     ]
-    ;
+
   if (doc.name) { // There aren't any better attributes for check if isPackage()
     if (doc.name) {
       var names = [doc.name];
@@ -52,7 +52,7 @@ function packageSearch (doc) {
       doc.description.split(' ').forEach(function (d) {
         d = d.toLowerCase();
         while (d.indexOf('.') !== -1) d = d.replace('.', '');
-        while (d.indexOf('\n') !== -1) d = d.replace('\n', ''); 
+        while (d.indexOf('\n') !== -1) d = d.replace('\n', '');
         while (d.indexOf('\r') !== -1) d = d.replace('\n', '');
         while (d.indexOf('`') !== -1) d = d.replace('`', '');
         while (d.indexOf('_') !== -1) d = d.replace('_', '');
@@ -83,11 +83,11 @@ function dependencies (doc) {
   }
 }
 
-ddoc.views = 
+ddoc.views =
   { search: { map: packageSearch }
   , dependencies: {map: dependencies, reduce:"_count"}
   , updated: {map: function (doc) {if (doc.time && doc.time.modified) emit(doc.time.modified, 1) }}
-  , tags: 
+  , tags:
     { map: function (doc) {
              if (doc['dist-tags'] && doc['dist-tags'].latest) {
               doc.versions[doc['dist-tags'].latest].tags.forEach(function (t) {emit(t, 1)})
@@ -103,7 +103,7 @@ ddoc.views =
            }
     , reduce: "_sum"
     }
-  , analytics: 
+  , analytics:
     { map: function (doc) {
              if (doc.time) {
                if (doc.time.modified) {
@@ -122,10 +122,10 @@ ddoc.views =
   }
   ;
 
-// ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {   
-//   if (newDoc._deleted === true && userCtx.roles.indexOf('_admin') === -1) {     
+// ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
+//   if (newDoc._deleted === true && userCtx.roles.indexOf('_admin') === -1) {
 //     throw "Only admin can delete documents on this database.";
-//   } 
+//   }
 // }
 
 couchapp.loadAttachments(ddoc, path.join(__dirname, 'attachments'));
