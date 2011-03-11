@@ -201,7 +201,7 @@ ddoc.views.nodeWafInstall = {
   map : function (doc) {
     if (!doc || !doc.versions || !doc["dist-tags"]) return
     var v = doc["dist-tags"].latest
-    if (!v in doc.versions) return
+    if (!doc.versions[v]) return
     if (!doc.versions[v].scripts) return
     for (var i in doc.versions[v].scripts) {
       if (doc.versions[v].scripts[i].indexOf("node-waf") !== -1 ||
@@ -210,6 +210,23 @@ ddoc.views.nodeWafInstall = {
         return
       }
     }
+  }
+}
+
+ddoc.views.badBins = {
+  map : function (doc) {
+    if (!doc || !doc.versions || !doc["dist-tags"]) return
+    var v = doc["dist-tags"].latest
+    if (!doc.versions[v]) return
+    v = doc.versions[v]
+    var b = v.bin
+      , d = v.directories && v.directories.bin
+    if (!b && !d) return
+    if (b && (typeof b === "string" || Object.keys(b).length === 1)) {
+      // it's ok.
+      return
+    }
+    emit(doc._id, {binHash:b, binDir:d})
   }
 }
 
@@ -302,20 +319,86 @@ ddoc.lists.size = function (head, req) {
     if (!row.id) continue
     out.push(row.value)
   }
+  var list = []
   out = out.sort(function (a, b) {
              max = Math.max(max, a.size, b.size)
              return a.size > b.size ? -1 : 1
            })
            .reduce(function (l, r) {
+             var stars = new Array(Math.ceil(80 * (r.size/max)) + 1).join("\u25FE")
              l[r._id] = { size: r.size
                         , count: r.count
                         , avg: r.avg
                         , rel: r.size / max
+                        , s: stars
                         }
              return l
            }, {})
   send(JSON.stringify(out))
 }
+
+ddoc.lists.histogram = function (head, req) {
+  start({"code": 200, "headers": {"Content-Type": "text/plain"}});
+  var row
+    , out = []
+    , max = {}
+    , field = req.query.field
+    , sort = req.query.sort
+    , doAll = !field
+
+  while (row = getRow()) {
+    if (!row.id) continue
+    out.push(row.value)
+  }
+
+  if (!doAll) out.sort(function (a, b) {
+    max[field] = Math.max(max[field] || -Infinity, a[field], b[field])
+    return a[field] > b[field] ? -1 : 1
+  })
+  else out.sort(function (a, b) {
+    for (var field in a) if (field.charAt(0) !== "_" && !isNaN(a[field])) {
+      max[field] = Math.max(max[field] || -Infinity, a[field])
+    }
+    for (var field in b) if (field.charAt(0) !== "_" && !isNaN(b[field])) {
+      max[field] = Math.max(max[field] || -Infinity, b[field])
+    }
+    if (sort) {
+      return Number(a[sort]) > Number(b[sort]) ? -1 : 1
+    } else {
+      return 0
+    }
+  })
+  if (doAll) {
+    // sort the fields by the max sizes.
+    var m = {}
+    Object.keys(max).sort(function (a, b) {
+      return max[a] > max[b] ? -1 : 1
+    }).forEach(function (k) { m[k] = max[k] })
+    max = m
+  }
+  out = out.map(function (a) {
+    var o = {}
+    for (var f in max) {
+      var blk = new Array(Math.ceil(80*(a[f] / max[f])+1)).join("#")
+        , spc = new Array(80 - blk.length + 1).join(" ")
+      o[f] = spc + blk + " " + a[f]
+    }
+    o._id = a._id
+    return o
+  }).reduce(function (l, r) {
+    l[r._id] = r
+    return l
+  }, {})
+
+  var spc = new Array(82).join(" ")
+  send(Object.keys(out).map(function (i) {
+    if (doAll) return [spc + i].concat(Object.keys(max).map(function (f) {
+      return out[i][f] + " " + f
+    })).join("\n") + "\n"
+    return out[i][field] + " " + i
+  }).join("\n"))
+}
+
 
 ddoc.shows.package = function (doc, req) {
   if (!Date.prototype.toISOString) {
