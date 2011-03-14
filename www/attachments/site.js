@@ -435,6 +435,13 @@ app.showPackage = function () {
         )
       }
       if (v.repository) {
+		if (typeof v.repository === 'string') {
+			repositoryUrl = v.repository;
+			v.repository = {
+				type: (isGithubUrl(repositoryUrl) ? 'git' : 'unknown'),
+				url: repositoryUrl
+			};
+		}
         $('div#version-info').append(
           '<div class="version-info-cell">' +
             '<div class="version-info-key">Repository</div>' +
