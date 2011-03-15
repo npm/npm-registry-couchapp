@@ -101,6 +101,9 @@ ddoc.rewrites =
   , { from: "/-/user/:user/-rev/:rev", to:"../../../_users/:user"
     , method: "PUT" }
   , { from: "/-/user/:user", to:"../../../_users/:user", method: "GET" }
+  , { from: "/-/user-by-email/:email"
+    , to:"../../../_users/_design/_auth/_list/email/listAll"
+    , method: "GET" }
 
   , { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" }
   , { from: "/:pkg/-/jsonp/:jsonp", to: "/_show/package/:pkg", method: "GET" }
@@ -128,6 +131,11 @@ ddoc.lists.index = function (head, req) {
     , out = {}
     , semver = require("semver")
 
+  if (!String.prototype.trim) {
+    String.prototype.trim = function () {
+      return this.replace(/^\s+|\s+$/g, "")
+    }
+  }
   while (row = getRow()) {
     if (!row.id) continue
     var p = out[row.id] = {}
