@@ -2,7 +2,7 @@
 
 var ddoc = {_id:"_design/_auth", language:"javascript"}
 
-exports.app = ddoc
+module.exports = ddoc
 
 ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
   if ((oldDoc || newDoc).type != 'user') {
@@ -98,7 +98,23 @@ ddoc.lists = {
       out[id] = data
     }
     send(toJSON(out))
+  },
+  email:function (head, req) {
+    var row
+      , data
+      , id
+      , email = req.query.email || undefined
+      , out = []
+    while (row = getRow()) {
+      id = row.id.replace(/^org\.couchdb\.user:/, '')
+      data = row.value
+      var dm = data.email || undefined
+      if (data.email !== email) continue
+      out.push(row.value.name)
+    }
+    send(toJSON(out))
   }
+
 }
 ddoc.views = {
   listAll : { map : function (doc) { return emit(doc._id, doc) } }
