@@ -84,9 +84,12 @@ ddoc.shows.requirey = function () {
 
 ddoc.rewrites =
   [ { from: "/", to:"_list/index/listAll", method: "GET" }
+  , { from: "/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
+
   , { from: "/-/all", to:"_list/index/listAll", method: "GET" }
   , { from: "/-/all/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
-  , { from: "/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
+
+  , { from: "/-/short", to:"_list/short/listAll", method: "GET" }
 
   , { from : "/favicon.ico", to:"../../npm/favicon.ico", method:"GET" }
 
@@ -100,10 +103,13 @@ ddoc.rewrites =
   , { from: "/-/user/:user", to:"../../../_users/:user", method: "PUT" }
   , { from: "/-/user/:user/-rev/:rev", to:"../../../_users/:user"
     , method: "PUT" }
+
   , { from: "/-/user/:user", to:"../../../_users/:user", method: "GET" }
+
   , { from: "/-/user-by-email/:email"
     , to:"../../../_users/_design/_auth/_list/email/listAll"
     , method: "GET" }
+
   , { from: "/-/by-user/:user", to: "_list/byUser/byUser", method: "GET" }
 
   , { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" }
@@ -121,11 +127,23 @@ ddoc.rewrites =
   , { from: "/:pkg", to: "/_update/package/:pkg", method: "PUT" }
   , { from: "/:pkg/-rev/:rev", to: "/_update/package/:pkg", method: "PUT" }
   , { from: "/:pkg/:version", to: "_update/package/:pkg", method: "PUT" }
+  , { from: "/:pkg/:version/-tag/:tag", to: "_update/package/:pkg"
+    , method: "PUT" }
   , { from: "/:pkg/:version/-pre/:pre", to: "_update/package/:pkg"
     , method: "PUT" }
 
   , { from: "/:pkg/-rev/:rev", to: "../../:pkg", method: "DELETE" }
   ]
+
+ddoc.lists.short = function (head, req) {
+  var out = {}
+    , row
+  while (row = getRow()) {
+    if (!row.id) continue
+    out[row.id] = true
+  }
+  send(toJSON(Object.keys(out)))
+}
 
 ddoc.lists.index = function (head, req) {
   var row
@@ -315,7 +333,7 @@ ddoc.views.byUser = { map : function (doc) {
 
 ddoc.lists.byUser = function (head, req) {
   var out = {}
-    , user = req.query.user || null
+    , user = req.query.user && req.query.user !== "-" ? req.query.user : null
     , users = user && user.split("|")
   while (row = getRow()) {
     if (!user || users.indexOf(row.key) !== -1) {
@@ -653,7 +671,8 @@ ddoc.updates.package = function (doc, req) {
       if (body.description) doc.description = body.description
       if (body.author) doc.author = body.author
       if (body.repository) doc.repository = body.repository
-      if (!req.query.pre) doc["dist-tags"].latest = body.version
+      var tag = req.query.tag || "latest"
+      if (!req.query.pre) doc["dist-tags"][tag] = body.version
       doc.versions[ver] = body
       return ok(doc, "added version")
     }
