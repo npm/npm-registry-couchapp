@@ -104,6 +104,7 @@ ddoc.rewrites =
   , { from: "/-/user-by-email/:email"
     , to:"../../../_users/_design/_auth/_list/email/listAll"
     , method: "GET" }
+  , { from: "/-/by-user/:user", to: "_list/byUser/byUser", method: "GET" }
 
   , { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" }
   , { from: "/:pkg/-/jsonp/:jsonp", to: "/_show/package/:pkg", method: "GET" }
@@ -301,6 +302,26 @@ ddoc.lists.passthrough = function (head, req) {
   while (row = getRow()) {
     if (!row.id) continue
     out[row.id] = row.value
+  }
+  send(toJSON(out))
+}
+
+ddoc.views.byUser = { map : function (doc) {
+  if (!doc || !doc.maintainers) return
+  doc.maintainers.forEach(function (m) {
+    emit(m.name, doc._id)
+  })
+}}
+
+ddoc.lists.byUser = function (head, req) {
+  var out = {}
+    , user = req.query.user || null
+    , users = user && user.split("|")
+  while (row = getRow()) {
+    if (!user || users.indexOf(row.key) !== -1) {
+      var l = out[row.key] = out[row.key] || []
+      l.push(row.value)
+    }
   }
   send(toJSON(out))
 }
