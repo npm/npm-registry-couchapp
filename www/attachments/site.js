@@ -56,7 +56,7 @@ function prettyDate(time) {
 function isGithubUrl(url) {
   return url.slice(0, 'http://github.com'.length) === 'http://github.com' ||
          url.slice(0, 'https://github.com'.length) === 'https://github.com' ||
-		 url.slice(0, 'git://github.com'.length) === 'git://github.com';
+         url.slice(0, 'git://github.com'.length) === 'git://github.com';
 }
 
 $.expr[":"].exactly = function(obj, index, meta, stack){ 
@@ -336,13 +336,13 @@ app.showPackage = function () {
       }
     }
     
-	if (typeof doc.repository === 'string') {
-		repositoryUrl = doc.repository;
-		doc.repository = {
-			type: (isGithubUrl(repositoryUrl) ? 'git' : 'unknown'),
-			url: repositoryUrl
-		}
-	}	
+    if (typeof doc.repository === 'string') {
+      repositoryUrl = doc.repository;
+      doc.repository = {
+        type: (isGithubUrl(repositoryUrl) ? 'git' : 'unknown'),
+        url: repositoryUrl
+      }
+    }
     if (doc.repository && doc.repository.type === 'git' && isGithubUrl(doc.repository.url) ) {
           package.append('<div class="pkg-link"><a class="github" href="' + doc.repository.url.replace('.git', '').replace('git://', 'https://') + '">github</a></div>')
     }
@@ -436,13 +436,13 @@ app.showPackage = function () {
         )
       }
       if (v.repository) {
-		if (typeof v.repository === 'string') {
-			repositoryUrl = v.repository;
-			v.repository = {
-				type: (isGithubUrl(repositoryUrl) ? 'git' : 'unknown'),
-				url: repositoryUrl
-			};
-		}
+        if (typeof v.repository === 'string') {
+          repositoryUrl = v.repository;
+          v.repository = {
+            type: (isGithubUrl(repositoryUrl) ? 'git' : 'unknown'),
+            url: repositoryUrl
+          };
+        }
         $('div#version-info').append(
           '<div class="version-info-cell">' +
             '<div class="version-info-key">Repository</div>' +
