@@ -32,25 +32,25 @@ var request = function (options, callback) {
 
 function prettyDate(time) {
   if (time.indexOf('.') !== -1) time = time.slice(0, time.indexOf('.'))+'Z'
-	var date = new Date((time || "").replace(/-/g,"/").replace(/[TZ]/g," ")),
-	    date = new Date(date.getTime() - (date.getTimezoneOffset() * 1000 * 60))
-  		diff = (((new Date()).getTime() - date.getTime()) / 1000),
-  		day_diff = Math.floor(diff / 86400)
-  		;
+  var date = new Date((time || "").replace(/-/g,"/").replace(/[TZ]/g," ")),
+      date = new Date(date.getTime() - (date.getTimezoneOffset() * 1000 * 60))
+      diff = (((new Date()).getTime() - date.getTime()) / 1000),
+      day_diff = Math.floor(diff / 86400)
+      ;
   
   if (day_diff === -1) return "now"
-	if ( day_diff >= 31) return day_diff + ' days ago';
-	if ( isNaN(day_diff) || day_diff < 0 || day_diff >= 31 ) return;
-	
-	return day_diff == 0 && (
-			diff < 60 && "just now" ||
-			diff < 120 && "1 minute ago" ||
-			diff < 3600 && Math.floor( diff / 60 ) + " minutes ago" ||
-			diff < 7200 && "1 hour ago" ||
-			diff < 86400 && Math.floor( diff / 3600 ) + " hours ago") ||
-		day_diff == 1 && "Yesterday" ||
-		day_diff < 7 && day_diff + " days ago" ||
-		day_diff < 31 && Math.ceil( day_diff / 7 ) + " weeks ago";
+  if ( day_diff >= 31) return day_diff + ' days ago';
+  if ( isNaN(day_diff) || day_diff < 0 || day_diff >= 31 ) return;
+  
+  return day_diff == 0 && (
+      diff < 60 && "just now" ||
+      diff < 120 && "1 minute ago" ||
+      diff < 3600 && Math.floor( diff / 60 ) + " minutes ago" ||
+      diff < 7200 && "1 hour ago" ||
+      diff < 86400 && Math.floor( diff / 3600 ) + " hours ago") ||
+    day_diff == 1 && "Yesterday" ||
+    day_diff < 7 && day_diff + " days ago" ||
+    day_diff < 31 && Math.ceil( day_diff / 7 ) + " weeks ago";
 }
 
 function isGithubUrl(url) {
@@ -66,27 +66,27 @@ $.expr[":"].exactly = function(obj, index, meta, stack){
 var param = function( a ) {
   // Query param builder from jQuery, had to copy out to remove conversion of spaces to +
   // This is important when converting datastructures to querystrings to send to CouchDB.
-	var s = [];
-	if ( jQuery.isArray(a) || a.jquery ) {
-		jQuery.each( a, function() { add( this.name, this.value ); });		
-	} else { 
-	  for ( var prefix in a ) { buildParams( prefix, a[prefix] ); }
-	}
+  var s = [];
+  if ( jQuery.isArray(a) || a.jquery ) {
+    jQuery.each( a, function() { add( this.name, this.value ); });    
+  } else { 
+    for ( var prefix in a ) { buildParams( prefix, a[prefix] ); }
+  }
   return s.join("&");
-	function buildParams( prefix, obj ) {
-		if ( jQuery.isArray(obj) ) {
-			jQuery.each( obj, function( i, v ) {
-				if (  /\[\]$/.test( prefix ) ) { add( prefix, v );
-				} else { buildParams( prefix + "[" + ( typeof v === "object" || jQuery.isArray(v) ? i : "") +"]", v )}
-			});				
-		} else if (  obj != null && typeof obj === "object" ) {
-			jQuery.each( obj, function( k, v ) { buildParams( prefix + "[" + k + "]", v ); });				
-		} else { add( prefix, obj ); }
-	}
-	function add( key, value ) {
-		value = jQuery.isFunction(value) ? value() : value;
-		s[ s.length ] = encodeURIComponent(key) + "=" + encodeURIComponent(value);
-	}
+  function buildParams( prefix, obj ) {
+    if ( jQuery.isArray(obj) ) {
+      jQuery.each( obj, function( i, v ) {
+        if (  /\[\]$/.test( prefix ) ) { add( prefix, v );
+        } else { buildParams( prefix + "[" + ( typeof v === "object" || jQuery.isArray(v) ? i : "") +"]", v )}
+      });        
+    } else if (  obj != null && typeof obj === "object" ) {
+      jQuery.each( obj, function( k, v ) { buildParams( prefix + "[" + k + "]", v ); });        
+    } else { add( prefix, obj ); }
+  }
+  function add( key, value ) {
+    value = jQuery.isFunction(value) ? value() : value;
+    s[ s.length ] = encodeURIComponent(key) + "=" + encodeURIComponent(value);
+  }
 }
 
 function clearContent () {
@@ -471,7 +471,7 @@ app.showPackage = function () {
         $('div#version-info').append(bugs)
       }
       if (v.engines) {
-	    var eng = [];
+      var eng = [];
         for (i in v.engines) { eng.push( i + ' (' + v.engines[i] + ')' ); }
         $(
           '<div class="version-info-cell">' +
@@ -482,7 +482,7 @@ app.showPackage = function () {
         ).appendTo('div#version-info');
       }
       if (v.licenses) {
-	    h = '';
+      h = '';
         for (i in v.licenses) {
           h += '<a href="'+v.licenses[i].url+'">'+v.licenses[i].type+'</a>';
         }
