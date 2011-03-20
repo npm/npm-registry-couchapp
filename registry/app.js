@@ -224,6 +224,28 @@ ddoc.views.listAll = {
   map : function (doc) { return emit(doc._id, doc) }
 }
 
+ddoc.views.scripts = {
+  map : function (doc) {
+    if (!doc || !doc.versions || !doc["dist-tags"]) return
+    var v = doc["dist-tags"].latest
+    if (!doc.versions[v]) return
+    if (!doc.versions[v].scripts) return
+    emit(doc._id, doc.versions[v].scripts)
+  }
+}
+
+ddoc.lists.scripts = function (head, req) {
+  var row
+    , out = {}
+  while (row = getRow()) {
+    if (!row.id) continue
+    if (req.query.package && row.id !== req.query.package) continue
+    if (req.query.script && !row.value[req.query.script]) continue
+    out[row.id] = row.value
+  }
+  send(toJSON(out))
+}
+
 ddoc.views.nodeWafInstall = {
   map : function (doc) {
     if (!doc || !doc.versions || !doc["dist-tags"]) return
