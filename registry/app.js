@@ -148,9 +148,22 @@ ddoc.rewrites =
 ddoc.lists.short = function (head, req) {
   var out = {}
     , row
+    , show = (req.query.show || "").split(",")
+    , v = show.indexOf("version") !== -1
+    , t = show.indexOf("tag") !== -1
   while (row = getRow()) {
     if (!row.id) continue
-    out[row.id] = true
+    if (!t && !v) {
+      out[row.id] = true
+      continue
+    }
+    var val = row.value
+    if (t) Object.keys(val["dist-tags"] || {}).forEach(function (t) {
+      out[row.id + "@" + t] = true
+    })
+    if (v) Object.keys(val.versions || {}).forEach(function (v) {
+      out[row.id + "@" + v] = true
+    })
   }
   send(toJSON(Object.keys(out)))
 }
