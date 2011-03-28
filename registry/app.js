@@ -90,6 +90,7 @@ ddoc.rewrites =
   , { from: "/-/all/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
 
   , { from: "/-/short", to:"_list/short/listAll", method: "GET" }
+  , { from: "/-/scripts", to:"_list/scripts/scripts", method: "GET" }
 
   , { from : "/favicon.ico", to:"../../npm/favicon.ico", method:"GET" }
 
