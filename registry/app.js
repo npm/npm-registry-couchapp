@@ -697,11 +697,15 @@ ddoc.updates.package = function (doc, req) {
       if (!semver.valid(ver)) {
         return error("invalid version: "+ver)
       }
+
       if ((ver in doc.versions) || (semver.clean(ver) in doc.versions)) {
         // attempting to overwrite an existing version.
         // not supported at this time.
-        return error("cannot modify existing version")
+        if (!req.query.rev || req.query.rev !== doc._rev) {
+          return error("cannot modify existing version")
+        }
       }
+
       var body = JSON.parse(req.body)
       if (!valid.name(body.name)) {
         return error( "Invalid name: "+JSON.stringify(body.name))
