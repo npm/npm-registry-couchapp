@@ -127,10 +127,19 @@ ddoc.rewrites =
 
   , { from: "/:pkg", to: "/_update/package/:pkg", method: "PUT" }
   , { from: "/:pkg/-rev/:rev", to: "/_update/package/:pkg", method: "PUT" }
+
   , { from: "/:pkg/:version", to: "_update/package/:pkg", method: "PUT" }
+  , { from: "/:pkg/:version/-rev/:rev", to: "_update/package/:pkg"
+    , method: "PUT" }
+
   , { from: "/:pkg/:version/-tag/:tag", to: "_update/package/:pkg"
     , method: "PUT" }
+  , { from: "/:pkg/:version/-tag/:tag/-rev/:rev", to: "_update/package/:pkg"
+    , method: "PUT" }
+
   , { from: "/:pkg/:version/-pre/:pre", to: "_update/package/:pkg"
+    , method: "PUT" }
+  , { from: "/:pkg/:version/-pre/:pre/-rev/:rev", to: "_update/package/:pkg"
     , method: "PUT" }
 
   , { from: "/:pkg/-rev/:rev", to: "../../:pkg", method: "DELETE" }
