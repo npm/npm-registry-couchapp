@@ -92,6 +92,8 @@ ddoc.rewrites =
   , { from: "/-/short", to:"_list/short/listAll", method: "GET" }
   , { from: "/-/scripts", to:"_list/scripts/scripts", method: "GET" }
 
+  , { from: "/-/needbuild", to:"_list/needBuild/needBuild", method: "GET" }
+
   , { from : "/favicon.ico", to:"../../npm/favicon.ico", method:"GET" }
 
   // DEPRECATED: Remove when npm dings 0.3.x
@@ -246,6 +248,37 @@ ddoc.lists.index = function (head, req) {
 ddoc.views.listAll = {
   map : function (doc) { return emit(doc._id, doc) }
 }
+
+ddoc.views.needBuild = {
+  map : function (doc) {
+    if (!doc || !doc.versions || !doc["dist-tags"]) return
+    var v = doc["dist-tags"].latest
+    //Object.keys(doc.versions).forEach(function (v) {
+      var d = doc.versions[v]
+      if (!d) return
+      if (!d.scripts) return
+      var inst = d.scripts.install
+               || d.scripts.preinstall
+               || d.scripts.postinstall
+      if (!inst) return
+      //emit(d.name + "@" + d.version, d.dist.bin || {})
+      emit(d._id, d.dist.bin || {})
+    //})
+  }
+}
+
+ddoc.lists.needBuild = function (head, req) {
+  start({"code": 200, "headers": {"Content-Type": "text/plain"}});
+  var row
+    , out = []
+  while (row = getRow()) {
+    if (!row.id) continue
+    if (req.query.bindist && row.value[req.query.bindist]) continue
+    out.push(row.key)
+  }
+  send(out.join("\n"))
+}
+
 
 ddoc.views.scripts = {
   map : function (doc) {
