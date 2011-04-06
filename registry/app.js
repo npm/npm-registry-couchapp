@@ -720,7 +720,12 @@ ddoc.updates.package = function (doc, req) {
       if (body.description) doc.description = body.description
       if (body.author) doc.author = body.author
       if (body.repository) doc.repository = body.repository
-      var tag = req.query.tag || "latest"
+
+      var tag = req.query.tag
+              || (body.publishConfig && body.publishConfig.tag)
+              || body.tag
+              || "latest"
+
       if (!req.query.pre) doc["dist-tags"][tag] = body.version
       doc.versions[ver] = body
       return ok(doc, "added version")
