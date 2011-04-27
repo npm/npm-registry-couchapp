@@ -475,7 +475,7 @@ app.showPackage = function () {
         for (i in v.engines) { eng.push( i + ' (' + v.engines[i] + ')' ); }
         $(
           '<div class="version-info-cell">' +
-            '<div class="version-info-key">Licenses</div>' +
+            '<div class="version-info-key">Engines</div>' +
             '<div class="version-info-value">'+eng.join(', ')+'</div>' +
           '</div>' +
           '<div class="spacer"></div>'
