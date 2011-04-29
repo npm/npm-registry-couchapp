@@ -2,59 +2,45 @@
 
 registry/ is the JSON API for the package registry.
 
-www/ is the code for search.npmjs.org, soon to be www.npmjs.org
+www/ is the code for search.npmjs.org, eventually maybe www.npmjs.org
 
-# Installing www
+# Installing
 
 You'll need CouchDB version 1.0.0 or higher.  We're using some newish features.
-I recommend getting one from http://couchone.com/
-
-Add a vhost config:
-
-    [vhosts]
-    search:5984 = /search/_design/app/_rewrite
-
-Where `packages` is the hostname where you'll be running the thing, and
-`5984` is the port that CouchDB is running on.  If you're running on port
-80, then omit the port altogether.
+I recommend getting one from http://iriscouch.com/
 
 Now install couchapp:
 
-    sudo npm install couchapp
+    sudo npm install couchapp -g
 
-Now run the sync app.js from this repository.
+Sync the registry and search:
 
+    couchapp push registry/app.js http://localhost:5984/registry
     couchapp push www/app.js http://localhost:5984/search
 
 You may need to put a username and password in the URL:
 
     couchapp push www/app.js http://user:pass@localhost:5984/search
+    couchapp push registry/app.js http://user:pass@localhost:5984/registry
 
-# Installing registry
+# Optional: top-of-host urls
 
-You'll need CouchDB version 1.0.0 or higher.  We're using some newish features.
-I recommend getting one from http://couchone.com/
+With the setup so far, you can point the npm client at the registry by
+putting this in your ~/.npmrc file:
 
-Add a vhost config:
+    registry = http://localhost:5984/registry/_design/app/_rewrite
+
+To be snazzier, add a vhost config:
 
     [vhosts]
-    packages:5984 = /registry/_design/app/_rewrite
+    registry.mydomain.com:5984 = /registry/_design/app/_rewrite
+    search.mydomain.com:5984 = /search/_design/app/_rewrite
 
-Where `packages` is the hostname where you'll be running the thing, and
-`5984` is the port that CouchDB is running on.  If you're running on port
-80, then omit the port altogether.
 
-Now install couchapp:
-
-    npm install couchapp
-
-Now run the sync app.js from this repository.
-
-    couchapp push registry/app.js http://localhost:5984/registry
-
-You may need to put a username and password in the URL:
-
-    couchapp push registry/app.js http://user:pass@localhost:5984/registry
+Where `registry.mydomain.com` and `search.mydomain.com` are
+the hostnames where you're running the thing, and `5984` is the
+port that CouchDB is running on. If you're running on port 80,
+then omit the port altogether.
 
 # API
 
@@ -65,13 +51,13 @@ and metadata. Example:
 
     {
       "name": "foo",
-      "dist-tags": { "stable": "0.1" },
+      "dist-tags": { "latest": "0.1.2" },
       "_id": "foo",
       "versions": {
-        "0.1": {
+        "0.1.2": {
           "name": "foo",
           "_id": "foo",
-          "version": "0.1",
+          "version": "0.1.2",
           "dist": { "tarball": "http:\/\/domain.com\/0.1.tgz" },
           "description": "A fake package"
         }
