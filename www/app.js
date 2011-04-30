@@ -6,6 +6,7 @@ ddoc =
   { _id:'_design/ui'
   , rewrites :
     [ {from:"/", to:'index.html'}
+    , {from:"/favicon.ico", to:'../../npm/favicon.ico'}
     , {from:"/api", to:'../../'}
     , {from:"/api/*", to:'../../*'}
     , {from:"/*", to:'*'}
