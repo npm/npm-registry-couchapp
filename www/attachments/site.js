@@ -129,7 +129,6 @@ app.index = function () {
   
   request({url:'/_view/updated?descending=true&limit='+limit+'&include_docs=false'}, function (err, resp) {
     resp.rows.forEach(function (row) {
-        console.log(row);
       $('<div class="top-package"></div>')
       .append('<div class="top-package-title"><a href="#/'+row.id+'">'+row.id+'</a></div>')
       .append('<div class="top-package-updated">'+prettyDate(row.key) +'</div>')
