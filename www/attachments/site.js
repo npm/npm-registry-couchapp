@@ -127,12 +127,12 @@ app.index = function () {
     $('div#totals').html('<a href="/#/_browse/all">' + (resp.total_rows - 1) +' total packages</a>')
   })
   
-  request({url:'/_view/updated?descending=true&limit='+limit+'&include_docs=true'}, function (err, resp) {
+  request({url:'/_view/updated?descending=true&limit='+limit+'&include_docs=false'}, function (err, resp) {
     resp.rows.forEach(function (row) {
-      docs[row.doc._id] = row.doc;
+        console.log(row);
       $('<div class="top-package"></div>')
-      .append('<div class="top-package-title"><a href="#/'+row.doc._id+'">'+row.doc._id+'</a></div>')
-      .append('<div class="top-package-updated">'+prettyDate(row.doc.time.modified) +'</div>')
+      .append('<div class="top-package-title"><a href="#/'+row.id+'">'+row.id+'</a></div>')
+      .append('<div class="top-package-updated">'+prettyDate(row.key) +'</div>')
       .append('<div class="spacer"></div>')
       .appendTo('div#latest-packages')
     })
