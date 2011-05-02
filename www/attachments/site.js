@@ -137,26 +137,15 @@ app.index = function () {
     })
   })
   
-  request({url:'/_view/dependencies?group=true'}, function (err, resp) {
+  request({url:'/_list/dependencies_limit/dependencies?group=true&descending=true&list_limit='+limit}, function (err, resp) {
     var results = {};
     resp.rows.forEach(function (row) {
-      if (!results[row.value]) results[row.value] = [];
-      results[row.value].push(row.key);
-    })
-    var keys = Object.keys(results);
-    keys.sort(function(a,b){return a - b;});
-    keys.reverse();
-    for (var i=0;i<limit;i++) {
-      if ($('div.top-package-dep').length == limit) return;
-      results[keys[i]].forEach(function (r) {
-        if ($('div.top-package-dep').length == limit) return;
         $('<div class="top-package"></div>')
-        .append('<div class="top-package-title"><a href="#/'+r+'">'+r+'</a></div>')
-        .append('<div class="top-package-dep">'+keys[i]+'</div>')
+        .append('<div class="top-package-title"><a href="#/'+row.key+'">'+row.key+'</a></div>')
+        .append('<div class="top-package-dep">'+row.value+'</div>')
         .append('<div class="spacer"></div>')
         .appendTo('div#top-dep-packages')
-      });
-    }
+    })
   })
     
   var updateResults = function () {
