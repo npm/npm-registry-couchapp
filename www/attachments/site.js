@@ -262,9 +262,8 @@ app.index = function () {
       , c = currentSearch
       , tlength = terms.length
       ;
-      console.log(terms);
+
     terms.forEach(function (term) {
-        console.log(term);
       if (!searchResults[term]) {
         searchResults[term] = 'pending'
         var qs = param(
@@ -279,11 +278,6 @@ app.index = function () {
           searchResults[term] = [];
           resp.rows.forEach(function (row) {
             searchResults[term].push(row.key);
-            // if (docids.indexOf(row.id) === -1 && !docs[row.id]) {
-            //   docs[row.id] = 'pending';
-            //   docids.push(row.id);
-            // }
-
             row.value.name = row.value.name.toLowerCase();
             if (row.value.description) row.value.description = row.value.description;
             docs[row.key] = row.value;
@@ -295,15 +289,6 @@ app.index = function () {
             return 
           }
           
-          // request({url:'/api/_all_docs?include_docs=true', type:'POST', data:{keys:docids} }, function (err, resp) {
-          //   resp.rows.forEach(function (row) {
-          //     row.doc.name = row.doc.name.toLowerCase();
-          //     if (row.doc.description) row.doc.description = row.doc.description;
-          //     docs[row.id] = row.doc;
-          //   })
-          //   lastSearchForPage = ''
-          //   updateResults();
-          // })
         })
       } else {tlength -= 1}
     })
