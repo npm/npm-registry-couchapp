@@ -11,6 +11,7 @@ ddoc =
     , {from:"/api/*", to:'../../*'}
     , {from:"/*", to:'*'}
     ]
+  , lists : {}
   }
 
 
@@ -122,6 +123,18 @@ ddoc.views =
     }
   }
   ;
+  
+ddoc.lists.dependencies_limit = function(head, req) {
+    var deps = [];
+    while(row = getRow()) {
+        deps.push(row);
+    }
+    var sorted = deps.sort(function(a,b) { return req.query.descending !== "true" ? a.value - b.value : b.value - a.value; });    
+    // using list_Limit rather than limit because limit appears to limit the initial view set
+    // assuming there's a supported convention but using this for now
+    var limit = req.query.list_limit && parseInt(req.query.list_limit);
+    send(JSON.stringify({ total_rows: deps.length, rows: limit ? sorted.splice(0, limit) : sorted}));
+};
 
 // ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
 //   if (newDoc._deleted === true && userCtx.roles.indexOf('_admin') === -1) {
