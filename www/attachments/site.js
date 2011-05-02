@@ -150,7 +150,7 @@ app.index = function () {
     
   var updateResults = function () {
     currentSearch = $('input#search-input').val().toLowerCase();
-    currentTerms = currentSearch.split(' ');
+    currentTerms = $.trim(currentSearch).split(' ');
     if (lastSearchForPage === currentSearch) return;
     if (currentSearch == '') $('div#top-packages').show();
     else $('div#top-packages').hide();
@@ -252,7 +252,7 @@ app.index = function () {
   
   var handleChange = function () {
     currentSearch = $('input#search-input').val().toLowerCase();
-    currentTerms = currentSearch.split(' ')
+    currentTerms = $.trim(currentSearch).split(' ')
     if (currentSearch === '') {
       $('div#results').html('')
       $('div#top-packages').show();
@@ -262,24 +262,32 @@ app.index = function () {
       , c = currentSearch
       , tlength = terms.length
       ;
+      console.log(terms);
     terms.forEach(function (term) {
+        console.log(term);
       if (!searchResults[term]) {
         searchResults[term] = 'pending'
         var qs = param(
           { startkey: JSON.stringify(term)
           , endkey: JSON.stringify(term+'ZZZZZZZZZZZZZZZZZZZ')
+          , limit:25
           }
         )
         ;
-        request({url:'/_view/search?'+qs}, function (err, resp) {
+        request({url:'/_list/search/search?'+qs}, function (err, resp) {
           var docids = [];
           searchResults[term] = [];
           resp.rows.forEach(function (row) {
-            searchResults[term].push(row.id);
-            if (docids.indexOf(row.id) === -1 && !docs[row.id]) {
-              docs[row.id] = 'pending';
-              docids.push(row.id);
-            }
+            searchResults[term].push(row.key);
+            // if (docids.indexOf(row.id) === -1 && !docs[row.id]) {
+            //   docs[row.id] = 'pending';
+            //   docids.push(row.id);
+            // }
+
+            row.value.name = row.value.name.toLowerCase();
+            if (row.value.description) row.value.description = row.value.description;
+            docs[row.key] = row.value;
+            updateResults();
           })
           if (docids.length === 0) {
             lastSearchForPage = '';
@@ -287,15 +295,15 @@ app.index = function () {
             return 
           }
           
-          request({url:'/api/_all_docs?include_docs=true', type:'POST', data:{keys:docids} }, function (err, resp) {
-            resp.rows.forEach(function (row) {
-              row.doc.name = row.doc.name.toLowerCase();
-              if (row.doc.description) row.doc.description = row.doc.description;
-              docs[row.id] = row.doc;
-            })
-            lastSearchForPage = ''
-            updateResults();
-          })
+          // request({url:'/api/_all_docs?include_docs=true', type:'POST', data:{keys:docids} }, function (err, resp) {
+          //   resp.rows.forEach(function (row) {
+          //     row.doc.name = row.doc.name.toLowerCase();
+          //     if (row.doc.description) row.doc.description = row.doc.description;
+          //     docs[row.id] = row.doc;
+          //   })
+          //   lastSearchForPage = ''
+          //   updateResults();
+          // })
         })
       } else {tlength -= 1}
     })
