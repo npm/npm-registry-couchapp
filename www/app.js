@@ -37,7 +37,7 @@ function packageSearch (doc) {
       if (doc.name.indexOf('-') !== -1) doc.name.split('-').forEach(function (n) {names.push(n)});
       if (doc.name.indexOf('_') !== -1) doc.name.split('_').forEach(function (n) {names.push(n)});
       names.forEach(function (n) {
-        if (n.length > 1) emit(n.toLowerCase(), 1);
+        if (n.length > 1) emit(n.toLowerCase(), doc);
       });
     }
     if (doc['dist-tags'] && doc['dist-tags'].latest && (
@@ -46,7 +46,7 @@ function packageSearch (doc) {
       var tags = (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags)
       tags.forEach(function (tag) {
         tag.split(' ').forEach(function (t) {
-          if (t.length > 0) emit(t.toLowerCase(), 1);
+          if (t.length > 0) emit(t.toLowerCase(), doc);
         });
       })
     }
@@ -70,7 +70,7 @@ function packageSearch (doc) {
         while (d.indexOf('%') !== -1) d = d.replace('%', '');
         while (d.indexOf('+') !== -1) d = d.replace('+', '');
         if (descriptionBlacklist.indexOf(d) !== -1) d = '';
-        if (d.length > 1) emit(d, 1);
+        if (d.length > 1) emit(d, doc);
       })
     }
   }
@@ -135,6 +135,20 @@ ddoc.lists.dependencies_limit = function(head, req) {
     var limit = req.query.list_limit && parseInt(req.query.list_limit);
     send(JSON.stringify({ total_rows: deps.length, rows: limit ? sorted.splice(0, limit) : sorted}));
 };
+
+ddoc.lists.search = function(head, req) {
+    var set = {};
+    var rows = [];
+    while(row = getRow()) {
+        set[row.id] = { key: row.id, count: set[row.id] ? set[row.id].count + 1 : 1, value: row.value };
+    }
+    var keys = Object.keys(set);
+    for(var i=0; i<keys.length; i++) {
+        rows.push(set[keys[i]]);
+    }
+    send(JSON.stringify({ rows: rows} ));
+};
+
 
 // ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
 //   if (newDoc._deleted === true && userCtx.roles.indexOf('_admin') === -1) {
