@@ -820,8 +820,8 @@ ddoc.updates.package = function (doc, req) {
       if (!valid.name(p.name)) return error("Invalid name: "+JSON.stringify(p.name))
       latest = semver.clean(v)
     }
-    if (latest) doc["dist-tags"].latest = latest
     if (!doc['dist-tags']) doc['dist-tags'] = {}
+    if (latest) doc["dist-tags"].latest = latest
     return ok(doc, "created new entry")
   }
 }
