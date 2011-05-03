@@ -252,6 +252,7 @@ ddoc.views.listAll = {
   map : function (doc) { return emit(doc._id, doc) }
 }
 
+// copied from the www project
 ddoc.views.search = { map: function(doc) {
   var descriptionBlacklist =
     [ "for"
