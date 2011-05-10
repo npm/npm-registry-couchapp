@@ -117,7 +117,7 @@ app.index = function () {
       '<div class="spacer"></div>' +
       '<div id="top-packages">' +
         '<div id="latest-packages"><div class="top-title">Latest Updates</div></div>' +
-        '<div id="top-dep-packages"><div class="top-title">Most Dependended On</div></div>' +
+        '<div id="top-dep-packages"><div class="top-title">Most Depended On</div></div>' +
       '</div>' +
       '<div class="spacer"></div>' +
     '</div>'
