@@ -9,10 +9,9 @@ www/ is the code for search.npmjs.org, eventually maybe www.npmjs.org
 You'll need CouchDB version 1.0.2 or higher.  We're using some newish features.
 I recommend getting one from http://iriscouch.com/
 
-Once you have CouchDB installed, create two new databases:
+Once you have CouchDB installed, create a new database:
 
 		registry
-		search
 
 Clone the repository if you haven't already, and cd into it:
 
@@ -22,31 +21,26 @@ Clone the repository if you haven't already, and cd into it:
 Now install couchapp:
 
     sudo npm install couchapp -g
+    npm install couchapp
 
 Sync the registry and search:
 
     couchapp push registry/app.js http://localhost:5984/registry
-    couchapp push www/app.js http://localhost:5984/search
+    couchapp push www/app.js http://localhost:5984/registry
 
 You may need to put a username and password in the URL:
 
-    couchapp push www/app.js http://user:pass@localhost:5984/search
+    couchapp push www/app.js http://user:pass@localhost:5984/registry
     couchapp push registry/app.js http://user:pass@localhost:5984/registry
 
-To synchronize from the public NPM registry to your private registry, create a replication
-task from http://isaacs.couchone.com/registry --> local database registry. This can be done
-through the CouchBase administrative UI or via an HTTP call to '/_replicate like so:
+To synchronize from the public NPM registry to your private registry,
+create a replication task from http://isaacs.ic.ht/registry --> local
+database registry. This can be done through the CouchBase administrative
+UI or via an HTTP call to '/_replicate like so:
 
 		curl -X POST -H "Content-Type:application/json" \
 		    http://localhost:5984/_replicate -d \
 		    '{"source":"http://isaacs.couchone.com/registry/", "target":"registry"}'
-
-To run the search app, you will also want to create a synchronization task between
-local database: registry --> local database: search
-
-		curl -X POST -H "Content-Type:application/json" \
-				http://localhost:5984/_replicate -d  \
-				'{"source":"registry", "target":"search"}'
 
 # Using the registry with the npm client
 
@@ -69,7 +63,7 @@ To be snazzier, add a vhost config:
 
     [vhosts]
     registry.mydomain.com:5984 = /registry/_design/app/_rewrite
-    search.mydomain.com:5984 = /search/_design/ui/_rewrite
+    search.mydomain.com:5984 = /registry/_design/ui/_rewrite
 
 
 Where `registry.mydomain.com` and `search.mydomain.com` are
