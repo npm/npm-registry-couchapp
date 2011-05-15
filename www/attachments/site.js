@@ -127,42 +127,30 @@ app.index = function () {
     $('div#totals').html('<a href="/#/_browse/all">' + (resp.total_rows - 1) +' total packages</a>')
   })
   
-  request({url:'/_view/updated?descending=true&limit='+limit+'&include_docs=true'}, function (err, resp) {
+  request({url:'/_view/updated?descending=true&limit='+limit+'&include_docs=false'}, function (err, resp) {
     resp.rows.forEach(function (row) {
-      docs[row.doc._id] = row.doc;
       $('<div class="top-package"></div>')
-      .append('<div class="top-package-title"><a href="#/'+row.doc._id+'">'+row.doc._id+'</a></div>')
-      .append('<div class="top-package-updated">'+prettyDate(row.doc.time.modified) +'</div>')
+      .append('<div class="top-package-title"><a href="#/'+row.id+'">'+row.id+'</a></div>')
+      .append('<div class="top-package-updated">'+prettyDate(row.key) +'</div>')
       .append('<div class="spacer"></div>')
       .appendTo('div#latest-packages')
     })
   })
   
-  request({url:'/_view/dependencies?group=true'}, function (err, resp) {
+  request({url:'/_list/dependencies_limit/dependencies?group=true&descending=true&list_limit='+limit}, function (err, resp) {
     var results = {};
     resp.rows.forEach(function (row) {
-      if (!results[row.value]) results[row.value] = [];
-      results[row.value].push(row.key);
-    })
-    var keys = Object.keys(results);
-    keys.sort(function(a,b){return a - b;});
-    keys.reverse();
-    for (var i=0;i<limit;i++) {
-      if ($('div.top-package-dep').length == limit) return;
-      results[keys[i]].forEach(function (r) {
-        if ($('div.top-package-dep').length == limit) return;
         $('<div class="top-package"></div>')
-        .append('<div class="top-package-title"><a href="#/'+r+'">'+r+'</a></div>')
-        .append('<div class="top-package-dep">'+keys[i]+'</div>')
+        .append('<div class="top-package-title"><a href="#/'+row.key+'">'+row.key+'</a></div>')
+        .append('<div class="top-package-dep">'+row.value+'</div>')
         .append('<div class="spacer"></div>')
         .appendTo('div#top-dep-packages')
-      });
-    }
+    })
   })
     
   var updateResults = function () {
     currentSearch = $('input#search-input').val().toLowerCase();
-    currentTerms = currentSearch.split(' ');
+    currentTerms = $.trim(currentSearch).split(' ');
     if (lastSearchForPage === currentSearch) return;
     if (currentSearch == '') $('div#top-packages').show();
     else $('div#top-packages').hide();
@@ -264,7 +252,7 @@ app.index = function () {
   
   var handleChange = function () {
     currentSearch = $('input#search-input').val().toLowerCase();
-    currentTerms = currentSearch.split(' ')
+    currentTerms = $.trim(currentSearch).split(' ')
     if (currentSearch === '') {
       $('div#results').html('')
       $('div#top-packages').show();
@@ -274,24 +262,26 @@ app.index = function () {
       , c = currentSearch
       , tlength = terms.length
       ;
+
     terms.forEach(function (term) {
       if (!searchResults[term]) {
         searchResults[term] = 'pending'
         var qs = param(
           { startkey: JSON.stringify(term)
           , endkey: JSON.stringify(term+'ZZZZZZZZZZZZZZZZZZZ')
+          , limit:25
           }
         )
         ;
-        request({url:'/_view/search?'+qs}, function (err, resp) {
+        request({url:'/_list/search/search?'+qs}, function (err, resp) {
           var docids = [];
           searchResults[term] = [];
           resp.rows.forEach(function (row) {
-            searchResults[term].push(row.id);
-            if (docids.indexOf(row.id) === -1 && !docs[row.id]) {
-              docs[row.id] = 'pending';
-              docids.push(row.id);
-            }
+            searchResults[term].push(row.key);
+            row.value.name = row.value.name.toLowerCase();
+            if (row.value.description) row.value.description = row.value.description;
+            docs[row.key] = row.value;
+            updateResults();
           })
           if (docids.length === 0) {
             lastSearchForPage = '';
@@ -299,15 +289,6 @@ app.index = function () {
             return 
           }
           
-          request({url:'/api/_all_docs?include_docs=true', type:'POST', data:{keys:docids} }, function (err, resp) {
-            resp.rows.forEach(function (row) {
-              row.doc.name = row.doc.name.toLowerCase();
-              if (row.doc.description) row.doc.description = row.doc.description;
-              docs[row.id] = row.doc;
-            })
-            lastSearchForPage = ''
-            updateResults();
-          })
         })
       } else {tlength -= 1}
     })

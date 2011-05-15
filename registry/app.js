@@ -87,6 +87,8 @@ ddoc.rewrites =
   , { from: "/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
 
   , { from: "/-/all", to:"_list/index/listAll", method: "GET" }
+  , { from: "/-/search/:start/:end", to: "_list/index/search", method: "GET", query: { startkey: ':start', endkey: ':end' }}
+  , { from: "/-/search/:start/:end/:limit", to: "_list/index/search", method: "GET", query: { startkey: ':start', endkey: ':end', limit: ':limit' }}
   , { from: "/-/all/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
 
   , { from: "/-/short", to:"_list/short/listAll", method: "GET" }
@@ -249,6 +251,69 @@ ddoc.lists.index = function (head, req) {
 ddoc.views.listAll = {
   map : function (doc) { return emit(doc._id, doc) }
 }
+
+// copied from the www project
+ddoc.views.search = { map: function(doc) {
+  var descriptionBlacklist =
+    [ "for"
+    , "and"
+    , "in"
+    , "are"
+    , "is"
+    , "it"
+    , "do"
+    , "of"
+    , "on"
+    , "the"
+    , "to"
+    , "as"
+    ]
+
+  if (doc.name) { // There aren't any better attributes for check if isPackage()
+    if (doc.name) {
+      var names = [doc.name];
+      if (doc.name.indexOf('-') !== -1) doc.name.split('-').forEach(function (n) {names.push(n)});
+      if (doc.name.indexOf('_') !== -1) doc.name.split('_').forEach(function (n) {names.push(n)});
+      names.forEach(function (n) {
+        if (n.length > 1) emit(n.toLowerCase(), doc);
+      });
+    }
+    if (doc['dist-tags'] && doc['dist-tags'].latest && (
+        doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags
+        )) {
+      var tags = (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags)
+      tags.forEach(function (tag) {
+        tag.split(' ').forEach(function (t) {
+          if (t.length > 0) emit(t.toLowerCase(), doc);
+        });
+      })
+    }
+    if (doc.description) {
+      doc.description.split(' ').forEach(function (d) {
+        d = d.toLowerCase();
+        while (d.indexOf('.') !== -1) d = d.replace('.', '');
+        while (d.indexOf('\n') !== -1) d = d.replace('\n', '');
+        while (d.indexOf('\r') !== -1) d = d.replace('\n', '');
+        while (d.indexOf('`') !== -1) d = d.replace('`', '');
+        while (d.indexOf('_') !== -1) d = d.replace('_', '');
+        while (d.indexOf('"') !== -1) d = d.replace('"', '');
+        while (d.indexOf('\'') !== -1) d = d.replace('\'', '');
+        while (d.indexOf('(') !== -1) d = d.replace('(', '');
+        while (d.indexOf(')') !== -1) d = d.replace(')', '');
+        while (d.indexOf('[') !== -1) d = d.replace('[', '');
+        while (d.indexOf(']') !== -1) d = d.replace(']', '');
+        while (d.indexOf('{') !== -1) d = d.replace('{', '');
+        while (d.indexOf('}') !== -1) d = d.replace('}', '');
+        while (d.indexOf('*') !== -1) d = d.replace('*', '');
+        while (d.indexOf('%') !== -1) d = d.replace('%', '');
+        while (d.indexOf('+') !== -1) d = d.replace('+', '');
+        if (descriptionBlacklist.indexOf(d) !== -1) d = '';
+        if (d.length > 1) emit(d, doc);
+      })
+    }
+  }
+}
+};
 
 
 ddoc.lists.preBuilt = function (head, req) {
