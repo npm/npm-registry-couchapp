@@ -373,10 +373,18 @@ ddoc.views.scripts = {
 ddoc.lists.scripts = function (head, req) {
   var row
     , out = {}
+    , scripts = req.query.scripts && req.query.scripts.split(",")
   while (row = getRow()) {
+    inc = true
     if (!row.id) continue
     if (req.query.package && row.id !== req.query.package) continue
-    if (req.query.script && !row.value[req.query.script]) continue
+    if (scripts && scripts.length) {
+      var inc = false
+      for (var s = 0, l = scripts.length; s < l && !inc; s ++) {
+        inc = row.value[scripts[s]]
+      }
+      if (!inc) continue
+    }
     out[row.id] = row.value
   }
   send(toJSON(out))
