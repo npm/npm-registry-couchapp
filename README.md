@@ -18,10 +18,11 @@ Clone the repository if you haven't already, and cd into it:
 		git clone https://github.com/isaacs/npmjs.org.git
 		cd npmjs.org
 
-Now install couchapp:
+Now install couchapp and semver:
 
-    sudo npm install couchapp -g
+    [sudo] npm install couchapp -g
     npm install couchapp
+    npm install semver
 
 Sync the registry and search:
 
