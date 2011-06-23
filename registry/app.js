@@ -151,6 +151,10 @@ ddoc.rewrites =
   ]
 
 ddoc.lists.short = function (head, req) {
+    Object.keys = Object.keys
+      || function (o) { var a = []
+                        for (var i in o) a.push(i)
+                        return a }
   var out = {}
     , row
     , show = (req.query.show || "").split(",")
@@ -331,6 +335,10 @@ ddoc.lists.preBuilt = function (head, req) {
 
 ddoc.views.needBuild = {
   map : function (doc) {
+    Object.keys = Object.keys
+      || function (o) { var a = []
+                        for (var i in o) a.push(i)
+                        return a }
     if (!doc || !doc.versions || !doc["dist-tags"]) return
     var v = doc["dist-tags"].latest
     //Object.keys(doc.versions).forEach(function (v) {
@@ -408,6 +416,10 @@ ddoc.views.nodeWafInstall = {
 
 ddoc.views.badBins = {
   map : function (doc) {
+    Object.keys = Object.keys
+      || function (o) { var a = []
+                        for (var i in o) a.push(i)
+                        return a }
     if (!doc || !doc.versions || !doc["dist-tags"]) return
     var v = doc["dist-tags"].latest
     if (!doc.versions[v]) return
@@ -551,6 +563,10 @@ ddoc.lists.size = function (head, req) {
 }
 
 ddoc.lists.histogram = function (head, req) {
+    Object.keys = Object.keys
+      || function (o) { var a = []
+                        for (var i in o) a.push(i)
+                        return a }
   start({"code": 200, "headers": {"Content-Type": "text/plain"}});
   var row
     , out = []
