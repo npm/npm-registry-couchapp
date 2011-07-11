@@ -137,6 +137,10 @@ ddoc.lists.dependencies_limit = function(head, req) {
 };
 
 ddoc.lists.search = function(head, req) {
+    Object.keys = Object.keys
+      || function (o) { var a = []
+                        for (var i in o) a.push(i)
+                        return a }
     var set = {};
     var rows = [];
     while(row = getRow()) {
