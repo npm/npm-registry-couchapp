@@ -34,14 +34,14 @@ You may need to put a username and password in the URL:
     couchapp push www/app.js http://user:pass@localhost:5984/registry
     couchapp push registry/app.js http://user:pass@localhost:5984/registry
 
-To synchronize from the public NPM registry to your private registry,
+To synchronize from the public npm registry to your private registry,
 create a replication task from http://isaacs.ic.ht/registry --> local
 database registry. This can be done through the CouchBase administrative
 UI or via an HTTP call to '/_replicate like so:
 
 		curl -X POST -H "Content-Type:application/json" \
 		    http://localhost:5984/_replicate -d \
-		    '{"source":"http://isaacs.couchone.com/registry/", "target":"registry"}'
+		    '{"source":"http://isaacs.iriscouch.com/registry/", "target":"registry"}'
 
 # Using the registry with the npm client
 
@@ -50,7 +50,7 @@ putting this in your ~/.npmrc file:
 
     registry = http://localhost:5984/registry/_design/app/_rewrite
 
-You can also set the NPM registry config property like:
+You can also set the npm registry config property like:
 
 		npm config set registry http://localhost:5984/registry/_design/app/_rewrite
 
