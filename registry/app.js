@@ -83,13 +83,17 @@ ddoc.shows.requirey = function () {
 }
 
 ddoc.rewrites =
-  [ { from: "/", to:"_list/index/listAll", method: "GET" }
-  , { from: "/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
+  [ { from: "/", to:"_list/short/listAll", method: "GET" }
+  , { from: "/-/jsonp/:jsonp", to:"_list/short/listAll", method: "GET" }
+
+  , { from: "/-/all/since", to:"_list/index/modified", method: "GET" }
 
   , { from: "/-/all", to:"_list/index/listAll", method: "GET" }
-  , { from: "/-/search/:start/:end", to: "_list/index/search", method: "GET", query: { startkey: ':start', endkey: ':end' }}
-  , { from: "/-/search/:start/:end/:limit", to: "_list/index/search", method: "GET", query: { startkey: ':start', endkey: ':end', limit: ':limit' }}
+  , { from: "/-/search/:start/:end", to: "_list/search/search", method: "GET", query: { startkey: ':start', endkey: ':end' }}
+  , { from: "/-/search/:start/:end/:limit", to: "_list/search/search", method: "GET", query: { startkey: ':start', endkey: ':end', limit: ':limit' }}
   , { from: "/-/all/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
+
+  , { from: "/-/searchterms", to: "_list/rowdump/searchterms", method: "GET" }
 
   , { from: "/-/short", to:"_list/short/listAll", method: "GET" }
   , { from: "/-/scripts", to:"_list/scripts/scripts", method: "GET" }
@@ -178,6 +182,13 @@ ddoc.lists.short = function (head, req) {
 }
 
 ddoc.lists.index = function (head, req) {
+  var basePath = req.requested_path
+  if (basePath.indexOf("_list") === -1) basePath = ""
+  else {
+    basePath = basePath.slice(0, basePath.indexOf("_list"))
+                       .concat(["_rewrite", ""]).join("/")
+  }
+
   var row
     , out = {}
     , semver = require("semver")
@@ -187,10 +198,45 @@ ddoc.lists.index = function (head, req) {
       return this.replace(/^\s+|\s+$/g, "")
     }
   }
+  function ISODateString(d){
+   function pad(n){return n<10 ? '0'+n : n}
+   return d.getUTCFullYear()+'-'
+        + pad(d.getUTCMonth()+1)+'-'
+        + pad(d.getUTCDate())+'T'
+        + pad(d.getUTCHours())+':'
+        + pad(d.getUTCMinutes())+':'
+        + pad(d.getUTCSeconds())+'Z'}
+  if (!Date.prototype.toISOString) {
+    Date.prototype.toISOString = function () { return ISODateString(this) }
+    Date.parse = function (s) {
+      // s is something like "2010-12-29T07:31:06Z"
+      s = s.split("T")
+      var ds = s[0]
+        , ts = s[1]
+        , d = new Date()
+      ds = ds.split("-")
+      ts = ts.split(":")
+      var tz = ts[2].substr(2)
+      ts[2] = ts[2].substr(0, 2)
+      d.setUTCFullYear(+ds[0])
+      d.setUTCMonth(+ds[1]-1)
+      d.setUTCDate(+ds[2])
+      d.setUTCHours(+ts[0])
+      d.setUTCMinutes(+ts[1])
+      d.setUTCSeconds(+ts[2])
+      d.setUTCMilliseconds(0)
+      return d.getTime()
+      return [d.getTime(), d.toUTCString(), ds, ts, tz]
+    }
+  }
+
   while (row = getRow()) {
     if (!row.id) continue
-    var p = out[row.id] = {}
-      , doc = row.value
+
+    var doc = row.value
+
+    var p = out[row.value._id] = {}
+
     // legacy kludge
     delete doc.mtime
     delete doc.ctime
@@ -241,9 +287,16 @@ ddoc.lists.index = function (head, req) {
           }
         }
         if (doc.versions[i].keywords) p.keywords = doc.versions[i].keywords
-        p.versions[i] = "http://"+req.headers.Host+"/"+doc.name+"/"+i
+
+        // FIXME: This should take into account the request url, as
+        // well as the host header.
+        p.versions[i] = "http://"+req.headers.Host+"/"+
+              basePath +
+              encodeURIComponent(doc.name)+"/"+i
       }
-      p.url = "http://"+req.headers.Host+"/"+encodeURIComponent(doc.name)+"/"
+      p.url = "http://"+req.headers.Host+"/"+
+              basePath +
+              encodeURIComponent(doc.name)+"/"
     }
   }
   out = req.query.jsonp
@@ -256,8 +309,16 @@ ddoc.views.listAll = {
   map : function (doc) { return emit(doc._id, doc) }
 }
 
+ddoc.views.modified = { map: modifiedTimeMap }
+function modifiedTimeMap (doc) {
+  var t = new Date(doc.time && doc.time.modified || doc.mtime || 0)
+  emit(t.getTime(), doc)
+}
+
 // copied from the www project
-ddoc.views.search = { map: function(doc) {
+ddoc.views.search = { map: searchMap }
+
+function searchMap (doc) {
   var descriptionBlacklist =
     [ "for"
     , "and"
@@ -273,51 +334,86 @@ ddoc.views.search = { map: function(doc) {
     , "as"
     ]
 
-  if (doc.name) { // There aren't any better attributes for check if isPackage()
-    if (doc.name) {
-      var names = [doc.name];
-      if (doc.name.indexOf('-') !== -1) doc.name.split('-').forEach(function (n) {names.push(n)});
-      if (doc.name.indexOf('_') !== -1) doc.name.split('_').forEach(function (n) {names.push(n)});
-      names.forEach(function (n) {
-        if (n.length > 1) emit(n.toLowerCase(), doc);
-      });
+
+  if (doc.versions &&
+      doc["dist-tags"] &&
+      doc.name &&
+      doc.versions[doc["dist-tags"].latest] &&
+      true) {
+
+    var d = doc.versions[doc["dist-tags"].latest]
+    var words = [doc._id, d.name]
+
+    if (d.name.indexOf("-") !== -1) {
+      words.push.apply(words, d.name.split("-"))
     }
-    if (doc['dist-tags'] && doc['dist-tags'].latest && (
-        doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags
-        )) {
-      var tags = (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags)
-      tags.forEach(function (tag) {
-        tag.split(' ').forEach(function (t) {
-          if (t.length > 0) emit(t.toLowerCase(), doc);
-        });
-      })
+    if (d.name.indexOf("_") !== -1) {
+      words.push.apply(words, d.name.split("_"))
     }
-    if (doc.description) {
-      doc.description.split(' ').forEach(function (d) {
-        d = d.toLowerCase();
-        while (d.indexOf('.') !== -1) d = d.replace('.', '');
-        while (d.indexOf('\n') !== -1) d = d.replace('\n', '');
-        while (d.indexOf('\r') !== -1) d = d.replace('\n', '');
-        while (d.indexOf('`') !== -1) d = d.replace('`', '');
-        while (d.indexOf('_') !== -1) d = d.replace('_', '');
-        while (d.indexOf('"') !== -1) d = d.replace('"', '');
-        while (d.indexOf('\'') !== -1) d = d.replace('\'', '');
-        while (d.indexOf('(') !== -1) d = d.replace('(', '');
-        while (d.indexOf(')') !== -1) d = d.replace(')', '');
-        while (d.indexOf('[') !== -1) d = d.replace('[', '');
-        while (d.indexOf(']') !== -1) d = d.replace(']', '');
-        while (d.indexOf('{') !== -1) d = d.replace('{', '');
-        while (d.indexOf('}') !== -1) d = d.replace('}', '');
-        while (d.indexOf('*') !== -1) d = d.replace('*', '');
-        while (d.indexOf('%') !== -1) d = d.replace('%', '');
-        while (d.indexOf('+') !== -1) d = d.replace('+', '');
-        if (descriptionBlacklist.indexOf(d) !== -1) d = '';
-        if (d.length > 1) emit(d, doc);
-      })
+    if (d.name.indexOf(".") !== -1) {
+      words.push.apply(words, d.name.split("."))
     }
+
+    if (d.keywords) words.push.apply(words, d.keywords)
+
+    if (d.description) {
+      var desc = d.description.replace(/[\.\n\r`_"'\(\)\[\]\{\}\*%\+ ]+/g, " ")
+      desc = desc.trim().split(/\s+/)
+      words.push.apply(words, desc)
+    }
+
+    words = words.map(function (w) {
+      return w.trim().toLowerCase()
+    })
+    //.reduce(function (set, word) {
+    //  var ml = 4
+    //  // add all substrings of word longer than ml chars
+    //  for (var start = 0, len = word.length; start <= len - ml; start ++) {
+    //    for (var end = start + ml; end <= len; end ++) {
+    //      set.push(word.substring(start, end))
+    //    }
+    //  }
+    //  return set
+    //}, [])
+    .filter(function (w) {
+      return w.length >= 2 && descriptionBlacklist.indexOf(w) === -1
+    })
+    .sort(function (a, b) {
+      return a > b ? 1 : -1
+    })
+    .reduce(function (set, word) {
+      if (set[set.length - 1] !== word) set.push(word)
+      return set
+    }, [])
+
+    // words.forEach(function (word) {
+    //  emit(word, doc)
+    // })
+
+    var out = { searchWords: words }
+    Object.keys(doc).forEach(function (k) {
+      out[k] = doc[k]
+    })
+    words.forEach(function (word) {
+      emit(word, out)
+    })
+    return
   }
 }
-};
+
+ddoc.lists.search = function (head, req) {
+  var set = {}
+  var rows = []
+  var row
+  while (row = getRow()) {
+    set[row.id] = { key: row.id
+                  , count: set[row.id] ? set[row.id].count + 1 : 1
+                  , searchWords: row.value.searchWords || "-none-"
+                  , dname: row.value.dname || "-none-"
+                  , value: row.value._id }
+  }
+  send(JSON.stringify(set))
+}
 
 
 ddoc.lists.preBuilt = function (head, req) {
@@ -490,6 +586,12 @@ ddoc.views.noMain =
       // because erlang fucks idiots.
       return out
    }
+}
+
+ddoc.lists.rowdump = function (head, req) {
+  var rows = []
+  while (row = getRow()) rows.push(row)
+  send(toJSON(rows))
 }
 
 ddoc.lists.passthrough = function (head, req) {
