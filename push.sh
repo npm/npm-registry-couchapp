@@ -30,7 +30,7 @@ esac
 c=${c/PASSWORD/$PASSWORD}
 
 couchapp push registry/app.js $c && \
-couchapp push www/app.js $c && \
+# couchapp push www/app.js $c && \
 exit 0 || \
 ( ret=$?
   echo "Failed with code $ret"
