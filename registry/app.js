@@ -850,9 +850,13 @@ ddoc.shows.package = function (doc, req) {
       url += '/' + req.query.version // add the version to the URL if necessary
     }
     headers.Location = url
+    body = { location: url, _rev: doc._rev }
+    body = req.query.jsonp
+         ? req.query.jsonp + "(" + JSON.stringify(body) + ")"
+         : JSON.stringify(body)
     return {
       code : 301,
-      body : { location: url, _rev: doc._rev },
+      body : body,
       headers : headers
     }
   }
