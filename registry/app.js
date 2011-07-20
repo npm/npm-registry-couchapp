@@ -88,6 +88,9 @@ ddoc.rewrites =
 
   , { from: "/-/all/since", to:"_list/index/modified", method: "GET" }
 
+  , { from: "/-/rss", to: "_list/rss/modified"
+    , method: "GET" }
+
   , { from: "/-/all", to:"_list/index/listAll", method: "GET" }
   , { from: "/-/search/:start/:end", to: "_list/search/search", method: "GET", query: { startkey: ':start', endkey: ':end' }}
   , { from: "/-/search/:start/:end/:limit", to: "_list/search/search", method: "GET", query: { startkey: ':start', endkey: ':end', limit: ':limit' }}
@@ -180,6 +183,68 @@ ddoc.lists.short = function (head, req) {
   }
   send(toJSON(Object.keys(out)))
 }
+
+ddoc.lists.rss = function (head, req) {
+  var limit = +req.query.limit
+    , desc = req.query.descending
+  if (!desc || !limit || limit > 50 || limit < 0) {
+    start({ code: 403
+           , headers: { 'Content-type': 'text/xml' }})
+    send('<error><![CDATA[Please retry your request with '
+        + '?descending=true&limit=50 query params]]></error>')
+    return
+  }
+
+  start({ code: 200
+        // application/rss+xml is correcter, but also annoyinger
+        , headers: { "Content-Type": "text/xml" } })
+  send('<?xml version="1.0" encoding="UTF-8"?>'
+      +'\n<!DOCTYPE rss PUBLIC "-//Netscape Communications//DTD RSS 0.91//EN" '
+        +'"http://my.netscape.com/publish/formats/rss-0.91.dtd">'
+      +'\n<rss version="0.91">'
+      +'\n  <channel>'
+      +'\n    <title>npm recent updates</title>'
+      +'\n    <link>http://search.npmjs.org/</link>'
+      +'\n    <description>Updates to the npm package registry</description>'
+      +'\n    <language>en</language>')
+
+  var row
+  while (row = getRow()) {
+    if (!row.value || !row.value["dist-tags"]) continue
+
+    var doc = row.value
+    var date = doc.time && doc.time.modified || doc.ctime
+    if (!date) continue
+    date = new Date(date)
+
+    doc = doc.versions[doc["dist-tags"].latest]
+    if (!doc) continue
+
+    var url = doc.homepage
+      , repo = doc.repository || doc.repositories
+    if (!url && repo) {
+      if (Array.isArray(repo)) repo = repo.shift()
+      if (repo.url) repo = repo.url
+      if (repo && (typeof repo === "string")) {
+        url = repo.replace(/^git(@|:\/\/)/, 'http://')
+                  .replace(/\.git$/, '')+"#readme"
+      }
+    }
+    if (!url) url = "http://search.npmjs.org/#/" + doc.name
+
+    send('\n    <item>'
+        +'\n      <title>' + doc._id + '</title>'
+        +'\n      <link>' + url + '</link>'
+        +'\n      <description><![CDATA['
+          + (doc.description || '') + ']]></description>'
+        +'\n      <pubDate>' + date.toISOString() + '</pubDate>'
+        +'\n    </item>')
+  }
+  send('\n  </channel>'
+      +'\n</rss>')
+}
+
+
 
 ddoc.lists.index = function (head, req) {
   var basePath = req.requested_path
