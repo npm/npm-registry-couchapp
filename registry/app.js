@@ -288,11 +288,9 @@ ddoc.lists.index = function (head, req) {
         }
         if (doc.versions[i].keywords) p.keywords = doc.versions[i].keywords
 
-        // FIXME: This should take into account the request url, as
-        // well as the host header.
         p.versions[i] = "http://"+req.headers.Host+"/"+
-              basePath +
-              encodeURIComponent(doc.name)+"/"+i
+                        basePath +
+                        encodeURIComponent(doc.name)+"/"+i
       }
       p.url = "http://"+req.headers.Host+"/"+
               basePath +
@@ -772,23 +770,28 @@ ddoc.shows.package = function (doc, req) {
     , code = 200
     , headers = {"Content-Type":"application/json"}
     , body = null
+
   delete doc.ctime
   delete doc.mtime
   if (doc.versions) Object.keys(doc.versions).forEach(function (v) {
     delete doc.versions[v].ctime
     delete doc.versions[v].mtime
   })
+
   if (doc.url) {
     // the package specifies a URL, redirect to it
-    code = 301
     var url = doc.url
     if (req.query.version) {
       url += '/' + req.query.version // add the version to the URL if necessary
-      delete req.query.version // stay out of the version branch below
     }
     headers.Location = url
-    doc = { location: url, _rev: doc._rev }
+    return {
+      code : 301,
+      body : { location: url, _rev: doc._rev },
+      headers : headers
+    }
   }
+
   // legacy kludge
   if (doc.versions) for (var v in doc.versions) {
     var clean = semver.clean(v)
@@ -807,16 +810,18 @@ ddoc.shows.package = function (doc, req) {
         // doc.versions[v].dist._headers = req.headers
         // doc.versions[v].dist._query = req.query
         // doc.versions[v].dist._path = req.path
-        // doc.versions[v].dist._requested_path = req.requested_path
-        var h
-        for (var i in req.headers) {
-          if (i.toLowerCase() === 'host') {
-            h = req.headers[i]
-            break
-          }
+        // doc.versions[v].dist._req = req
+
+        var basePath = req.requested_path
+        if (basePath.indexOf("_show") === -1) basePath = ""
+        else {
+          basePath = basePath.slice(0, basePath.indexOf("_show"))
+                             .concat(["_rewrite"]).join("/")
         }
-        h = h ? 'http://' + h : ""
-        doc.versions[v].dist.tarball = h + t
+
+        var h = "http://" + req.headers.Host
+
+        doc.versions[v].dist.tarball = h + basePath + t
       }
     }
   }
@@ -826,10 +831,12 @@ ddoc.shows.package = function (doc, req) {
     else doc["dist-tags"][tag] = clean
   }
   // end kludge
+
   if (req.query.version) {
     var ver = req.query.version
     // if not a valid version, then treat as a tag.
-    if (!semver.valid(ver)) {
+    if ((!(ver in doc.versions) && (ver in doc["dist-tags"]))
+        || !semver.valid(ver)) {
       ver = doc["dist-tags"][ver]
     }
     body = doc.versions[ver]
@@ -847,9 +854,11 @@ ddoc.shows.package = function (doc, req) {
       else body.time[i] = new Date(Date.parse(body.time[i])).toISOString()
     }
   }
+
   body = req.query.jsonp
        ? req.query.jsonp + "(" + JSON.stringify(body) + ")"
        : toJSON(body)
+
   return {
     code : code,
     body : body,
