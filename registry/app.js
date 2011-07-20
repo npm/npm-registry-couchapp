@@ -236,7 +236,7 @@ ddoc.lists.rss = function (head, req) {
         +'\n      <title>' + doc._id + '</title>'
         +'\n      <link>' + url + '</link>'
         +'\n      <description><![CDATA['
-          + (doc.description || '') + ']]></description>'
+          + (doc.description || '').trim() + ']]></description>'
         +'\n      <pubDate>' + date.toISOString() + '</pubDate>'
         +'\n    </item>')
   }
