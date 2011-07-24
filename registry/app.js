@@ -216,6 +216,9 @@ ddoc.lists.rss = function (head, req) {
     var date = doc.time && doc.time.modified || doc.ctime
     if (!date) continue
     date = new Date(date)
+    var authors = doc.maintainers.map(function (m) {
+      return '<author>' + m.name + '</author>'
+    }).join('\n      ')
 
     doc = doc.versions[doc["dist-tags"].latest]
     if (!doc) continue
@@ -235,6 +238,7 @@ ddoc.lists.rss = function (head, req) {
     send('\n    <item>'
         +'\n      <title>' + doc._id + '</title>'
         +'\n      <link>' + url + '</link>'
+        +'\n      ' + authors
         +'\n      <description><![CDATA['
           + (doc.description || '').trim() + ']]></description>'
         +'\n      <pubDate>' + date.toISOString() + '</pubDate>'
