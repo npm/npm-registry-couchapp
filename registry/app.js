@@ -344,17 +344,6 @@ ddoc.lists.index = function (head, req) {
         if (doc.versions[i].repository && !doc.repository) {
           p.repository = doc.versions[i].repository
         }
-        var md = p.description
-          , vd = doc.versions[i].description
-        md = md && md.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()
-        vd = vd && vd.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()
-        if (vd && vd !== md) {
-          p.descriptions = p.descriptions || {}
-          p.descriptions[i] = doc.versions[i].description
-          if (!p.description) {
-            p.description = doc.versions[i].description
-          }
-        }
         if (doc.versions[i].keywords) p.keywords = doc.versions[i].keywords
 
         p.versions[i] = "http://"+req.headers.Host+"/"+
