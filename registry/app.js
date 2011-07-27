@@ -881,7 +881,7 @@ ddoc.shows.package = function (doc, req) {
                              .concat(["_rewrite"]).join("/")
         }
 
-        var h = "http://" + req.headers.Host
+        var h = "http://" + req.headers.Host + "/"
 
         doc.versions[v].dist.tarball = h + basePath + t
       }
