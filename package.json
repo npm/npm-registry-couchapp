@@ -1,0 +1,7 @@
+{ "name": "npmjs.org"
+, "version": "1.0.0"
+, "description": "The npmjs.org registry couchapp"
+, "scripts": { "start": "./push.sh" }
+, "dependencies":
+  { "couchapp": "~0.8"
+  , "semver": "1.0" } }
