@@ -877,11 +877,11 @@ ddoc.shows.package = function (doc, req) {
         var basePath = req.requested_path
         if (basePath.indexOf("_show") === -1) basePath = ""
         else {
-          basePath = basePath.slice(0, basePath.indexOf("_show"))
+          basePath = "/" + basePath.slice(0, basePath.indexOf("_show"))
                              .concat(["_rewrite"]).join("/")
         }
 
-        var h = "http://" + req.headers.Host + "/"
+        var h = "http://" + req.headers.Host
 
         doc.versions[v].dist.tarball = h + basePath + t
       }
