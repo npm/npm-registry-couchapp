@@ -332,6 +332,7 @@ ddoc.lists.index = function (head, req) {
       p[i] = doc[i]
     }
     p.versions = {}
+    p.dist = {}
     if (doc.repositories && Array.isArray(doc.repositories)) {
       doc.repository = doc.repositories[0]
       delete doc.repositories
@@ -349,6 +350,7 @@ ddoc.lists.index = function (head, req) {
         p.versions[i] = "http://"+req.headers.Host+"/"+
                         basePath +
                         encodeURIComponent(doc.name)+"/"+i
+        p.dist[i] = doc.versions[i].dist
       }
       p.url = "http://"+req.headers.Host+"/"+
               basePath +
