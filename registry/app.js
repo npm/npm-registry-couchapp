@@ -46,6 +46,8 @@ ddoc.shows.requirey = function () {
         + pad(d.getUTCSeconds())+'Z'}
   if (!Date.prototype.toISOString) {
     Date.prototype.toISOString = function () { return ISODateString(this) }
+  }
+  if (isNaN(Date.parse("2010-12-29T07:31:06Z"))) {
     Date.parse = function (s) {
       // s is something like "2010-12-29T07:31:06Z"
       s = s.split("T")
@@ -277,6 +279,8 @@ ddoc.lists.index = function (head, req) {
         + pad(d.getUTCSeconds())+'Z'}
   if (!Date.prototype.toISOString) {
     Date.prototype.toISOString = function () { return ISODateString(this) }
+  }
+  if (isNaN(Date.parse("2010-12-29T07:31:06Z"))) {
     Date.parse = function (s) {
       // s is something like "2010-12-29T07:31:06Z"
       s = s.split("T")
@@ -800,6 +804,8 @@ ddoc.shows.package = function (doc, req) {
            + pad(d.getUTCMinutes())+':'
            + pad(d.getUTCSeconds())+'Z'}
     Date.prototype.toISOString = function () { return ISODateString(this) }
+  }
+  if (isNaN(Date.parse("2010-12-29T07:31:06Z"))) {
     Date.parse = function (s) {
       // s is something like "2010-12-29T07:31:06Z"
       s = s.split("T")
@@ -941,6 +947,8 @@ ddoc.updates.package = function (doc, req) {
         + pad(d.getUTCSeconds())+'Z'}
   if (!Date.prototype.toISOString) {
     Date.prototype.toISOString = function () { return ISODateString(this) }
+  }
+  if (isNaN(Date.parse("2010-12-29T07:31:06Z"))) {
     Date.parse = function (s) {
       // s is something like "2010-12-29T07:31:06Z"
       s = s.split("T")
@@ -1102,6 +1110,8 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
         + pad(d.getUTCSeconds())+'Z'}
   if (!Date.prototype.toISOString) {
     Date.prototype.toISOString = function () { return ISODateString(this) }
+  }
+  if (isNaN(Date.parse("2010-12-29T07:31:06Z"))) {
     Date.parse = function (s) {
       // s is something like "2010-12-29T07:31:06Z"
       s = s.split("T")
