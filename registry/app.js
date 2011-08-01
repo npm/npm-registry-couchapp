@@ -1032,6 +1032,7 @@ ddoc.updates.package = function (doc, req) {
       if (body.description) doc.description = body.description
       if (body.author) doc.author = body.author
       if (body.repository) doc.repository = body.repository
+      body.maintainers = doc.maintainers
 
       var tag = req.query.tag
               || (body.publishConfig && body.publishConfig.tag)
