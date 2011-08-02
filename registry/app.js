@@ -103,6 +103,7 @@ ddoc.rewrites =
 
   , { from: "/-/needbuild", to:"_list/needBuild/needBuild", method: "GET" }
   , { from: "/-/prebuilt", to:"_list/preBuilt/needBuild", method: "GET" }
+  , { from: "/-/nonlocal", to:"_list/short/nonlocal", method: "GET" }
 
   , { from : "/favicon.ico", to:"../../npm/favicon.ico", method:"GET" }
 
@@ -486,6 +487,11 @@ ddoc.lists.preBuilt = function (head, req) {
   send(out.join("\n"))
 }
 
+ddoc.views.nonlocal = {
+  map : function (doc) {
+    if (doc.url) emit(doc._id, doc.name)
+  }
+}
 
 ddoc.views.needBuild = {
   map : function (doc) {
