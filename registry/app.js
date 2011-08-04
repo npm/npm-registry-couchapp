@@ -66,11 +66,12 @@ ddoc.shows.requirey = function () {
       return d.getTime()
       return [d.getTime(), d.toUTCString(), ds, ts, tz]
     }
-    Object.keys = Object.keys
-      || function (o) { var a = []
-                        for (var i in o) a.push(i)
-                        return a }
   }
+
+  Object.keys = Object.keys
+    || function (o) { var a = []
+                      for (var i in o) a.push(i)
+                      return a }
 
   return { code : 200
          , body : toJSON([require("semver").expression.toString(), typeof ("asdf".match),
@@ -820,11 +821,12 @@ ddoc.shows.package = function (doc, req) {
       return d.getTime()
       return [d.getTime(), d.toUTCString(), ds, ts, tz]
     }
-    Object.keys = Object.keys
-      || function (o) { var a = []
-                        for (var i in o) a.push(i)
-                        return a }
   }
+
+  Object.keys = Object.keys
+    || function (o) { var a = []
+                      for (var i in o) a.push(i)
+                      return a }
 
   var semver = require("semver")
     , code = 200
@@ -961,11 +963,12 @@ ddoc.updates.package = function (doc, req) {
       return d.getTime()
       return [d.getTime(), d.toUTCString(), ds, ts, tz]
     }
-    Object.keys = Object.keys
-      || function (o) { var a = []
-                        for (var i in o) a.push(i)
-                        return a }
   }
+
+  Object.keys = Object.keys
+    || function (o) { var a = []
+                      for (var i in o) a.push(i)
+                      return a }
 
   var semver = require("semver")
   var valid = require("valid")
@@ -1122,11 +1125,12 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
       return d.getTime()
       return [d.getTime(), d.toUTCString(), ds, ts, tz]
     }
-    Object.keys = Object.keys
-      || function (o) { var a = []
-                        for (var i in o) a.push(i)
-                        return a }
   }
+
+  Object.keys = Object.keys
+    || function (o) { var a = []
+                      for (var i in o) a.push(i)
+                      return a }
 
   Array.isArray = Array.isArray
     || function (a) { return a instanceof Array
