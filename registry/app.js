@@ -1,4 +1,9 @@
-var ddoc = {_id:'_design/app', shows:{}, updates:{}, views:{}, lists:{}}
+var ddoc = { _id:'_design/app'
+           , shows:{}
+           , updates:{}
+           , views:{}
+           , lists:{}
+           , filters: {}}
   , fs = require("fs")
 
 module.exports = ddoc
@@ -183,6 +188,10 @@ ddoc.lists.short = function (head, req) {
     })
   }
   send(toJSON(Object.keys(out)))
+}
+
+ddoc.filters.herpicide = function (doc, req) {
+  return !!doc._id
 }
 
 ddoc.lists.rss = function (head, req) {
