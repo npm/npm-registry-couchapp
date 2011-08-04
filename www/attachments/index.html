@@ -7,8 +7,10 @@
 
     <title>npm registry</title>
     <link href="layout.css" rel="stylesheet" type="text/css">
+    <!-- could also go to
+         http://registry.npmjs.org/-/rss?descending=true&limit=50 -->
     <link rel="alternate" type="application/rss+xml"
-      href="http://registry.npmjs.org/-/rss?descending=true&limit=50"
+      href="/api/_design/app/_rewrite/-/rss?descending=true&limit=50"
       title="npm publish feed (RSS)">
     <script language="javascript" type="text/javascript" src="jquery-1.4.4.min.js"></script>
     <script language="javascript" type="text/javascript" src="sammy/sammy.js"></script>
@@ -17,7 +19,7 @@
 
   <body>
     <div id="body-container">
-      <div id="title"><a href="http://search.npmjs.org" title="Home">npm registry</a></div>
+      <div id="title"><a href="/" title="Home">npm registry</a></div>
       <div id="totals"></div>
 
       <div id="content"></div>
