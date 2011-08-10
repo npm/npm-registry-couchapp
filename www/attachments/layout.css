@@ -172,7 +172,16 @@ div.dependencies {
   padding-left:10%;
   padding-right:10%;
 }
+div.users {
+  width:80%;
+  text-align:left;
+  padding-left:10%;
+  padding-right:10%;
+}
 a.dep {
+  margin-right:10px;
+}
+a.user {
   margin-right:10px;
 }
 div#totals {
