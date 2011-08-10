@@ -1061,7 +1061,7 @@ ddoc.updates.package = function (doc, req) {
     return [{forbidden:reason}, JSON.stringify({forbidden:reason})]
   }
 
-  function ok (doc, message, unmodified) {
+  function ok (doc, message) {
     delete doc.mtime
     delete doc.ctime
     var time = doc.time = doc.time || {}
