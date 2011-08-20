@@ -1117,7 +1117,7 @@ ddoc.updates.package = function (doc, req) {
   }
 }
 
-ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
+ddoc.validate_doc_update = function (newDoc, oldDoc, user, dbCtx) {
   function ISODateString(d){
    function pad(n){return n<10 ? '0'+n : n}
    return d.getUTCFullYear()+'-'
@@ -1182,7 +1182,13 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user) {
     }
     return false
   }
-  function isAdmin () { return user.roles.indexOf("_admin") >= 0 }
+  function isAdmin () { 
+    if (dbCtx.admins.names.indexOf(user.name) !== -1) return true
+    for (var i;i<user.roles.length;i++) {
+      if (dbCtx.admins.roles.indexOf(user.roles[i]) !== -1) return true
+    }
+    return user.roles.indexOf("_admin") >= 0 
+  }
 
   assert(validUser(), "user: " + user.name + " not authorized to modify "
                       + newDoc.name )
