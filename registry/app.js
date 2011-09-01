@@ -1183,9 +1183,11 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user, dbCtx) {
     return false
   }
   function isAdmin () { 
-    if (dbCtx.admins.names.indexOf(user.name) !== -1) return true
-    for (var i=0;i<user.roles.length;i++) {
-      if (dbCtx.admins.roles.indexOf(user.roles[i]) !== -1) return true
+    if (dbCtx.admins) {
+      if (dbCtx.admins.names.indexOf(user.name) !== -1) return true
+      for (var i=0;i<user.roles.length;i++) {
+        if (dbCtx.admins.roles.indexOf(user.roles[i]) !== -1) return true
+      }      
     }
     return user.roles.indexOf("_admin") >= 0 
   }
