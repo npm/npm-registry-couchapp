@@ -210,12 +210,21 @@ app.index = function () {
     }
     
     $('div#results').html('');
-    var keys = Object.keys(ranked);
+    var keys = Object.keys(ranked)
+      , count = Object.keys(docsInPage).length
+      ;
     for (var i=0;i<keys.length;i++) keys[i] = parseInt(keys[i])
     keys.sort(function(a,b){return a - b;});
     keys.reverse();
-    if (keys.length === 0) {
+    if (count === 0) {
       $('div#results').html('<div>No Results</div>')
+    } else {
+      $(
+        '<div class="result-meta">' +
+          '<span class="result-count">' + count + ( count === 1 ? ' result' : ' results' ) + '</span>' +
+          '<span class="result-search-link">(<a href="#/_search/' + $('#search-input').val() + '">link to this search</a>)</span>' +
+        '</div>'
+      ).appendTo('div#results')
     }
     keys.forEach(function (i) { ranked[i].forEach(function (doc) {
       var result = $(
@@ -864,6 +873,10 @@ $(function () {
       request({url:'/install.html', dataType:'html'}, function (e, resp) {
         $('div#content').html('<div id="main-container">'+resp+'</div>');
       })
+    });
+    this.get("#/_search/:term", function () {
+      app.index();
+      $('#search-input').val(this.params.term).trigger('change')
     });
     this.get("#/_publish", function () {
       clearContent();
