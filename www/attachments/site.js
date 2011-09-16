@@ -183,6 +183,12 @@ app.index = function () {
         var tags = [];
       }
       
+      tags = tags.map(function (tag) {
+          return tag.split('&').join('&amp;')
+                    .split('"').join('&quot;')
+                    .split('<').join('&lt;')
+                    .split('>').join('&gt;')
+      })
       currentTerms.forEach(function (t) {
         t = t.toLowerCase();
         if (doc._id.toLowerCase().indexOf(t.toLowerCase()) !== -1) doc.rank += 750;
@@ -246,11 +252,6 @@ app.index = function () {
         $('input#search-input').val($(this).text()).change();
       })
     })})
-    
-    // $('span.result-tags').each(function () {
-    //   var p = $(this).parent();
-    //   $(this).css({right: p.position().left+p.width(), top:p.position().top})
-    // })
     
     lastSearchForPage = currentSearch;
   }  
@@ -339,14 +340,6 @@ app.showPackage = function () {
     if (doc.author && doc.author.name) {
       package.append('<div class="author">by: <a href="/#/_author/'+encodeURIComponent(doc.author.name)+'">'+doc.author.name+'</div>')
     }
-    
-    // if (doc['dist-tags'] && doc['dist-tags'].latest && (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags)) {
-    //   package.append(
-    //     '<div class="package-tags">tags: ' +
-    //     (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags).join(', ') +
-    //     '</div>'
-    //   )
-    // }
     
 
     // 
@@ -694,7 +687,10 @@ app.browse = function () {
   if (this.params.view) routes[this.params.view]();
 }
 app.tags = function () {
-  var tag = this.params.tag;
+  var tag = this.params.tag.split('&').join('&amp;')
+                           .split('"').join('&quot;')
+                           .split('<').join('&lt;')
+                           .split('>').join('&gt;')
   clearContent();
   $('div#content')
   .append('<h2 style="text-align:center">tag: '+tag+'</h2>')
