@@ -168,7 +168,12 @@ app.index = function () {
       var doc = docsInPage[i];
       doc.rank = 0
       doc.tagsInSearch = [];
-      if (doc.description) doc.htmlDescription = doc.description;
+      if (doc.description) {
+        doc.htmlDescription = doc.description.split('&').join('&amp;')
+                                             .split('"').join('&quot;')
+                                             .split('<').join('&lt;')
+                                             .split('>').join('&gt;')
+      }
       
       if (doc._id.toLowerCase() === currentSearch) doc.rank += 1000      
       
@@ -279,7 +284,6 @@ app.index = function () {
           resp.rows.forEach(function (row) {
             searchResults[term].push(row.key);
             row.value.name = row.value.name.toLowerCase();
-            if (row.value.description) row.value.description = row.value.description;
             docs[row.key] = row.value;
             updateResults();
           })
@@ -364,10 +368,15 @@ app.showPackage = function () {
     var showVersion = function (version) {
       var v = doc.versions[version];
       
+        v.htmlDescription = v.description.split('&').join('&amp;')
+                                             .split('"').join('&quot;')
+                                             .split('<').join('&lt;')
+                                             .split('>').join('&gt;')
+      
       $('div#version-info').html(
         '<div class="version-info-cell">' +
           '<div class="version-info-key">Description</div>' +
-          '<div class="version-info-value">'+v.description+'</div>' +
+          '<div class="version-info-value">'+v.htmlDescription+'</div>' +
         '</div>' + 
         '<div class="spacer"></div>' +
         '<div class="version-info-cell">' +
@@ -480,11 +489,11 @@ app.showPackage = function () {
       //  +
       // '<div class="version-info-cell">' +
       //   '<span class="version-info-key">Author</span>' +
-      //   '<span class="version-info-value">'+v.description+'<span>' +
+      //   '<span class="version-info-value">'+v.htmlDescription+'<span>' +
       // '</div>' +
       // '<div class="version-info-cell">' +
       //   '<span class="version-info-key">Repository</span>' +
-      //   '<span class="version-info-value">'+v.description+'<span>' +
+      //   '<span class="version-info-value">'+v.htmlDescription+'<span>' +
       // '</div>' +
       
     }
@@ -582,11 +591,15 @@ app.browse = function () {
       , function (r) {
         var h = ''
         r.rows.forEach(function (row) {
+        row.htmlDescription = row.description.split('&').join('&amp;')
+                                             .split('"').join('&quot;')
+                                             .split('<').join('&lt;')
+                                             .split('>').join('&gt;')
           if (row.id[0] !== '_') {
             h += (
               '<div class="all-package">' + 
                 '<div class="all-package-name"><a href="/#/'+row.id+'">' + row.id + '</a></div>' +
-                '<div class="all-package-desc">' + row.doc.description + '</div>' +
+                '<div class="all-package-desc">' + row.doc.htmlDescription + '</div>' +
               '</div>' +
               '<div class="spacer"></div>'
             )
@@ -688,10 +701,14 @@ app.tags = function () {
   .append('<div id="main-container"></div>');
   request({url:'/_view/tags?reduce=false&include_docs=true&key="'+tag+'"'}, function (e, resp) {
     resp.rows.forEach(function (row) {
+        row.doc.htmlDescription = row.doc.description.split('&').join('&amp;')
+                                             .split('"').join('&quot;')
+                                             .split('<').join('&lt;')
+                                             .split('>').join('&gt;')
       $('div#main-container').append(
         '<div class="all-package">' + 
           '<div class="tags-pkg-name"><a href="/#/'+encodeURIComponent(row.key)+'">' + row.id + '</a></div>' +
-          '<div class="tags-pkg-desc">'+row.doc.description+'</div>' +
+          '<div class="tags-pkg-desc">'+row.doc.htmlDescription+'</div>' +
         '</div>' +
         '<div class="spacer"></div>'
       );
@@ -707,10 +724,14 @@ app.author = function () {
   .append('<div id="main-container"></div>');
   request({url:'/_view/author?reduce=false&include_docs=true&key="'+author+'"'}, function (e, resp) {
     resp.rows.forEach(function (row) {
+        row.doc.htmlDescription = row.doc.description.split('&').join('&amp;')
+                                             .split('"').join('&quot;')
+                                             .split('<').join('&lt;')
+                                             .split('>').join('&gt;')
       $('div#main-container').append(
         '<div class="all-package">' + 
           '<div class="tags-pkg-name"><a href="/#/'+encodeURIComponent(row.id)+'">' + row.id + '</a></div>' +
-          '<div class="tags-pkg-desc">'+row.doc.description+'</div>' +
+          '<div class="tags-pkg-desc">'+row.doc.htmlDescription+'</div>' +
         '</div>' +
         '<div class="spacer"></div>'
       );
