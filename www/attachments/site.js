@@ -361,10 +361,14 @@ app.showPackage = function () {
     var showVersion = function (version) {
       var v = doc.versions[version];
       
+      if (v.description) {
         v.htmlDescription = v.description.split('&').join('&amp;')
                                              .split('"').join('&quot;')
                                              .split('<').join('&lt;')
                                              .split('>').join('&gt;')
+      } else {
+        v.htmlDescription = ""
+      }
       
       $('div#version-info').html(
         '<div class="version-info-cell">' +
