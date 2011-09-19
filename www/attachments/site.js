@@ -533,6 +533,14 @@ app.showPackage = function () {
         })
       showVersion(this.id)
     })
+    
+    var usersStr = '<h4>People who starred '+id+'</h4><div class="users"><p>'
+    if (doc.users)
+      for (var usingUser in doc.users)
+        if (doc.users[usingUser])
+          usersStr += '<span class="user">'+usingUser.replace(/</g, '&lt;').replace(/>/g, '&gt;')+'</span>'
+      usersStr += '</p></div>'
+      package.append(usersStr)
 
     request({url:'/_view/dependencies?reduce=false&key="'+id+'"'}, function (e, resp) {
       if (resp.rows.length === 0) return;

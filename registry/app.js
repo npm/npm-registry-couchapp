@@ -987,6 +987,68 @@ ddoc.updates.package = function (doc, req) {
       return [d.getTime(), d.toUTCString(), ds, ts, tz]
     }
   }
+  
+  // extend o1 with o2 (in-place)
+  function deepExtend(o1, o2) {
+    for (var prop in o2)
+      if (o2.hasOwnProperty(prop))
+        if (o1.hasOwnProperty(prop)) {
+          if (typeof o1[prop] === "object")
+            deepExtend(o1[prop], o2[prop])
+        } else
+          o1[prop] = o2[prop]
+    return o1
+  }
+  
+  // Thank you for helping me with this code, kicken! my version looked so ugly...
+  // Check whether two objects/arrays are equal while ignoring specific parts.
+  // The root element must not be an ignored element.
+  // Ignored parts may be added, altered or removed.
+  // Usecase: Check whether someone only changed his "I use this" status of a
+  // package.
+  // ignoreKeys is an array of paths in the structure that musn't be checked.
+  // Example:
+  // var old = {name: "npm", version: "0.0.0", users: { isaacs: true, ryah: true }}
+  // var new = {name: "npm", version: "0.0.0", users: { isaacs: true, ryah: true, thejh: true }}
+  // var isAllowedChange = ignoringDeepEquals(old, new, ["users", user.name])
+  function ignoringDeepEquals(o1, o2, ignoreKeys, pathPrefix){
+    pathPrefix = pathPrefix || []
+
+    function isObject(v){
+      return typeof v === 'object'
+    }
+
+    // Check whether `arr` contains an array that's shallowly equal to `v`.
+    function arrayInArray(v, arr) {
+      return arr.some(function(e) {
+        if (e.length !== v.length) return false
+        for (var i=0; i<e.length; i++)
+          if (e[i] !== v[i])
+            return false
+        return true
+      })
+    }
+
+    function fullPath(p){
+      return pathPrefix.concat([p])
+    }
+
+    if (typeof o1 !== typeof o2)
+      return false
+    else if (!isObject(o1))
+      return o1 === o2
+
+    for (var prop in o1)
+      if (o1.hasOwnProperty(prop) && !arrayInArray(fullPath(prop), ignoreKeys))
+        if (!o2.hasOwnProperty(prop) || !ignoringDeepEquals(o1[prop], o2[prop], ignoreKeys, fullPath(prop)))
+          return false
+
+    for (var prop in o2)
+      if (o2.hasOwnProperty(prop) && !o1.hasOwnProperty(prop) && !arrayInArray(fullPath(prop), ignoreKeys))
+        return false
+
+    return true
+  }
 
   Object.keys = Object.keys
     || function (o) { var a = []
@@ -1015,6 +1077,10 @@ ddoc.updates.package = function (doc, req) {
   }
 
   if (doc) {
+    var extendedRequest = deepExtend(JSON.parse(req.body), doc)
+    doc.users = doc.users || {}
+    if (ignoringDeepEquals(extendedRequest, doc, [["users", req.userCtx.name]]))
+      return [extendedRequest, JSON.stringify({ok:"updated 'use' status"})]
     if (req.query.version) {
       if (doc.url) {
         return error(doc.name+" is hosted elsewhere: "+doc.url)
@@ -1058,6 +1124,10 @@ ddoc.updates.package = function (doc, req) {
       if (body.description) doc.description = body.description
       if (body.author) doc.author = body.author
       if (body.repository) doc.repository = body.repository
+      if (body.users && body.users[req.userCtx.name] != null) {
+        if (!doc.users) doc.users = {}
+        doc.users[req.userCtx.name] = body.users[req.userCtx.name]
+      }
       body.maintainers = doc.maintainers
 
       var tag = req.query.tag
@@ -1162,6 +1232,49 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user, dbCtx) {
                         || (typeof a === "object" && typeof a.length === "number") }
   var semver = require("semver")
   var valid = require("valid")
+  
+  function ignoringDeepEquals(o1, o2, ignoreKeys, pathPrefix){
+    pathPrefix = pathPrefix || []
+
+    function isObject(v){
+      return typeof v === 'object'
+    }
+
+    // Check whether `arr` contains an array that's shallowly equal to `v`.
+    function arrayInArray(v, arr) {
+      return arr.some(function(e) {
+        if (e.length !== v.length) return false
+        for (var i=0; i<e.length; i++)
+          if (e[i] !== v[i])
+            return false
+        return true
+      })
+    }
+
+    function fullPath(p){
+      return pathPrefix.concat([p])
+    }
+
+    if (typeof o1 !== typeof o2)
+      return false
+    else if (!isObject(o1))
+      return o1 === o2
+
+    for (var prop in o1)
+      if (o1.hasOwnProperty(prop) && !arrayInArray(fullPath(prop), ignoreKeys))
+        if (!o2.hasOwnProperty(prop) || !ignoringDeepEquals(o1[prop], o2[prop], ignoreKeys, fullPath(prop)))
+          return false
+
+    for (var prop in o2)
+      if (o2.hasOwnProperty(prop) && !o1.hasOwnProperty(prop) && !arrayInArray(fullPath(prop), ignoreKeys))
+        return false
+
+    return true
+  }
+
+  if (oldDoc) oldDoc.users = oldDoc.users || {}
+  newDoc.users = newDoc.users || {}
+
   // admins can do ANYTHING (even break stuff)
   if (isAdmin()) return
 
@@ -1172,6 +1285,9 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user, dbCtx) {
   // if the newDoc is an {error:"blerg"}, then throw that right out.
   // something detected in the _updates/package script.
   assert(!newDoc.forbidden || newDoc._deleted, newDoc.forbidden)
+
+  // everyone may alter his "I use this" status on any package
+  if (oldDoc && !newDoc._deleted && ignoringDeepEquals(newDoc, oldDoc, [["users", user.name]])) return
 
   function validUser () {
     if ( !oldDoc || !oldDoc.maintainers ) return true
@@ -1246,4 +1362,7 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user, dbCtx) {
   for (var i in newDoc.versions) {
     assert(semver.valid(i), "version "+i+" is not a valid version")
   }
+  
+  assert(ignoringDeepEquals(newDoc.users, (oldDoc || {users:{}}).users, [[user.name]]),
+         "even the owner of a package may not fake 'I use this' data")
 }
