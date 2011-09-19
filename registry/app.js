@@ -1081,6 +1081,7 @@ ddoc.updates.package = function (doc, req) {
     doc.users = doc.users || {}
     if (ignoringDeepEquals(extendedRequest, doc, [["users", req.userCtx.name]]))
       return [extendedRequest, JSON.stringify({ok:"updated 'star' status"})]
+
     if (req.query.version) {
       if (doc.url) {
         return error(doc.name+" is hosted elsewhere: "+doc.url)
@@ -1124,10 +1125,6 @@ ddoc.updates.package = function (doc, req) {
       if (body.description) doc.description = body.description
       if (body.author) doc.author = body.author
       if (body.repository) doc.repository = body.repository
-      if (body.users && body.users[req.userCtx.name] != null) {
-        if (!doc.users) doc.users = {}
-        doc.users[req.userCtx.name] = body.users[req.userCtx.name]
-      }
       body.maintainers = doc.maintainers
 
       var tag = req.query.tag
@@ -1158,6 +1155,10 @@ ddoc.updates.package = function (doc, req) {
     }
     if (newdoc["dist-tags"]) {
       doc["dist-tags"] = newdoc["dist-tags"]
+    }
+    if (newdoc.users && newdoc.users[req.userCtx.name] != null) {
+      if (!doc.users) doc.users = {}
+      doc.users[req.userCtx.name] = newdoc.users[req.userCtx.name]
     }
     return ok(doc, "updated package metadata")
   } else {
