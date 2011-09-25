@@ -6,17 +6,17 @@ www/ is the code for search.npmjs.org, eventually maybe www.npmjs.org
 
 # Installing
 
-You'll need CouchDB version 1.0.2 or higher.  We're using some newish features.
+You'll need CouchDB version 1.1.0 or higher.  We're using some newish features.
 I recommend getting one from http://iriscouch.com/
 
 Once you have CouchDB installed, create a new database:
 
-		registry
+    curl -X PUT http://localhost:5984/registry
 
 Clone the repository if you haven't already, and cd into it:
 
-		git clone https://github.com/isaacs/npmjs.org.git
-		cd npmjs.org
+    git clone https://github.com/isaacs/npmjs.org.git
+    cd npmjs.org
 
 Now install couchapp and semver:
 
@@ -39,9 +39,9 @@ create a replication task from http://isaacs.ic.ht/registry --> local
 database registry. This can be done through the CouchBase administrative
 UI or via an HTTP call to '/_replicate like so:
 
-		curl -X POST -H "Content-Type:application/json" \
-		    http://localhost:5984/_replicate -d \
-		    '{"source":"http://isaacs.iriscouch.com/registry/", "target":"registry"}'
+    curl -X POST -H "Content-Type:application/json" \
+        http://localhost:5984/_replicate -d \
+        '{"source":"http://isaacs.iriscouch.com/registry/", "target":"registry"}'
 
 # Using the registry with the npm client
 
@@ -52,11 +52,11 @@ putting this in your ~/.npmrc file:
 
 You can also set the npm registry config property like:
 
-		npm config set registry http://localhost:5984/registry/_design/app/_rewrite
+    npm config set registry http://localhost:5984/registry/_design/app/_rewrite
 
 Or you can simple override the registry config on each call:
 
-		npm --registry http://localhost:5984/registry/_design/app/_rewrite install <package>
+    npm --registry http://localhost:5984/registry/_design/app/_rewrite install <package>
 
 # Optional: top-of-host urls
 
@@ -74,7 +74,7 @@ then omit the port altogether.
 
 Then for example you can reference the repository like so:
 
-		npm config set registry http://registry.mydomain.com:5984
+    npm config set registry http://registry.mydomain.com:5984
 
 # API
 
