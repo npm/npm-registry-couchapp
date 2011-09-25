@@ -1344,9 +1344,13 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user, dbCtx) {
     return user.roles.indexOf("_admin") >= 0
   }
 
-  assert(validUser(), "user: " + user.name + " not authorized to modify "
-                      + newDoc.name + "\n"
-                      + diffObj(oldDoc, newDoc).join("\n"))
+  var vu = validUser()
+  if (!vu) {
+    assert(vu, "user: " + user.name + " not authorized to modify "
+                        + newDoc.name + "\n"
+                        + diffObj(oldDoc, newDoc).join("\n"))
+  }
+
   if (newDoc._deleted) return
 
   assert(newDoc._id, "Empty id not allowed")
