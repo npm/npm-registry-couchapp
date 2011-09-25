@@ -1283,7 +1283,44 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user, dbCtx) {
   assert(!newDoc.forbidden || newDoc._deleted, newDoc.forbidden)
 
   // everyone may alter his "starred" status on any package
-  if (oldDoc && !newDoc._deleted && ignoringDeepEquals(newDoc, oldDoc, [["users", user.name]])) return
+  if (oldDoc && !newDoc._deleted &&
+      ignoringDeepEquals(newDoc, oldDoc, [["users", user.name], ["time", "modified"]])) return
+
+  // figure out what changed in the doc.
+  function diffObj (o, n, p) {
+    p = p || ""
+    var d = []
+    var seenKeys = []
+    for (var i in o) {
+      seenKeys.push(i)
+      if (!(i in n)) {
+        d.push("Deleted: "+p+i)
+      }
+      if (typeof o[i] !== typeof n[i]) {
+        d.push("Changed Type: "+p+i)
+      }
+      if (typeof o[i] === "object" && o[i] && !n[i]) {
+        d.push("Nulled: "+p+i)
+      }
+      if (typeof o[i] === "object" && !o[i] && n[i]) {
+        d.push("Un-nulled: "+p+i)
+      }
+      if (typeof o[i] === "object") {
+        d = d.concat(diffObj(o[i], n[i], p + i + "."))
+      } else {
+        if (o[i] !== n[i]) {
+          d.push("Changed: "+p+i+" "+JSON.stringify(o[i]) + " -> "
+                 +JSON.stringify(n[i]))
+        }
+      }
+    }
+    for (var i in n) {
+      if (-1 === seenKeys.indexOf(i)) {
+        d.push("Added: "+p+i)
+      }
+    }
+    return d
+  }
 
   function validUser () {
     if ( !oldDoc || !oldDoc.maintainers ) return true
@@ -1308,7 +1345,8 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, user, dbCtx) {
   }
 
   assert(validUser(), "user: " + user.name + " not authorized to modify "
-                      + newDoc.name )
+                      + newDoc.name + "\n"
+                      + diffObj(oldDoc, newDoc).join("\n"))
   if (newDoc._deleted) return
 
   assert(newDoc._id, "Empty id not allowed")
