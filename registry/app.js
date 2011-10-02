@@ -108,6 +108,8 @@ ddoc.rewrites =
 
   , { from: "/-/short", to:"_list/short/listAll", method: "GET" }
   , { from: "/-/scripts", to:"_list/scripts/scripts", method: "GET" }
+  , { from: "/-/by-field", to:"_list/byField/byField", method: "GET" }
+  , { from: "/-/fields", to:"_list/sortCount/fieldsInUse", method: "GET", query: { group: "true" } }
 
   , { from: "/-/needbuild", to:"_list/needBuild/needBuild", method: "GET" }
   , { from: "/-/prebuilt", to:"_list/preBuilt/needBuild", method: "GET" }
@@ -488,6 +490,62 @@ ddoc.lists.search = function (head, req) {
   send(JSON.stringify(set))
 }
 
+ddoc.lists.byField = function (head, req) {
+  Object.keys = Object.keys
+    || function (o) { var a = []
+                      for (var i in o) a.push(i)
+                      return a }
+  if (!req.query.field) {
+    start({"code":"400", "headers": {"Content-Type": "application/json"}})
+    send('{"error":"Please specify a field parameter"}')
+    return
+  }
+
+  start({"code": 200, "headers": {"Content-Type": "application/json"}})
+  var row
+    , out = {}
+    , field = req.query.field
+    , not = field.charAt(0) === "!"
+  if (not) field = field.substr(1)
+  while (row = getRow()) {
+    if (!row.id) continue
+    var has = row.value.hasOwnProperty(field)
+    if (!not && !has || not && has) continue
+    out[row.key] = { "maintainers": row.value.maintainers.map(function (m) {
+      return m.name + " <" + m.email + ">"
+    }) }
+    if (has) out[row.key][field] = row.value[field]
+  }
+  send(JSON.stringify(out))
+}
+
+ddoc.views.byField = {
+  map: function (doc) {
+    Object.keys = Object.keys
+      || function (o) { var a = []
+                        for (var i in o) a.push(i)
+                        return a }
+    if (!doc || !doc.versions || !doc["dist-tags"]) return
+    var v = doc["dist-tags"].latest
+    //Object.keys(doc.versions).forEach(function (v) {
+      var d = doc.versions[v]
+      if (!d) return
+      //emit(d.name + "@" + d.version, d.dist.bin || {})
+      var out = {}
+      for (var i in d) {
+        out[i] = d[i] //true
+        if (d[i] && typeof d[i] === "object" &&
+            (i === "scripts" || i === "directories")) {
+          for (var j in d[i]) out[i + "." + j] = d[i][j]
+        }
+      }
+      out.maintainers = doc.maintainers
+      emit(doc._id, out)
+    //})
+  }
+}
+
+
 
 ddoc.lists.preBuilt = function (head, req) {
   start({"code": 200, "headers": {"Content-Type": "text/plain"}});
@@ -627,45 +685,6 @@ ddoc.views.orphanAttachments = {
   }
 }
 
-ddoc.views.noMain =
-  { map : function (doc) {
-      if (!doc || !doc.versions) return
-      var obj = {}
-      for (var i in doc.versions) {
-        if (doc.versions[i].main) return
-        if (!doc.versions[i].overlay &&
-            !( doc.modules )) continue
-        obj[i] = doc.versions[i].directories.lib
-      }
-      var m = doc.maintainers[0]
-      emit(m.email, doc._id)
-    }
-  , reduce : function (keys, values, rereduce) {
-      var out = {}
-      if (!rereduce) {
-        keys.forEach(function (key, i, keys) {
-          var val = values[i]
-          key = key[0]
-          out[key] = out[key] || []
-          out[key].push(val)
-        })
-      } else {
-        // values is an array of previous "out" objects.
-        // merge them all together.
-        values.forEach(function (val) {
-          val.forEach(function (kv) {
-            var i = kv[0], val = kv[1]
-            out[i] = out[i] || []
-            out[i] = out[i].concat(val)
-          })
-        })
-      }
-      // now make out into an array of [key,val] pairs
-      // because erlang fucks idiots.
-      return out
-   }
-}
-
 ddoc.lists.rowdump = function (head, req) {
   var rows = []
   while (row = getRow()) rows.push(row)
@@ -702,6 +721,37 @@ ddoc.lists.byUser = function (head, req) {
   send(toJSON(out))
 }
 
+ddoc.views.fieldsInUse =
+{ map : function (doc) {
+    if (!doc.versions || !doc["dist-tags"] || !doc["dist-tags"].latest) return
+    var d = doc.versions[doc["dist-tags"].latest]
+    if (!d) return
+    for (var f in d) {
+      emit(f, 1)
+      if (d[f] && typeof d[f] === "object" &&
+          (f === "scripts" || f === "directories")) {
+        for (var i in d[f]) emit(f+"."+i, 1)
+      }
+    }
+  }
+, reduce : "_sum" }
+
+ddoc.lists.sortCount = function (head, req) {
+  var out = []
+  while (row = getRow()) {
+    out.push([row.key, row.value])
+  }
+  out = out.sort(function (a, b) {
+    return a[1] === b[1] ? 0
+         : a[1] < b[1] ? 1 : -1
+  })
+  var outObj = {}
+  for (var i = 0, l = out.length; i < l; i ++) {
+    outObj[out[i][0]] = out[i][1]
+  }
+  send(toJSON(outObj))
+}
+
 ddoc.views.howBigIsYourPackage = {
   map : function (doc) {
     var s = 0
@@ -712,7 +762,7 @@ ddoc.views.howBigIsYourPackage = {
       c ++
     }
     if (s === 0) return
-    emit (doc._id, {_id: doc._id, size: s, count: c, avg: s/c})
+    emit(doc._id, {_id: doc._id, size: s, count: c, avg: s/c})
   }
 }
 
