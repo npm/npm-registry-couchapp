@@ -90,7 +90,7 @@ ddoc.views =
   , dependencies: {map: dependencies, reduce:"_count"}
   , updated: {map: function (doc) {
       var l = doc["dist-tags"].latest
-        , t = doc.time && doc.time[t]
+        , t = doc.time && doc.time[l]
       if (t) emit(t, 1)
     }}
   , tags:
