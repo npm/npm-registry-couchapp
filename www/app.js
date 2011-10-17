@@ -88,7 +88,11 @@ function dependencies (doc) {
 ddoc.views =
   { search: { map: packageSearch }
   , dependencies: {map: dependencies, reduce:"_count"}
-  , updated: {map: function (doc) {if (doc.time && doc.time.modified) emit(doc.time.modified, 1) }}
+  , updated: {map: function (doc) {
+      var l = doc["dist-tags"].latest
+        , t = doc.time && doc.time[t]
+      if (t) emit(t, 1)
+    }}
   , tags:
     { map: function (doc) {
              if (doc['dist-tags'] && doc['dist-tags'].latest) {

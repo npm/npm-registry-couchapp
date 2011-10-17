@@ -228,15 +228,15 @@ ddoc.lists.rss = function (head, req) {
     if (!row.value || !row.value["dist-tags"]) continue
 
     var doc = row.value
-    var date = doc.time && doc.time.modified || doc.ctime
-    if (!date) continue
-    date = new Date(date)
     var authors = doc.maintainers.map(function (m) {
       return '<author>' + m.name + '</author>'
     }).join('\n      ')
 
-    doc = doc.versions[doc["dist-tags"].latest]
-    if (!doc) continue
+    var latest = doc["dist-tags"].latest
+    var time = doc.time && doc.time[latest]
+    var date = new Date(time)
+    doc = doc.versions[latest]
+    if (!doc || !time || !date) continue
 
     var url = doc.homepage
       , repo = doc.repository || doc.repositories
@@ -386,7 +386,11 @@ ddoc.views.listAll = {
 
 ddoc.views.modified = { map: modifiedTimeMap }
 function modifiedTimeMap (doc) {
-  var t = new Date(doc.time && doc.time.modified || doc.mtime || 0)
+  if (!doc.versions) return
+  var latest = doc["dist-tags"].latest
+  if (!doc.versions[latest]) return
+  var time = doc.time && doc.time[latest] || 0
+  var t = new Date(time)
   emit(t.getTime(), doc)
 }
 
