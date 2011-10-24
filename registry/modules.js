@@ -154,7 +154,7 @@ exports.String =
 
 exports.monkeypatch =
   [ "exports.patch = patch"
-  , function patch (Date, Object, Array, String) {
+  , function patch (Object, Date, Array, String) {
       if (!Date.prototype.toISOString) {
         Date.prototype.toISOString = require("Date").toISOString
       }
