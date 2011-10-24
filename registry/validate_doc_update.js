@@ -1,5 +1,10 @@
 
-module.exports = function (newDoc, oldDoc, user, dbCtx) {
+module.exports = function (doc, oldDoc, user, dbCtx) {
+  // can't write to the db without logging in.
+  if (!user || !user.name) {
+    throw { unauthorized: "Please log in before writing to the db" }
+  }
+
   require("monkeypatch").patch(Object, Date, Array, String)
 
   var semver = require("semver")
@@ -9,22 +14,15 @@ module.exports = function (newDoc, oldDoc, user, dbCtx) {
 
 
   if (oldDoc) oldDoc.users = oldDoc.users || {}
-  newDoc.users = newDoc.users || {}
+  doc.users = doc.users || {}
 
-  // admins can do ANYTHING (even break stuff)
-  if (isAdmin()) return
 
   function assert (ok, message) {
     if (!ok) throw {forbidden:message}
   }
 
-  // if the newDoc is an {error:"blerg"}, then throw that right out.
-  // something detected in the _updates/package script.
-  assert(!newDoc.forbidden || newDoc._deleted, newDoc.forbidden)
-
-  // everyone may alter his "starred" status on any package
-  if (oldDoc && !newDoc._deleted &&
-      ignoringDeepEquals(newDoc, oldDoc, [["users", user.name], ["time", "modified"]])) return
+  // admins can do ANYTHING (even break stuff)
+  if (isAdmin()) return
 
   // figure out what changed in the doc.
   function diffObj (o, n, p) {
@@ -62,6 +60,23 @@ module.exports = function (newDoc, oldDoc, user, dbCtx) {
     return d
   }
 
+  // if the doc is an {error:"blerg"}, then throw that right out.
+  // something detected in the _updates/package script.
+  // XXX: Make this not ever happen ever.  Validation belongs here,
+  // not in the update function.
+  assert(!doc.forbidden || doc._deleted, doc.forbidden)
+
+  // everyone may alter his "starred" status on any package
+  if (oldDoc &&
+      !doc._deleted &&
+      ignoringDeepEquals(
+        doc, oldDoc,
+        [["users", user.name], ["time", "modified"]])) {
+    return
+  }
+
+
+  // check if the user is allowed to write to this package.
   function validUser () {
     if ( !oldDoc || !oldDoc.maintainers ) return true
     if (isAdmin()) return true
@@ -71,6 +86,7 @@ module.exports = function (newDoc, oldDoc, user, dbCtx) {
     }
     return false
   }
+
   function isAdmin () {
     if (dbCtx &&
         dbCtx.admins) {
@@ -87,61 +103,114 @@ module.exports = function (newDoc, oldDoc, user, dbCtx) {
   var vu = validUser()
   if (!vu) {
     assert(vu, "user: " + user.name + " not authorized to modify "
-                        + newDoc.name + "\n"
-                        + diffObj(oldDoc, newDoc).join("\n"))
+                        + doc.name + "\n"
+                        + diffObj(oldDoc, doc).join("\n"))
   }
 
-  if (newDoc._deleted) return
+  // deleting a document entirely *is* allowed.
+  if (doc._deleted) return
 
-  assert(newDoc._id, "Empty id not allowed")
+  // sanity checks.
+  assert(valid.name(doc.name), "name invalid: "+doc.name)
+  assert(doc.name === doc._id, "name must match _id")
+  assert(!doc.mtime, "doc.mtime is deprecated")
+  assert(!doc.ctime, "doc.ctime is deprecated")
+  assert(typeof doc.time === "object", "time must be object")
 
-  assert(Array.isArray(newDoc.maintainers),
+  assert(typeof doc["dist-tags"] === "object", "dist-tags must be object")
+
+  var versions = doc.versions
+  assert(typeof versions === "object", "versions must be object")
+
+  var latest = doc["dist-tags"].latest
+  if (latest) {
+    assert(versions[latest], "dist-tags.latest must be valid version")
+  }
+
+  for (var v in doc["dist-tags"]) {
+    var ver = doc["dist-tags"][v]
+    assert(semver.valid(ver),
+           v + " version invalid version: " + ver)
+    assert(versions[ver],
+           v + " version missing: " + ver)
+  }
+
+  for (var ver in versions) {
+    var version = versions[ver]
+    assert(semver.valid(ver),
+           "invalid version: " + ver)
+    assert(typeof version === "object",
+           "version entries must be objects")
+    assert(version.version === ver,
+           "version must match: "+ver)
+    assert(version.name === doc._id,
+           "version "+ver+" has incorrect name: "+version.name)
+  }
+
+  assert(Array.isArray(doc.maintainers),
          "maintainers should be a list of owners")
-  newDoc.maintainers.forEach(function (m) {
-    assert(m.name && m.email, "Maintainer should have name and email: "+
-           JSON.stringify(m))
+  doc.maintainers.forEach(function (m) {
+    assert(m.name && m.email,
+           "Maintainer should have name and email: " + JSON.stringify(m))
   })
 
-  assert(!newDoc.ctime,
-         "ctime is deprecated. Use time.created.")
-  assert(!newDoc.mtime,
-         "mtime is deprecated. Use time.modified.")
-  assert(newDoc.time, "time object required. {created, modified}")
-  var c = new Date(Date.parse(newDoc.time.created))
-    , m = new Date(Date.parse(newDoc.time.modified))
-  assert(c.toString() !== "Invalid Date" &&
-         m.toString() !== "Invalid Date", "invalid created/modified time: "
-         + JSON.stringify(newDoc.time)
-         + " " + c.toString() + " " + m.toString())
+  var time = doc.time
+  var c = new Date(Date.parse(time.created))
+    , m = new Date(Date.parse(time.modified))
+  assert(c.toString() !== "Invalid Date",
+         "invalid created time: " + JSON.stringify(time.created))
 
-  var n = valid.name(newDoc.name)
-  assert(valid.name(n) && n === newDoc.name && n
-        , "Invalid name: "
-          + JSON.stringify(newDoc.name)
-          + " may not start with '.' or contain '/' or '@' or whitespace")
-  assert(newDoc.name === newDoc._id,
-         "Invalid _id: " + JSON.stringify(newDoc._id) + "\n" +
-         "Must match 'name' field ("+JSON.stringify(newDoc.name)+")")
-  if (newDoc.url) {
-    assert(!newDoc["dist-tags"], "redirected packages can't have dist-tags")
-    assert(!newDoc.versions, "redirected packages can't have versions")
-    return
-  }
-  // make sure all the dist-tags and versions are valid semver
-  assert(newDoc["dist-tags"], "must have dist-tags")
-  assert(newDoc.versions, "must have versions")
+  assert(m.toString() !== "Invalid Date",
+         "invalid modified time: " + JSON.stringify(time.modified))
 
-  for (var i in newDoc["dist-tags"]) {
-    assert(semver.valid(newDoc["dist-tags"][i]),
-      "dist-tag "+i+" is not a valid version: "+newDoc["dist-tags"][i])
-    assert(newDoc["dist-tags"][i] in newDoc.versions,
-      "dist-tag "+i+" refers to non-existent version: "+newDoc["dist-tags"][i])
-  }
-  for (var i in newDoc.versions) {
-    assert(semver.valid(i), "version "+i+" is not a valid version")
+  if (oldDoc &&
+      oldDoc.time &&
+      oldDoc.time.created &&
+      Date.parse(oldDoc.time.created)) {
+    assert(Date.parse(oldDoc.time.created) === Date.parse(time.created),
+           "created time cannot be changed")
   }
 
-  assert(ignoringDeepEquals(newDoc.users, (oldDoc || {users:{}}).users, [[user.name]]),
-         "even the owner of a package may not fake 'star' data")
+  if (oldDoc && oldDoc.users) {
+    assert(ignoringDeepEquals(doc.users,
+                              oldDoc.users, [[user.name]]),
+           "you may only alter your own 'star' setting")
+  }
+
+  // This needs to stop.
+  if (doc.url &&
+      (!oldDoc || !oldDoc.url || doc.url !== oldDoc.url)) {
+    assert(false,
+           "Package redirection is deprecated, "+
+           "and will be removed at some point.  "+
+           "Please update your publish scripts.")
+  }
+
+  // at this point, we've passed the basic sanity tests.
+  // Time to dig into more details.
+  // Valid operations:
+  // 1. Add a version
+  // 2. Remove a version
+  // 3. Modify a version
+  // 4. Add or remove onesself from the "users" hash (already done)
+  //
+  // If a version is being added or changed, make sure that the
+  // _npmUser field matches the current user, and that the
+  // time object has the proper entry, and that the "maintainers"
+  // matches the current "maintainers" field.
+  //
+  // Things that must not change:
+  //
+  // 1. More than one version being modified.
+  // 2. Removing keys from the "time" hash
+  //
+  // Later, once we are off of the update function 3-stage approach,
+  // these things should also be errors:
+  //
+  // 1. Lacking an attachment for any published version.
+  // 2. Having an attachment for any version not published.
+
+
+
 }
 
