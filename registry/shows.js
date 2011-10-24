@@ -54,7 +54,7 @@ shows.package = function (doc, req) {
         // doc.versions[v].dist._path = req.path
         // doc.versions[v].dist._req = req
 
-        var basePath = req.requested_path
+        var basePath = req.requested_path || ""
         if (basePath.indexOf("_show") === -1) basePath = ""
         else {
           basePath = "/" + basePath.slice(0, basePath.indexOf("_show"))
