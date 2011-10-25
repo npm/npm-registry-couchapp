@@ -10,7 +10,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   var semver = require("semver")
   var valid = require("valid")
   var deep = require("deep")
-  var ignoringDeepEquals = deep.ignoringDeepEquals
+  var deepEquals = deep.deepEquals
 
 
   if (oldDoc) oldDoc.users = oldDoc.users || {}
@@ -69,9 +69,8 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   // everyone may alter his "starred" status on any package
   if (oldDoc &&
       !doc._deleted &&
-      ignoringDeepEquals(
-        doc, oldDoc,
-        [["users", user.name], ["time", "modified"]])) {
+      deepEquals(doc, oldDoc,
+                 [["users", user.name], ["time", "modified"]])) {
     return
   }
 
@@ -172,8 +171,8 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   }
 
   if (oldDoc && oldDoc.users) {
-    assert(ignoringDeepEquals(doc.users,
-                              oldDoc.users, [[user.name]]),
+    assert(deepEquals(doc.users,
+                      oldDoc.users, [[user.name]]),
            "you may only alter your own 'star' setting")
   }
 
@@ -185,6 +184,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
            "and will be removed at some point.  "+
            "Please update your publish scripts.")
   }
+
 
   // at this point, we've passed the basic sanity tests.
   // Time to dig into more details.
@@ -210,7 +210,60 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   // 1. Lacking an attachment for any published version.
   // 2. Having an attachment for any version not published.
 
+  var oldVersions = oldDoc ? oldDoc.versions : {}
+  var oldTime = oldDoc ? oldDoc.time : {}
 
+  var versions = Object.keys(doc.versions)
+    , modified = null
+
+  for (var i = 0, l = versions.length; i < l; i ++) {
+    var v = versions[i]
+    assert(doc.time[v], "must have time entry for "+v)
+
+    if (!deepEquals(doc.versions[v], oldVersions[v])) {
+      // this one was modified
+      // if it's more than a few minutes off, then something is wrong.
+      var t = Date.parse(doc.time[v])
+        , n = Date.now()
+      assert(doc.time[v] !== oldTime[v] &&
+             Math.abs(n - t) < 1000 * 60 * 60,
+             v + " time needs to be updated")
+
+      assert(doc.time[v] === doc.time.modified,
+             v + " is modified, should match modified time")
+
+      assert(typeof doc.versions[v]._npmUser === "object",
+             "_npmUser field must be object")
+      assert(doc.versions[v]._npmUser.name === user.name,
+             "_npmUser.name must === user.name")
+      assert(deepEquals(doc.versions[v].maintainers,
+                        doc.maintainers),
+             "modified version 'maintainers' must === doc.maintainers")
+
+      // make sure that the _npmUser is one of the maintainers
+      var found = false
+      for (var i = 0, l = doc.maintainers.length; i < l; i ++) {
+        var m = doc.maintainers[i]
+        if (m.name === doc.versions[v]._npmUser.name &&
+            m.email === doc.versions[v]._npmUser.email) {
+          found = true
+          break
+        }
+      }
+      assert(found, "_npmUser must be a current maintainer")
+
+    } else if (oldTime[v]) {
+      assert(oldTime[v] === doc.time[v],
+             v + " time should not be modified")
+    }
+  }
+
+  // now go through all the time settings that weren't covered
+  for (var v in oldTime) {
+    if (doc.versions[v]) continue
+    assert(doc.time[v] === oldTime[v],
+           v + " time should not be modified")
+  }
 
 }
 
