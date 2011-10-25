@@ -2,15 +2,11 @@ var updates = exports
 
 updates.package = function (doc, req) {
   require("monkeypatch").patch(Object, Date, Array, String)
-  var deep = require("deep")
-  var ignoringDeepEquals = deep.ignoringDeepEquals
-
-  require("monkeypatch").patch(Object, Date, Array, String)
 
   var semver = require("semver")
   var valid = require("valid")
   function error (reason) {
-    return [{forbidden:reason}, JSON.stringify({forbidden:reason})]
+    return [{_id: "error: forbidden", forbidden:reason}, JSON.stringify({forbidden:reason})]
   }
 
   function ok (doc, message) {
@@ -66,7 +62,8 @@ updates.package = function (doc, req) {
       ver = semver.clean(ver)
       if (body.version !== ver) {
         return error( "version in doc doesn't match version in request: "
-                    + JSON.stringify(body.version) + " !== " + JSON.stringify(ver))
+                    + JSON.stringify(body.version)
+                    + " !== " + JSON.stringify(ver) )
       }
       body._id = body.name + "@" + body.version
       if (body.description) doc.description = body.description
