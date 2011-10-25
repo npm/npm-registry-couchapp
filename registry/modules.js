@@ -1,17 +1,21 @@
 // Each of these is a string that will be require()'d in the couchapp
 
 exports.deep =
-  [ "exports.ignoringDeepEquals = ignoringDeepEquals"
+  [ "exports.deepEquals = deepEquals"
   , "exports.extend = deepExtend"
   , function deepExtend(o1, o2) {
-    // extend o1 with o2 (in-place)
-      for (var prop in o2)
-        if (o2.hasOwnProperty(prop))
-          if (o1.hasOwnProperty(prop)) {
-            if (typeof o1[prop] === "object")
+      // extend o1 with o2 (in-place)
+      for (var prop in o2) {
+        if (hOP(o2, prop)) {
+          if (hOP(o1, prop)) {
+            if (typeof o1[prop] === "object") {
               deepExtend(o1[prop], o2[prop])
-          } else
+            }
+          } else {
             o1[prop] = o2[prop]
+          }
+        }
+      }
       return o1
     }
   , function fullPath(p){
@@ -24,31 +28,40 @@ exports.deep =
     // Check whether `arr` contains an array that's shallowly equal to `v`.
       return arr.some(function(e) {
         if (e.length !== v.length) return false
-        for (var i=0; i<e.length; i++)
-          if (e[i] !== v[i])
+        for (var i=0; i<e.length; i++) {
+          if (e[i] !== v[i]) {
             return false
+          }
+        }
         return true
       })
     }
-  , function ignoringDeepEquals(o1, o2, ignoreKeys, pathPrefix){
+  , function deepEquals(o1, o2, ignoreKeys, pathPrefix){
       pathPrefix = pathPrefix || []
+      function hOP (obj, prop) {
+        return Object.prototype.hasOwnProperty.call(obj, prop)
+      }
       if (typeof o1 !== typeof o2) {
         return false
       } else if (!isObject(o1)) {
         return o1 === o2
       }
       for (var prop in o1) {
-        if (o1.hasOwnProperty(prop) &&
+        if (hOP(o1, prop) &&
             !arrayInArray(fullPath(prop), ignoreKeys)) {
-          if (!o2.hasOwnProperty(prop) ||
-              !ignoringDeepEquals(o1[prop], o2[prop], ignoreKeys, fullPath(prop))) {
+          if (!hOP(o2, prop) ||
+              !deepEquals(o1[prop],
+                          o2[prop],
+                          ignoreKeys,
+                          fullPath(prop))) {
             return false
           }
         }
       }
       for (var prop in o2) {
-        if (o2.hasOwnProperty(prop) &&
-            !o1.hasOwnProperty(prop) && !arrayInArray(fullPath(prop), ignoreKeys)) {
+        if (hOP(o2, prop) &&
+            !hOP(o1, prop) &&
+            !arrayInArray(fullPath(prop), ignoreKeys)) {
           return false
         }
       }
@@ -61,11 +74,17 @@ exports.semver =
     + require("semver").expressions.parse.toString()
   , 'exports.valid = valid'
   , 'exports.clean = clean'
-  , function valid (v) { return v && typeof v === "string" && v.match(expr) }
+  , function valid (v) {
+      return v && typeof v === "string" && v.match(expr)
+    }
   , function clean (v) {
       v = valid(v)
       if (!v) return v
-      return [v[1]||'0', v[2]||'0', v[3]||'0'].join('.') + (v[4]||'') + (v[5]||'')
+      return [ v[1]||'0',
+               v[2]||'0',
+               v[3]||'0' ].join('.') +
+             (v[4]||'') +
+             (v[5]||'')
     }
   ].map(function (s) { return s.toString() }).join("\n")
 
@@ -75,9 +94,9 @@ exports.valid =
   , 'exports.package = validPackage'
   , function validName (name) {
      if (!name) return false
-     var n = name.replace(/^\\s|\\s$/, "")
+     var n = name.replace(/^\s|\s$/, "")
      if (!n || n.charAt(0) === "."
-         || n.match(/[\\/\\(\\)&\\?#\\|<>@:%\\s\\\\]/)
+         || n.match(/[\/\(\)&\?#\|<>@:%\s\\]/)
          || n.toLowerCase() === "node_modules"
          || n.toLowerCase() === "favicon.ico") {
        return false
@@ -139,6 +158,14 @@ exports.Object =
 
 exports.Array =
   [ "exports.isArray = isArray"
+  , "exports.forEach = forEach"
+  , function forEach (fn) {
+      for (var i = 0, l = this.length; i < l; i ++) {
+        if (this.hasOwnProperty(i)) {
+          fn(this[i], i, this)
+        }
+      }
+    }
   , function isArray (a) {
       return a instanceof Array
         || Object.prototype.toString.call(a) === "[object Array]"
@@ -155,16 +182,27 @@ exports.String =
 exports.monkeypatch =
   [ "exports.patch = patch"
   , function patch (Object, Date, Array, String) {
-      if (!Date.prototype.toISOString) {
-        Date.prototype.toISOString = require("Date").toISOString
-      }
       if (!Date.parse || isNaN(Date.parse("2010-12-29T07:31:06Z"))) {
         Date.parse = require("Date").parse
       }
-      if (!Date.now) Date.now = require("Date").now
-      Object.keys = Object.keys || require("Object").keys
-      Array.isArray = Array.isArray || require("Array").isArray
-      String.prototype.trim = String.prototype.trim || require("String").trim
+
+      Date.prototype.toISOString = Date.prototype.toISOString
+        || require("Date").toISOString
+
+      Date.now = Date.now
+        || require("Date").now
+
+      Object.keys = Object.keys
+        || require("Object").keys
+
+      Array.prototype.forEach = Array.prototype.forEach
+        || require("Array").forEach
+
+      Array.isArray = Array.isArray
+        || require("Array").isArray
+
+      String.prototype.trim = String.prototype.trim
+        || require("String").trim
     }
   ].map(function (s) { return s.toString() }).join("\n")
 
