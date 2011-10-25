@@ -18,7 +18,7 @@ exports.deep =
       }
       return o1
     }
-  , function fullPath(p){
+  , function fullPath(pathPrefix, p){
       return pathPrefix.concat([p])
     }
   , function isObject(v){
@@ -38,6 +38,7 @@ exports.deep =
     }
   , function deepEquals(o1, o2, ignoreKeys, pathPrefix){
       pathPrefix = pathPrefix || []
+      ignoreKeys = ignoreKeys || []
       function hOP (obj, prop) {
         return Object.prototype.hasOwnProperty.call(obj, prop)
       }
@@ -48,12 +49,12 @@ exports.deep =
       }
       for (var prop in o1) {
         if (hOP(o1, prop) &&
-            !arrayInArray(fullPath(prop), ignoreKeys)) {
+            !arrayInArray(fullPath(pathPrefix, prop), ignoreKeys)) {
           if (!hOP(o2, prop) ||
               !deepEquals(o1[prop],
                           o2[prop],
                           ignoreKeys,
-                          fullPath(prop))) {
+                          fullPath(pathPrefix, prop))) {
             return false
           }
         }
@@ -61,7 +62,7 @@ exports.deep =
       for (var prop in o2) {
         if (hOP(o2, prop) &&
             !hOP(o1, prop) &&
-            !arrayInArray(fullPath(prop), ignoreKeys)) {
+            !arrayInArray(fullPath(pathPrefix, prop), ignoreKeys)) {
           return false
         }
       }

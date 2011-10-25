@@ -78,6 +78,7 @@ updates.package = function (doc, req) {
 
       if (!req.query.pre) doc["dist-tags"][tag] = body.version
       doc.versions[ver] = body
+      doc.time[ver] = (new Date()).toISOString()
       return ok(doc, "added version")
     }
 

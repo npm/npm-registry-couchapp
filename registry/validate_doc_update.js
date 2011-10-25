@@ -220,14 +220,16 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     var v = versions[i]
     assert(doc.time[v], "must have time entry for "+v)
 
-    if (!deepEquals(doc.versions[v], oldVersions[v])) {
+    if (!deepEquals(doc.versions[v], oldVersions[v], [["directories"]])) {
       // this one was modified
       // if it's more than a few minutes off, then something is wrong.
       var t = Date.parse(doc.time[v])
         , n = Date.now()
       assert(doc.time[v] !== oldTime[v] &&
              Math.abs(n - t) < 1000 * 60 * 60,
-             v + " time needs to be updated")
+             v + " time needs to be updated\n" +
+             "new=" + JSON.stringify(doc.versions[v]) + "\n" +
+             "old=" + JSON.stringify(oldVersions[v]))
 
       assert(doc.time[v] === doc.time.modified,
              v + " is modified, should match modified time")
@@ -254,15 +256,15 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
     } else if (oldTime[v]) {
       assert(oldTime[v] === doc.time[v],
-             v + " time should not be modified")
+             v + " time should not be modified 1")
     }
   }
 
   // now go through all the time settings that weren't covered
   for (var v in oldTime) {
-    if (doc.versions[v]) continue
+    if (doc.versions[v] || !oldVersions[v]) continue
     assert(doc.time[v] === oldTime[v],
-           v + " time should not be modified")
+           v + " time should not be modified 2")
   }
 
 }

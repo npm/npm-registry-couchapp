@@ -161,4 +161,3 @@ views.howBigIsYourPackage = {
     emit(doc._id, {_id: doc._id, size: s, count: c, avg: s/c})
   }
 }
-
