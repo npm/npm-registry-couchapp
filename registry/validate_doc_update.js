@@ -235,7 +235,8 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
              v + " is modified, should match modified time")
 
       assert(typeof doc.versions[v]._npmUser === "object",
-             "_npmUser field must be object")
+             "_npmUser field must be object\n"+
+             "(You probably need to upgrade your npm version)")
       assert(doc.versions[v]._npmUser.name === user.name,
              "_npmUser.name must === user.name")
       assert(deepEquals(doc.versions[v].maintainers,
@@ -252,7 +253,9 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
           break
         }
       }
-      assert(found, "_npmUser must be a current maintainer")
+      assert(found, "_npmUser must be a current maintainer.\n"+
+                    "maintainers=" + JSON.stringify(doc.maintainers)+"\n"+
+                    "current user=" + JSON.stringify(m))
 
     } else if (oldTime[v]) {
       assert(oldTime[v] === doc.time[v],
