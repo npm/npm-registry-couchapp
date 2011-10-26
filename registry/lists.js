@@ -107,8 +107,9 @@ lists.index = function (head, req) {
     if (!row.id) continue
 
     var doc = row.value
+    if (!doc.name || !doc._id) continue
 
-    var p = out[row.value._id] = {}
+    var p = out[doc._id] = {}
 
     // legacy kludge
     delete doc.mtime
