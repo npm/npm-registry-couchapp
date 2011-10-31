@@ -168,7 +168,12 @@ app.index = function () {
       var doc = docsInPage[i];
       doc.rank = 0
       doc.tagsInSearch = [];
-      if (doc.description) doc.htmlDescription = doc.description;
+      if (doc.description) {
+        doc.htmlDescription = doc.description.split('&').join('&amp;')
+                                             .split('"').join('&quot;')
+                                             .split('<').join('&lt;')
+                                             .split('>').join('&gt;')
+      }
       
       if (doc._id.toLowerCase() === currentSearch) doc.rank += 1000      
       
@@ -178,6 +183,12 @@ app.index = function () {
         var tags = [];
       }
       
+      tags = tags.map(function (tag) {
+          return tag.split('&').join('&amp;')
+                    .split('"').join('&quot;')
+                    .split('<').join('&lt;')
+                    .split('>').join('&gt;')
+      })
       currentTerms.forEach(function (t) {
         t = t.toLowerCase();
         if (doc._id.toLowerCase().indexOf(t.toLowerCase()) !== -1) doc.rank += 750;
@@ -242,11 +253,6 @@ app.index = function () {
       })
     })})
     
-    // $('span.result-tags').each(function () {
-    //   var p = $(this).parent();
-    //   $(this).css({right: p.position().left+p.width(), top:p.position().top})
-    // })
-    
     lastSearchForPage = currentSearch;
   }  
   
@@ -279,7 +285,6 @@ app.index = function () {
           resp.rows.forEach(function (row) {
             searchResults[term].push(row.key);
             row.value.name = row.value.name.toLowerCase();
-            if (row.value.description) row.value.description = row.value.description;
             docs[row.key] = row.value;
             updateResults();
           })
@@ -336,14 +341,6 @@ app.showPackage = function () {
       package.append('<div class="author">by: <a href="/#/_author/'+encodeURIComponent(doc.author.name)+'">'+doc.author.name+'</div>')
     }
     
-    // if (doc['dist-tags'] && doc['dist-tags'].latest && (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags)) {
-    //   package.append(
-    //     '<div class="package-tags">tags: ' +
-    //     (doc.versions[doc['dist-tags'].latest].keywords || doc.versions[doc['dist-tags'].latest].tags).join(', ') +
-    //     '</div>'
-    //   )
-    // }
-    
 
     // 
     // if (doc.maintainers && doc.maintainers.length > 0) {
@@ -364,10 +361,19 @@ app.showPackage = function () {
     var showVersion = function (version) {
       var v = doc.versions[version];
       
+      if (v.description) {
+        v.htmlDescription = v.description.split('&').join('&amp;')
+                                             .split('"').join('&quot;')
+                                             .split('<').join('&lt;')
+                                             .split('>').join('&gt;')
+      } else {
+        v.htmlDescription = ""
+      }
+      
       $('div#version-info').html(
         '<div class="version-info-cell">' +
           '<div class="version-info-key">Description</div>' +
-          '<div class="version-info-value">'+v.description+'</div>' +
+          '<div class="version-info-value">'+v.htmlDescription+'</div>' +
         '</div>' + 
         '<div class="spacer"></div>' +
         '<div class="version-info-cell">' +
@@ -480,11 +486,11 @@ app.showPackage = function () {
       //  +
       // '<div class="version-info-cell">' +
       //   '<span class="version-info-key">Author</span>' +
-      //   '<span class="version-info-value">'+v.description+'<span>' +
+      //   '<span class="version-info-value">'+v.htmlDescription+'<span>' +
       // '</div>' +
       // '<div class="version-info-cell">' +
       //   '<span class="version-info-key">Repository</span>' +
-      //   '<span class="version-info-value">'+v.description+'<span>' +
+      //   '<span class="version-info-value">'+v.htmlDescription+'<span>' +
       // '</div>' +
       
     }
@@ -527,6 +533,14 @@ app.showPackage = function () {
         })
       showVersion(this.id)
     })
+    
+    var usersStr = '<h4>People who starred '+id+'</h4><div class="users"><p>'
+    if (doc.users)
+      for (var usingUser in doc.users)
+        if (doc.users[usingUser])
+          usersStr += (usersStr.length?' ':'')+'<span class="user">'+usingUser.replace(/</g, '&lt;').replace(/>/g, '&gt;')+'</span>'
+      usersStr += '</p></div>'
+      package.append(usersStr)
 
     request({url:'/_view/dependencies?reduce=false&key="'+id+'"'}, function (e, resp) {
       if (resp.rows.length === 0) return;
@@ -582,11 +596,15 @@ app.browse = function () {
       , function (r) {
         var h = ''
         r.rows.forEach(function (row) {
+        row.htmlDescription = row.description.split('&').join('&amp;')
+                                             .split('"').join('&quot;')
+                                             .split('<').join('&lt;')
+                                             .split('>').join('&gt;')
           if (row.id[0] !== '_') {
             h += (
               '<div class="all-package">' + 
                 '<div class="all-package-name"><a href="/#/'+row.id+'">' + row.id + '</a></div>' +
-                '<div class="all-package-desc">' + row.doc.description + '</div>' +
+                '<div class="all-package-desc">' + row.doc.htmlDescription + '</div>' +
               '</div>' +
               '<div class="spacer"></div>'
             )
@@ -681,17 +699,24 @@ app.browse = function () {
   if (this.params.view) routes[this.params.view]();
 }
 app.tags = function () {
-  var tag = this.params.tag;
+  var tag = this.params.tag.split('&').join('&amp;')
+                           .split('"').join('&quot;')
+                           .split('<').join('&lt;')
+                           .split('>').join('&gt;')
   clearContent();
   $('div#content')
   .append('<h2 style="text-align:center">tag: '+tag+'</h2>')
   .append('<div id="main-container"></div>');
   request({url:'/_view/tags?reduce=false&include_docs=true&key="'+tag+'"'}, function (e, resp) {
     resp.rows.forEach(function (row) {
+        row.doc.htmlDescription = row.doc.description.split('&').join('&amp;')
+                                             .split('"').join('&quot;')
+                                             .split('<').join('&lt;')
+                                             .split('>').join('&gt;')
       $('div#main-container').append(
         '<div class="all-package">' + 
           '<div class="tags-pkg-name"><a href="/#/'+encodeURIComponent(row.key)+'">' + row.id + '</a></div>' +
-          '<div class="tags-pkg-desc">'+row.doc.description+'</div>' +
+          '<div class="tags-pkg-desc">'+row.doc.htmlDescription+'</div>' +
         '</div>' +
         '<div class="spacer"></div>'
       );
@@ -707,10 +732,14 @@ app.author = function () {
   .append('<div id="main-container"></div>');
   request({url:'/_view/author?reduce=false&include_docs=true&key="'+author+'"'}, function (e, resp) {
     resp.rows.forEach(function (row) {
+        row.doc.htmlDescription = row.doc.description.split('&').join('&amp;')
+                                             .split('"').join('&quot;')
+                                             .split('<').join('&lt;')
+                                             .split('>').join('&gt;')
       $('div#main-container').append(
         '<div class="all-package">' + 
           '<div class="tags-pkg-name"><a href="/#/'+encodeURIComponent(row.id)+'">' + row.id + '</a></div>' +
-          '<div class="tags-pkg-desc">'+row.doc.description+'</div>' +
+          '<div class="tags-pkg-desc">'+row.doc.htmlDescription+'</div>' +
         '</div>' +
         '<div class="spacer"></div>'
       );

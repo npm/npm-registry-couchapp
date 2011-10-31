@@ -18,7 +18,7 @@
 
 html {
   font: normal 120% Merriweather;
-  background-color:white;
+  background-color:#EBE8E0;
   color:#0B5C7B;
   text-shadow: 0 1px 0 white;
 } 
@@ -70,11 +70,9 @@ input#search-input {
 
 div#main-container {
   background-color:white;
-  margin-top:30px;
-  margin-left:5%;
-  padding: 2% 5% 1% 5%;
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
+  margin:30px 5%;
+  padding: 2% 5%;
+  border-radius: 15px;
   width:80%;
 }
 
@@ -172,7 +170,16 @@ div.dependencies {
   padding-left:10%;
   padding-right:10%;
 }
+div.users {
+  width:80%;
+  text-align:left;
+  padding-left:10%;
+  padding-right:10%;
+}
 a.dep {
+  margin-right:10px;
+}
+a.user {
   margin-right:10px;
 }
 div#totals {
