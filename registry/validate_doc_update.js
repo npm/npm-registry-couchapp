@@ -255,7 +255,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
       }
       assert(found, "_npmUser must be a current maintainer.\n"+
                     "maintainers=" + JSON.stringify(doc.maintainers)+"\n"+
-                    "current user=" + JSON.stringify(m))
+                    "current user=" + JSON.stringify(doc.versions[v]._npmUser))
 
     } else if (oldTime[v]) {
       assert(oldTime[v] === doc.time[v],
