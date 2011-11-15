@@ -210,8 +210,8 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   // 1. Lacking an attachment for any published version.
   // 2. Having an attachment for any version not published.
 
-  var oldVersions = oldDoc ? oldDoc.versions : {}
-  var oldTime = oldDoc ? oldDoc.time : {}
+  var oldVersions = oldDoc ? oldDoc.versions || {} : {}
+  var oldTime = oldDoc ? oldDoc.time || {} : {}
 
   var versions = Object.keys(doc.versions)
     , modified = null
@@ -220,7 +220,8 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     var v = versions[i]
     assert(doc.time[v], "must have time entry for "+v)
 
-    if (!deepEquals(doc.versions[v], oldVersions[v], [["directories"]])) {
+    if (!deepEquals(doc.versions[v], oldVersions[v], [["directories"]]) &&
+        doc.versions[v]) {
       // this one was modified
       // if it's more than a few minutes off, then something is wrong.
       var t = Date.parse(doc.time[v])

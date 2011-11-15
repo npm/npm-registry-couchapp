@@ -15,6 +15,16 @@ function modifiedTimeMap (doc) {
   emit(t.getTime(), doc)
 }
 
+views.byEngine = {
+  map: function (doc) {
+    if (!doc || !doc.versions || !doc["dist-tags"]) return
+    var v = doc["dist-tags"].latest
+    var d = doc.versions[v]
+    if (d && d.engines) emit(doc._id, [d.engines, doc.maintainers])
+  }
+}
+
+
 views.byField = {
   map: function (doc) {
     require("monkeypatch").patch(Object, Date, Array, String)
