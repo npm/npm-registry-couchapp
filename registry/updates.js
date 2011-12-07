@@ -122,7 +122,7 @@ updates.package = function (doc, req) {
     var latest
     for (var v in doc.versions) {
       if (!semver.valid(v)) return error("Invalid version: "+JSON.stringify(v))
-      var p = doc.versions[p]
+      var p = doc.versions[v]
       if (p.version !== v) return error("Version mismatch: "+JSON.stringify(v)
                                        +" !== "+JSON.stringify(p.version))
       if (!valid.name(p.name)) return error("Invalid name: "+JSON.stringify(p.name))
