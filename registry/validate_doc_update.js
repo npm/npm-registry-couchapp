@@ -220,7 +220,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     var v = versions[i]
     assert(doc.time[v], "must have time entry for "+v)
 
-    if (!deepEquals(doc.versions[v], oldVersions[v], [["directories"]]) &&
+    if (!deepEquals(doc.versions[v], oldVersions[v], [["directories", "deprecated"]]) &&
         doc.versions[v]) {
       // this one was modified
       // if it's more than a few minutes off, then something is wrong.
