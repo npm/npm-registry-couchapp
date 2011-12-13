@@ -237,7 +237,9 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
       assert(typeof doc.versions[v]._npmUser === "object",
              "_npmUser field must be object\n"+
-             "(You probably need to upgrade your npm version)")
+             "(You may need to upgrade your npm version)\n"+
+             "version=" + v + "\n" +
+             "_npmUser=" + JSON.stringify(doc.versions[v]._npmUser) + "\n")
       assert(doc.versions[v]._npmUser.name === user.name,
              "_npmUser.name must === user.name")
       assert(deepEquals(doc.versions[v].maintainers,
