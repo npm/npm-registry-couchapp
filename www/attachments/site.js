@@ -596,7 +596,7 @@ app.browse = function () {
       , function (r) {
         var h = ''
         r.rows.forEach(function (row) {
-        row.htmlDescription = row.description.split('&').join('&amp;')
+        row.doc.htmlDescription = row.doc.description.split('&').join('&amp;')
                                              .split('"').join('&quot;')
                                              .split('<').join('&lt;')
                                              .split('>').join('&gt;')
