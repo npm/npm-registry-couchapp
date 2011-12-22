@@ -56,7 +56,7 @@ views.nonlocal = {
 
 views.needBuild = {
   map : function (doc) {
-    require("monkeypatch").patch(Object, Date, Array, String)
+    // require("monkeypatch").patch(Object, Date, Array, String)
 
     if (!doc || !doc.versions || !doc["dist-tags"]) return
     var v = doc["dist-tags"].latest

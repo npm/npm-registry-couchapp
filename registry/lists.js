@@ -215,13 +215,19 @@ lists.preBuilt = function (head, req) {
 lists.needBuild = function (head, req) {
   start({"code": 200, "headers": {"Content-Type": "text/plain"}});
   var row
-    , out = []
+    , first = true
   while (row = getRow()) {
     if (!row.id) continue
     if (req.query.bindist && row.value[req.query.bindist]) continue
-    out.push(row.key)
+    // out.push(row.key)
+    send((first ? "{" : ",")
+        + JSON.stringify(row.key)
+        + ":"
+        + JSON.stringify(Object.keys(row.value))
+        + "\n")
+    first = false
   }
-  send(out.join("\n"))
+  send("}\n")
 }
 
 lists.scripts = function (head, req) {
