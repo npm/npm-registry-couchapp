@@ -22,13 +22,9 @@ module.exports =
 
   , { from : "/favicon.ico", to:"../../npm/favicon.ico", method:"GET" }
 
-  , { from: "/-/users", to:"../../../_users/_design/_auth/_list/index/listAll"
-    , method: "GET" }
   , { from: "/-/user/:user", to:"../../../_users/:user", method: "PUT" }
   , { from: "/-/user/:user/-rev/:rev", to:"../../../_users/:user"
     , method: "PUT" }
-
-  , { from: "/-/user/:user", to:"../../../_users/:user", method: "GET" }
 
   , { from: "/-/user-by-email/:email"
     , to:"../../../_users/_design/_auth/_list/email/listAll"
