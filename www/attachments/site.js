@@ -709,10 +709,14 @@ app.tags = function () {
   .append('<div id="main-container"></div>');
   request({url:'/_view/tags?reduce=false&include_docs=true&key="'+tag+'"'}, function (e, resp) {
     resp.rows.forEach(function (row) {
+      if (row.doc.description) {
         row.doc.htmlDescription = row.doc.description.split('&').join('&amp;')
                                              .split('"').join('&quot;')
                                              .split('<').join('&lt;')
                                              .split('>').join('&gt;')
+      } else {
+        row.doc.htmlDescription = ''
+      }
       $('div#main-container').append(
         '<div class="all-package">' + 
           '<div class="tags-pkg-name"><a href="/#/'+encodeURIComponent(row.key)+'">' + row.id + '</a></div>' +
@@ -732,10 +736,14 @@ app.author = function () {
   .append('<div id="main-container"></div>');
   request({url:'/_view/author?reduce=false&include_docs=true&key="'+author+'"'}, function (e, resp) {
     resp.rows.forEach(function (row) {
+      if (row.doc.description) {
         row.doc.htmlDescription = row.doc.description.split('&').join('&amp;')
                                              .split('"').join('&quot;')
                                              .split('<').join('&lt;')
                                              .split('>').join('&gt;')
+      } else {
+        row.doc.htmlDescription = ''
+      }
       $('div#main-container').append(
         '<div class="all-package">' + 
           '<div class="tags-pkg-name"><a href="/#/'+encodeURIComponent(row.id)+'">' + row.id + '</a></div>' +
