@@ -248,8 +248,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
       var found = false
       for (var i = 0, l = doc.maintainers.length; i < l; i ++) {
         var m = doc.maintainers[i]
-        if (m.name === doc.versions[v]._npmUser.name &&
-            m.email === doc.versions[v]._npmUser.email) {
+        if (m.name === doc.versions[v]._npmUser.name) {
           found = true
           break
         }
