@@ -596,10 +596,12 @@ app.browse = function () {
       , function (r) {
         var h = ''
         r.rows.forEach(function (row) {
-        row.doc.htmlDescription = row.doc.description.split('&').join('&amp;')
-                                             .split('"').join('&quot;')
-                                             .split('<').join('&lt;')
-                                             .split('>').join('&gt;')
+          if (!row.doc.description) row.doc.description = ""
+          row.doc.htmlDescription = row.doc.description
+                                    .split('&').join('&amp;')
+                                    .split('"').join('&quot;')
+                                    .split('<').join('&lt;')
+                                    .split('>').join('&gt;')
           if (row.id[0] !== '_') {
             h += (
               '<div class="all-package">' + 
