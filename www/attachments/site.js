@@ -122,32 +122,37 @@ app.index = function () {
       '<div class="spacer"></div>' +
     '</div>'
   )
-  
-  request({url:'/api/_all_docs?limit=0'}, function (err, resp) {
-    $('div#totals').html('<a href="/#/_browse/all">' + (resp.total_rows - 1) +' total packages</a>')
-  })
-  
-  request({url:'/_view/updated?descending=true&limit='+limit+'&include_docs=false'}, function (err, resp) {
-    resp.rows.forEach(function (row) {
-      $('<div class="top-package"></div>')
-      .append('<div class="top-package-title"><a href="#/'+row.id+'">'+row.id+'</a></div>')
-      .append('<div class="top-package-updated">'+prettyDate(row.key) +'</div>')
-      .append('<div class="spacer"></div>')
-      .appendTo('div#latest-packages')
+
+  if (this.params.q) {
+    $('div#top-packages').hide();
+    currentSearch = decodeURIComponent(this.params.q.replace(/\+/g, '%20'));
+  } else {
+    request({url:'/api/_all_docs?limit=0'}, function (err, resp) {
+      $('div#totals').html('<a href="/#/_browse/all">' + (resp.total_rows - 1) +' total packages</a>')
     })
-  })
-  
-  request({url:'/_list/dependencies_limit/dependencies?group=true&descending=true&list_limit='+limit}, function (err, resp) {
-    var results = {};
-    resp.rows.forEach(function (row) {
-        $('<div class="top-package"></div>')
-        .append('<div class="top-package-title"><a href="#/'+row.key+'">'+row.key+'</a></div>')
-        .append('<div class="top-package-dep">'+row.value+'</div>')
-        .append('<div class="spacer"></div>')
-        .appendTo('div#top-dep-packages')
-    })
-  })
     
+    request({url:'/_view/updated?descending=true&limit='+limit+'&include_docs=false'}, function (err, resp) {
+      resp.rows.forEach(function (row) {
+        $('<div class="top-package"></div>')
+        .append('<div class="top-package-title"><a href="#/'+row.id+'">'+row.id+'</a></div>')
+        .append('<div class="top-package-updated">'+prettyDate(row.key) +'</div>')
+        .append('<div class="spacer"></div>')
+        .appendTo('div#latest-packages')
+      })
+    })
+    
+    request({url:'/_list/dependencies_limit/dependencies?group=true&descending=true&list_limit='+limit}, function (err, resp) {
+      var results = {};
+      resp.rows.forEach(function (row) {
+          $('<div class="top-package"></div>')
+          .append('<div class="top-package-title"><a href="#/'+row.key+'">'+row.key+'</a></div>')
+          .append('<div class="top-package-dep">'+row.value+'</div>')
+          .append('<div class="spacer"></div>')
+          .appendTo('div#top-dep-packages')
+      })
+    })
+  }
+
   var updateResults = function () {
     currentSearch = $('input#search-input').val().toLowerCase();
     currentTerms = $.trim(currentSearch).split(' ');
@@ -303,6 +308,10 @@ app.index = function () {
   $('input#search-input').change(handleChange);
   $('input#search-input').keyup(handleChange)
   $("input#search-input").focus();
+
+  if (currentSearch) {
+    $('input#search-input').val(currentSearch).change();
+  }
 };
 
 app.showPackage = function () {
