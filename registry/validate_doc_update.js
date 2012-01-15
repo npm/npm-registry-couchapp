@@ -235,6 +235,12 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
       assert(doc.time[v] === doc.time.modified,
              v + " is modified, should match modified time")
 
+      // XXX Remove the guard these once old docs have been found and
+      // fixed.  It's too big of a pain to have to manually fix
+      // each one every time someone complains.
+      if (typeof doc.versions[v]._npmUser !== "object") continue
+
+
       assert(typeof doc.versions[v]._npmUser === "object",
              "_npmUser field must be object\n"+
              "(You probably need to upgrade your npm version)")
