@@ -392,6 +392,16 @@ app.showPackage = function () {
         '<div class="spacer"></div>'
       );
       
+      if (doc.time && doc.time[version]) {
+        $('div#version-info').append(
+          '<div class="version-info-cell">' +
+            '<div class="version-info-key">Published</div>' +
+            '<div class="version-info-value">' + prettyDate(doc.time[version]) + '</div>' +
+          '</div>' +
+          '<div class="spacer"></div>'
+        )
+      }
+
       if (v.tags) {
         var h = '[ ';
         v.tags.forEach(function (tag) {
