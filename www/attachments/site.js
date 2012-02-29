@@ -13,6 +13,14 @@ if (!Array.prototype.forEach) {
   }
 }
 
+
+// escape functionality taken from https://github.com/natevw/flatstache.js/
+var _re1 = /[&\"'<>\\]/g;
+var escape_map = {"&": "&amp;", "\\": "&#92;", "\"": "&quot;", "'": "&#39;", "<": "&lt;", ">": "&gt;"};
+var escapeHTML = function(s) {
+    return s.toString().replace(_re1, function(c) { return escape_map[c]; });
+}
+
 var request = function (options, callback) {
   options.success = function (obj) {
     callback(null, obj);
@@ -141,8 +149,8 @@ app.index = function () {
     var results = {};
     resp.rows.forEach(function (row) {
         $('<div class="top-package"></div>')
-        .append('<div class="top-package-title"><a href="#/'+row.key+'">'+row.key+'</a></div>')
-        .append('<div class="top-package-dep">'+row.value+'</div>')
+        .append('<div class="top-package-title"><a href="#/'+escapeHTML(row.key)+'">'+escapeHTML(row.key)+'</a></div>')
+        .append('<div class="top-package-dep">'+escapeHTML(row.value)+'</div>')
         .append('<div class="spacer"></div>')
         .appendTo('div#top-dep-packages')
     })
@@ -317,7 +325,7 @@ app.showPackage = function () {
     
     if (doc['dist-tags'] && doc['dist-tags'].latest) {
       if (doc.versions[doc['dist-tags'].latest].homepage) {
-        package.append('<div class="pkg-link"><a href="'+doc.versions[doc['dist-tags'].latest].homepage+'">'+doc.versions[doc['dist-tags'].latest].homepage+'</a>')
+        package.append('<div class="pkg-link"><a href="'+escapeHTML(doc.versions[doc['dist-tags'].latest].homepage)+'">'+escapeHTML(doc.versions[doc['dist-tags'].latest].homepage)+'</a>')
       }
     }
     
@@ -329,7 +337,7 @@ app.showPackage = function () {
       }
     }
     if (doc.repository && doc.repository.type === 'git' && isGithubUrl(doc.repository.url) ) {
-          package.append('<div class="pkg-link"><a class="github" href="' + doc.repository.url.replace('.git', '').replace('git://', 'https://') + '">github</a></div>')
+          package.append('<div class="pkg-link"><a class="github" href="' + escapeHTML(doc.repository.url.replace('.git', '').replace('git://', 'https://')) + '">github</a></div>')
     }
      
     
@@ -387,7 +395,7 @@ app.showPackage = function () {
         var h = '[ ';
         v.tags.forEach(function (tag) {
           if (tag !== v.tags[0]) h += ', '
-          h += ('<a href="/#/_tags/'+tag+'">'+tag+'</a>')
+          h += ('<a href="/#/_tags/'+escapeHTML(tag)+'">'+escapeHTML(tag)+'</a>')
         })
         h += ' ]'
         $('div#version-info').append(
@@ -402,7 +410,7 @@ app.showPackage = function () {
       if (v.dependencies) {
         var h = ''
         for (i in v.dependencies) {
-          h += '<a class="dep-link" href="#/'+i+'">'+i+'</a> '
+          h += '<a class="dep-link" href="#/'+escapeHTML(i)+'">'+escapeHTML(i)+'</a> '
         }
         $('div#version-info').append('<div class="version-info-cell">' +
             '<div class="version-info-key">Dependencies</div>' +
@@ -416,7 +424,7 @@ app.showPackage = function () {
         $('div#version-info').append(
           '<div class="version-info-cell">' +
             '<div class="version-info-key">Homepage</div>' +
-            '<div class="version-info-value">' + v.homepage + '</div>' +
+            '<div class="version-info-value">' + escapeHTML(v.homepage) + '</div>' +
           '</div>' +
           '<div class="spacer"></div>'
         )
@@ -433,7 +441,7 @@ app.showPackage = function () {
           '<div class="version-info-cell">' +
             '<div class="version-info-key">Repository</div>' +
             '<div class="version-info-value">' + 
-              v.repository.type + ':    <a href="' + v.repository.url + '">'+ v.repository.url + '</a>' +
+              escapeHTML(v.repository.type) + ':    <a href="' + escapeHTML(v.repository.url) + '">'+ escapeHTML(v.repository.url) + '</a>' +
             '</div>' +
           '</div>' +
           '<div class="spacer"></div>'
@@ -459,7 +467,7 @@ app.showPackage = function () {
       }
       if (v.engines) {
       var eng = [];
-        for (i in v.engines) { eng.push( i + ' (' + v.engines[i] + ')' ); }
+        for (i in v.engines) { eng.push( escapeHTML(i) + ' (' + escapeHTML(v.engines[i]) + ')' ); }
         $(
           '<div class="version-info-cell">' +
             '<div class="version-info-key">Engines</div>' +
@@ -471,7 +479,7 @@ app.showPackage = function () {
       if (v.licenses) {
       h = '';
         for (i in v.licenses) {
-          h += '<a href="'+v.licenses[i].url+'">'+v.licenses[i].type+'</a>';
+          h += '<a href="'+escapeHTML(v.licenses[i].url)+'">'+escapeHTML(v.licenses[i].type)+'</a>';
         }
         $(
           '<div class="version-info-cell">' +
@@ -688,8 +696,8 @@ app.browse = function () {
         deps[k].forEach(function (row) {
           c.append(
             '<div class="all-package">' + 
-              '<div class="all-package-deps"><a href="/#/'+encodeURIComponent(row.key)+'">' + row.key + '</a></div>' +
-              '<div class="all-package-deps-value">'+row.value+'</div>' +
+              '<div class="all-package-deps"><a href="/#/'+encodeURIComponent(row.key)+'">' + escapeHTML(row.key) + '</a></div>' +
+              '<div class="all-package-deps-value">'+escapeHTML(row.value)+'</div>' +
             '</div>' +
             '<div class="spacer"></div>'
           )
@@ -734,7 +742,7 @@ app.author = function () {
   var author = this.params.author;
   clearContent();
   $('div#content')
-  .append('<h2 style="text-align:center">author: '+author+'</h2>')
+  .append('<h2 style="text-align:center">author: '+escapeHTML(author)+'</h2>')
   .append('<div id="main-container"></div>');
   request({url:'/_view/author?reduce=false&include_docs=true&key="'+author+'"'}, function (e, resp) {
     resp.rows.forEach(function (row) {
