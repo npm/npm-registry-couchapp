@@ -27,10 +27,14 @@ case $c in
     ;;
   *);;
 esac
-c=${c/PASSWORD/$PASSWORD}
 
-couchapp push registry/app.js $c && \
-couchapp push www/app.js $c && \
+# echo "couch=$c"
+
+c=${c/PASSWORD/$PASSWORD}
+which couchapp
+couchapp push registry/shadow.js "$c" && \
+couchapp push registry/app.js "$c" && \
+couchapp push www/app.js "$c" && \
 exit 0 || \
 ( ret=$?
   echo "Failed with code $ret"
