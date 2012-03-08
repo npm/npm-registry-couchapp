@@ -218,6 +218,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
   for (var i = 0, l = versions.length; i < l; i ++) {
     var v = versions[i]
+    if (!v) continue
     assert(doc.time[v], "must have time entry for "+v)
 
     if (!deepEquals(doc.versions[v], oldVersions[v], [["directories"], ["deprecated"]]) &&
