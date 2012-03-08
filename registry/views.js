@@ -50,7 +50,7 @@ views.byField = {
 
 views.nonlocal = {
   map : function (doc) {
-    if (doc.url) emit(doc._id, doc.name)
+    if (doc.url) emit(doc._id, doc.url)
   }
 }
 
