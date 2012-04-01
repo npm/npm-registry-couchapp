@@ -95,7 +95,7 @@ exports.valid =
   , 'exports.package = validPackage'
   , function validName (name) {
      if (!name) return false
-     var n = name.replace(/^\s|\s$/, "")
+     var n = name.trim()
      if (!n || n.charAt(0) === "."
          || n.match(/[\/\(\)&\?#\|<>@:%\s\\]/)
          || n.toLowerCase() === "node_modules"
