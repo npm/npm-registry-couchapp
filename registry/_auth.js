@@ -80,6 +80,7 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx) {
     throw({forbidden : 'Username may not start with underscore.'});
   }
 }
+
 ddoc.lists = {
   index: function (head,req) {
     var row
@@ -116,7 +117,39 @@ ddoc.lists = {
   }
 
 }
+
 ddoc.views = {
   listAll : { map : function (doc) { return emit(doc._id, doc) } }
+}
+
+ddoc.updates = ddoc.updates || {}
+ddoc.updates.norev = function (doc, req) {
+  var rev, id
+
+  if (doc) {
+    id = doc._id
+    if (doc._revisions) {
+      rev = doc._revisions.start + "-" + doc._revisions.ids[0]
+    }
+  }
+  doc = JSON.parse(req.body)
+
+  delete doc._revisions
+  if (id) doc._id = id
+  if (rev) doc._rev = rev
+  else delete doc._rev
+
+  var resp = {
+    code: 201,
+    headers: {
+      "content-type": "application/json"
+    },
+    body: toJSON({
+      ok: true,
+      id: id
+    })
+  }
+
+  return [doc, resp]
 }
 
