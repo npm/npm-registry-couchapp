@@ -18,6 +18,7 @@ if (!Array.prototype.forEach) {
 var _re1 = /[&\"'<>\\]/g;
 var escape_map = {"&": "&amp;", "\\": "&#92;", "\"": "&quot;", "'": "&#39;", "<": "&lt;", ">": "&gt;"};
 var escapeHTML = function(s) {
+    if (!s) return s;
     return s.toString().replace(_re1, function(c) { return escape_map[c]; });
 }
 
