@@ -36,8 +36,8 @@ You may need to put a username and password in the URL:
 
 To synchronize from the public npm registry to your private registry,
 create a replication task from http://isaacs.ic.ht/registry --> local
-database registry. This can be done through the CouchBase administrative
-UI or via an HTTP call to '/_replicate like so:
+database registry. This can be done through Futon (the CouchDB administrative
+UI) or via an HTTP call to '/_replicate like so:
 
     curl -X POST -H "Content-Type:application/json" \
         http://localhost:5984/_replicate -d \
