@@ -31,6 +31,7 @@ esac
 # echo "couch=$c"
 
 c=${c/PASSWORD/$PASSWORD}
+c=${c// /%20}
 which couchapp
 couchapp push registry/shadow.js "$c" && \
 couchapp push registry/app.js "$c" && \
