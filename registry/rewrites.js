@@ -35,6 +35,7 @@ module.exports =
     , method: "GET" }
 
   , { from: "/-/by-user/:user", to: "_list/byUser/byUser", method: "GET" }
+  , { from: "/-/starred-by-user/:user", to: "_list/byUser/starredByUser", method: "GET" }
 
   , { from: "/:pkg", to: "/_show/package/:pkg", method: "GET" }
   , { from: "/:pkg/-/jsonp/:jsonp", to: "/_show/package/:pkg", method: "GET" }

@@ -136,6 +136,14 @@ views.orphanAttachments = {
   }
 }
 
+views.starredByUser = { map : function (doc) {
+  if (!doc || !doc.users) return
+  Object.keys(doc.users).forEach(function (m) {
+    if (!doc.users[m]) return
+    emit(m, doc._id)
+  })
+}}
+
 views.byUser = { map : function (doc) {
   if (!doc || !doc.maintainers) return
   doc.maintainers.forEach(function (m) {
