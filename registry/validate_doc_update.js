@@ -233,8 +233,10 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
              "new=" + JSON.stringify(doc.versions[v]) + "\n" +
              "old=" + JSON.stringify(oldVersions[v]))
 
-      assert(doc.time[v] === doc.time.modified,
-             v + " is modified, should match modified time")
+      // var mt = Date.parse(doc.time.modified).getTime()
+      //   , vt = t.getTime()
+      // assert(Math.abs(mt - vt) < 1000 * 60 * 60,
+      //        v + " is modified, should match modified time")
 
       // XXX Remove the guard these once old docs have been found and
       // fixed.  It's too big of a pain to have to manually fix
