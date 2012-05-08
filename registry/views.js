@@ -25,6 +25,18 @@ views.byEngine = {
 }
 
 
+views.byKeyword = {
+  map: function (doc) {
+    if (!doc || !doc.versions || !doc['dist-tags']) return
+    var v = doc.versions[doc['dist-tags'].latest]
+    if (!v || !v.keywords || !Array.isArray(v.keywords)) return
+    v.keywords.forEach(function (kw) {
+      emit([kw.toLowerCase(), doc.name], 1)
+    })
+  }, reduce: "_sum"
+}
+
+
 views.byField = {
   map: function (doc) {
     require("monkeypatch").patch(Object, Date, Array, String)
