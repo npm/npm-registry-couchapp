@@ -255,8 +255,8 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
       // make sure that the _npmUser is one of the maintainers
       var found = false
-      for (var i = 0, l = doc.maintainers.length; i < l; i ++) {
-        var m = doc.maintainers[i]
+      for (var j = 0, lm = doc.maintainers.length; j < lm; j ++) {
+        var m = doc.maintainers[j]
         if (m.name === doc.versions[v]._npmUser.name) {
           found = true
           break
