@@ -265,7 +265,12 @@ app.index = function () {
     lastSearchForPage = currentSearch;
   }  
   
+  var hcTimer = null;
   var handleChange = function () {
+    if (hcTimer) clearTimeout(hcTimer);
+    hcTimer = setTimeout(handleChange_, 100);
+  }
+  function handleChange_ () {
     currentSearch = $('input#search-input').val().toLowerCase();
     currentTerms = $.trim(currentSearch).split(' ')
     if (currentSearch === '') {
