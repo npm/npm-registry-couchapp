@@ -74,6 +74,8 @@ updates.package = function (doc, req) {
   var body = JSON.parse(req.body)
   var deep = require("deep")
   var deepEquals = deep.deepEquals
+  var now = (new Date()).toISOString()
+
 
   // Sure would be nice if there was an easy way to toggle this in
   // couchdb somehow.
@@ -232,13 +234,13 @@ updates.package = function (doc, req) {
     delete doc.mtime
     delete doc.ctime
     var time = doc.time = doc.time || {}
-    time.modified = (new Date()).toISOString()
+    time.modified = now
     time.created = time.created || time.modified
     for (var v in doc.versions) {
       var ver = doc.versions[v]
       delete ver.ctime
       delete ver.mtime
-      time[v] = time[v] || (new Date()).toISOString()
+      time[v] = time[v] || now
     }
     delete doc.time.unpublished
 
@@ -374,7 +376,7 @@ updates.package = function (doc, req) {
 
     doc.versions[ver] = body
     doc.time = doc.time || {}
-    doc.time[ver] = (new Date()).toISOString()
+    doc.time[ver] = now
 
     return ok(doc, "added version")
   }
