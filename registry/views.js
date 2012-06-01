@@ -1,6 +1,12 @@
 
 var views = module.exports = exports = {}
 
+views.updated = {map: function (doc) {
+  var l = doc["dist-tags"].latest
+    , t = doc.time && doc.time[l]
+  if (t) emit(t, 1)
+}}
+
 views.listAll = {
   map : function (doc) { return emit(doc._id, doc) }
 }
