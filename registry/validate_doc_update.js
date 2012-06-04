@@ -227,11 +227,11 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
       // if it's more than a few minutes off, then something is wrong.
       var t = Date.parse(doc.time[v])
         , n = Date.now()
-      assert(doc.time[v] !== oldTime[v] &&
-             Math.abs(n - t) < 1000 * 60 * 60,
-             v + " time needs to be updated\n" +
-             "new=" + JSON.stringify(doc.versions[v]) + "\n" +
-             "old=" + JSON.stringify(oldVersions[v]))
+      // assert(doc.time[v] !== oldTime[v] &&
+      //        Math.abs(n - t) < 1000 * 60 * 60,
+      //        v + " time needs to be updated\n" +
+      //        "new=" + JSON.stringify(doc.versions[v]) + "\n" +
+      //        "old=" + JSON.stringify(oldVersions[v]))
 
       // var mt = Date.parse(doc.time.modified).getTime()
       //   , vt = t.getTime()
