@@ -37,7 +37,7 @@ views.byKeyword = {
     var v = doc.versions[doc['dist-tags'].latest]
     if (!v || !v.keywords || !Array.isArray(v.keywords)) return
     v.keywords.forEach(function (kw) {
-      emit([kw.toLowerCase(), doc.name], 1)
+      emit([kw.toLowerCase(), doc.name, doc.description], 1)
     })
   }, reduce: "_sum"
 }
