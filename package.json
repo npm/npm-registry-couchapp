@@ -4,4 +4,5 @@
 , "scripts": { "start": "./push.sh" }
 , "dependencies":
   { "couchapp": "~0.8"
+  , "tap"   : "~0.2.5"
   , "semver": "1.0" } }
