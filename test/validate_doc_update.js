@@ -51,6 +51,14 @@ test('Normal package updates', function(t) {
   t.end()
 })
 
+test('Creating private packages is not allowed', function(t) {
+  var privDoc = mkpkg()
+
+  privDoc.private = true
+  not_valid(t, 'private packages', 'Cannot create a private package', privDoc, null, mkctx('jason'), {})
+  t.end()
+})
+
 test('Admins can do anything', function(t) {
   var anonymous = mkctx()
     , user = mkctx('some_user')
