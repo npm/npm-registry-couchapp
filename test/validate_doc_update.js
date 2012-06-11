@@ -51,6 +51,18 @@ test('Normal package updates', function(t) {
   t.end()
 })
 
+test('Admins can do anything', function(t) {
+  var anonymous = mkctx()
+    , user = mkctx('some_user')
+    , admin = mkctx('admin')
+    , newDoc = {'_id':'foo'}
+
+  not_valid(t, 'Please log in', 'Anonymous user cannot create empty doc', newDoc, null, anonymous)
+  not_valid(t, 'Normal user cannot create empty doc', newDoc, null, user)
+  valid(t, 'Admin user can create empty doc', newDoc, null, admin)
+  t.end()
+})
+
 //
 // Utilities
 //
