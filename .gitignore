@@ -1,2 +1,3 @@
 node_modules/tap
 node_modules/.bin/tap
+node_modules/*.mock
