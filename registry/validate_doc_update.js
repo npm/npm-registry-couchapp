@@ -116,6 +116,9 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   assert(!doc.ctime, "doc.ctime is deprecated")
   assert(typeof doc.time === "object", "time must be object")
 
+  if(!dbCtx.npm || !dbCtx.npm['publish-privates'])
+    assert(!doc.private, "private packages are not allowed")
+
   assert(typeof doc["dist-tags"] === "object", "dist-tags must be object")
 
   var versions = doc.versions
