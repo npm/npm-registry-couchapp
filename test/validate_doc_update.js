@@ -53,9 +53,11 @@ test('Normal package updates', function(t) {
 
 test('Creating private packages is not allowed', function(t) {
   var privDoc = mkpkg()
+    , secObj = {'npm':{'publish-privates':true}}
 
   privDoc.private = true
   not_valid(t, 'private packages', 'Cannot create a private package', privDoc, null, mkctx('jason'), {})
+  valid(t, 'Support publishing private packages if configured so', privDoc, null, mkctx('jason'), secObj)
   t.end()
 })
 
