@@ -111,6 +111,14 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
   // sanity checks.
   assert(valid.name(doc.name), "name invalid: "+doc.name)
+
+  // New documents may only be created with all lowercase names.
+  // At some point, existing docs will be migrated to lowercase names
+  // as well.
+  if (!oldDoc && doc.name !== doc.name.toLowerCase()) {
+    assert(false, "New packages must have all-lowercase names")
+  }
+
   assert(doc.name === doc._id, "name must match _id")
   assert(!doc.mtime, "doc.mtime is deprecated")
   assert(!doc.ctime, "doc.ctime is deprecated")
