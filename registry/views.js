@@ -177,6 +177,13 @@ views.byUser = { map : function (doc) {
   })
 }}
 
+views.npmTop = { map: function (doc) {
+  if (!doc || !doc.maintainers) return
+  doc.maintainers.forEach(function (m) {
+    emit([m.name, doc._id], 1)
+  })
+}, reduce: "_sum" }
+
 views.fieldsInUse =
 { map : function (doc) {
     if (!doc.versions || !doc["dist-tags"] || !doc["dist-tags"].latest) return

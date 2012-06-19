@@ -34,6 +34,11 @@ module.exports =
     , to:"../../../_users/_design/_auth/_list/email/listAll"
     , method: "GET" }
 
+  , { from: "/-/top"
+    , to:"_view/npmTop"
+    , query: { group_level: 1 }
+    , method: "GET" }
+
   , { from: "/-/by-user/:user", to: "_list/byUser/byUser", method: "GET" }
   , { from: "/-/starred-by-user/:user", to: "_list/byUser/starredByUser", method: "GET" }
   , { from: "/-/starred-by-package/:user", to: "_list/byUser/starredByPackage", method: "GET" }
