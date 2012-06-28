@@ -101,7 +101,7 @@ lists.index = function (head, req) {
   }
 
   var row
-    , out = {}
+    , out = { _updated: Date.now() }
     , semver = require("semver")
 
   while (row = getRow()) {
