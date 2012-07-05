@@ -73,7 +73,7 @@ shows.package = function (doc, req) {
             }
           }
         }
-        doc.versions[v].dist._requested_path = requestedPath.join('/')
+        // doc.versions[v].dist._requested_path = requestedPath.join('/')
 
         // pop off the package name
         requestedPath.pop()
@@ -82,7 +82,7 @@ shows.package = function (doc, req) {
         if (requestedPath.length) requestedPath.unshift('')
 
         var basePath = requestedPath.join('/')
-        doc.versions[v].dist._basePath = basePath
+        // doc.versions[v].dist._basePath = basePath
 
         var h = "http://" + req.headers.Host
 
