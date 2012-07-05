@@ -45,21 +45,42 @@ shows.package = function (doc, req) {
       doc.versions[clean] = p
     }
     if (doc.versions[v].dist.tarball) {
+
+      // make it point at THIS registry that is being requested,
+      // with the full /db/_design/app/_rewrite if that is being used,
+      // or just the /name if not.
+
       var t = doc.versions[v].dist.tarball
       t = t.replace(/^https?:\/\/[^\/:]+(:[0-9]+)?/, '')
       if (!t.match(/^\/[^\/]+\/_design\/app\/_rewrite/)) {
         doc.versions[v].dist.tarball = t
+
         // doc.versions[v].dist._headers = req.headers
         // doc.versions[v].dist._query = req.query
+        // doc.versions[v].dist._reqPath = req.requested_path
         // doc.versions[v].dist._path = req.path
-        // doc.versions[v].dist._req = req
 
-        var basePath = req.requested_path || ""
-        if (basePath.indexOf("_show") === -1) basePath = ""
-        else {
-          basePath = "/" + basePath.slice(0, basePath.indexOf("_show"))
-                             .concat(["_rewrite"]).join("/")
+        var requestedPath = req.requested_path.slice(0)
+        if (!requestedPath) {
+          var path = req.path
+          if (path) {
+            var i = path.indexOf('_show')
+            if (i !== -1) {
+              requestedPath = path.slice(0)
+              requestedPath.splice(i, i + 2, '_rewrite')
+            }
+          }
         }
+        doc.versions[v].dist._requested_path = requestedPath.join('/')
+
+        // pop off the package name
+        requestedPath.pop()
+
+        // make sure it starts with /
+        if (requestedPath.length) requestedPath.unshift('')
+
+        var basePath = requestedPath.join('/')
+        doc.versions[v].dist._basePath = basePath
 
         var h = "http://" + req.headers.Host
 
