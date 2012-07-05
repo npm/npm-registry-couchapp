@@ -60,8 +60,10 @@ shows.package = function (doc, req) {
         // doc.versions[v].dist._reqPath = req.requested_path
         // doc.versions[v].dist._path = req.path
 
-        var requestedPath = req.requested_path.slice(0)
-        if (!requestedPath) {
+        var requestedPath = req.requested_path
+        if (requestedPath)
+          requestedPath = requestedPath.slice(0)
+        else {
           var path = req.path
           if (path) {
             var i = path.indexOf('_show')
