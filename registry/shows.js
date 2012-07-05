@@ -76,7 +76,10 @@ shows.package = function (doc, req) {
         // doc.versions[v].dist._requested_path = requestedPath.join('/')
 
         // pop off the package name
-        requestedPath.pop()
+        var i = requestedPath.indexOf(doc._id)
+        if (i !== -1) {
+          requestedPath = requestedPath.slice(0, i)
+        }
 
         // make sure it starts with /
         if (requestedPath.length) requestedPath.unshift('')
