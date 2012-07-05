@@ -75,10 +75,11 @@ shows.package = function (doc, req) {
         }
         // doc.versions[v].dist._requested_path = requestedPath.join('/')
 
-        // pop off the package name
-        var i = requestedPath.indexOf(doc._id)
-        if (i !== -1) {
-          requestedPath = requestedPath.slice(0, i)
+        // pop off the package name and version
+        var p = requestedPath.pop()
+        if (req.query.version && p === req.query.version) {
+          var n = requestedPath[requestedPath.length-1]
+          if (n === doc._id) requestedPath.pop()
         }
 
         // make sure it starts with /
