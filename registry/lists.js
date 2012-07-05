@@ -234,6 +234,10 @@ lists.scripts = function (head, req) {
   var row
     , out = {}
     , scripts = req.query.scripts && req.query.scripts.split(",")
+    , match = req.query.match
+
+  if (match) match = new RegExp(match)
+
   while (row = getRow()) {
     inc = true
     if (!row.id) continue
@@ -242,6 +246,7 @@ lists.scripts = function (head, req) {
       var inc = false
       for (var s = 0, l = scripts.length; s < l && !inc; s ++) {
         inc = row.value[scripts[s]]
+        if (match) inc = inc && row.value[scripts[s]].match(match)
       }
       if (!inc) continue
     }
