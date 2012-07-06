@@ -101,16 +101,19 @@ lists.index = function (head, req) {
   }
 
   var row
-    , out = { _updated: Date.now() }
     , semver = require("semver")
+    , res = []
 
+  if (req.query.jsonp) send(req.query.jsonp + "(")
+  send('{"_updated":' + Date.now())
   while (row = getRow()) {
     if (!row.id) continue
 
     var doc = row.value
-    if (!doc.name || !doc._id) continue
+    if (!doc.name || !doc._id ||
+        encodeURIComponent(doc._id) !== doc._id) continue
 
-    var p = out[doc._id] = {}
+    var p = {}
 
     // legacy kludge
     delete doc.mtime
@@ -134,11 +137,16 @@ lists.index = function (head, req) {
     // end kludge
 
     for (var i in doc) {
-      if (i === "versions" || i.charAt(0) === "_") continue
+      if (i === "versions" || i.charAt(0) === "_" || i === 'readme' ||
+          i === 'time') continue
       p[i] = doc[i]
     }
-    p.versions = {}
-    p.dist = {}
+    if (p['dist-tags'] && typeof p['dist-tags'] === 'object') {
+      p.versions = Object.keys(p['dist-tags']).reduce(function (ac, v) {
+        ac[ p['dist-tags'][v] ] = v
+        return ac
+      }, {})
+    }
     if (doc.repositories && Array.isArray(doc.repositories)) {
       doc.repository = doc.repositories[0]
       delete doc.repositories
@@ -152,22 +160,13 @@ lists.index = function (head, req) {
           p.repository = doc.versions[i].repository
         }
         if (doc.versions[i].keywords) p.keywords = doc.versions[i].keywords
-
-        p.versions[i] = "http://"+req.headers.Host+"/"+
-                        basePath +
-                        encodeURIComponent(doc.name)+"/"+i
-        p.dist[i] = doc.versions[i].dist
       }
-      p.url = "http://"+req.headers.Host+"/"+
-              basePath +
-              encodeURIComponent(doc.name)+"/"
     }
+    send(',' + JSON.stringify(doc._id) + ':' + JSON.stringify(p))
   }
-  out = req.query.jsonp
-      ? req.query.jsonp + "(" + JSON.stringify(out) + ")"
-      : toJSON(out)
+  send('}')
+  if (req.query.jsonp) send(')')
 
-  send(out)
 }
 
 
