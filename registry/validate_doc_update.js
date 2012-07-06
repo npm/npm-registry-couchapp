@@ -184,12 +184,9 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
            "you may only alter your own 'star' setting")
   }
 
-  // This needs to stop.
-  if (doc.url &&
-      (!oldDoc || !oldDoc.url || doc.url !== oldDoc.url)) {
+  if (doc.url) {
     assert(false,
-           "Package redirection is deprecated, "+
-           "and will be removed at some point.  "+
+           "Package redirection has been removed. "+
            "Please update your publish scripts.")
   }
 

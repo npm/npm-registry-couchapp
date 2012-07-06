@@ -66,12 +66,6 @@ views.byField = {
   }
 }
 
-views.nonlocal = {
-  map : function (doc) {
-    if (doc.url) emit(doc._id, doc.url)
-  }
-}
-
 views.needBuild = {
   map : function (doc) {
     // require("monkeypatch").patch(Object, Date, Array, String)

@@ -153,14 +153,11 @@ lists.index = function (head, req) {
     }
     if (doc.repository) p.repository = doc.repository
     if (doc.description) p.description = doc.description
-    if (doc.url) p.url = doc.url
-    else {
-      for (var i in doc.versions) {
-        if (doc.versions[i].repository && !doc.repository) {
-          p.repository = doc.versions[i].repository
-        }
-        if (doc.versions[i].keywords) p.keywords = doc.versions[i].keywords
+    for (var i in doc.versions) {
+      if (doc.versions[i].repository && !doc.repository) {
+        p.repository = doc.versions[i].repository
       }
+      if (doc.versions[i].keywords) p.keywords = doc.versions[i].keywords
     }
     send(',' + JSON.stringify(doc._id) + ':' + JSON.stringify(p))
   }

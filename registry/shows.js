@@ -16,24 +16,6 @@ shows.package = function (doc, req) {
     delete doc.versions[v].mtime
   })
 
-  if (doc.url) {
-    // the package specifies a URL, redirect to it
-    var url = doc.url
-    if (req.query.version) {
-      url += '/' + req.query.version // add the version to the URL if necessary
-    }
-    headers.Location = url
-    body = { location: url, _rev: doc._rev }
-    body = req.query.jsonp
-         ? req.query.jsonp + "(" + JSON.stringify(body) + ")"
-         : JSON.stringify(body)
-    return {
-      code : 301,
-      body : body,
-      headers : headers
-    }
-  }
-
   // legacy kludge
   if (doc.versions) for (var v in doc.versions) {
     var clean = semver.clean(v)

@@ -26,9 +26,6 @@ updates.package = function (doc, req) {
 
   if (doc) {
     if (req.query.version) {
-      if (doc.url) {
-        return error(doc.name+" is hosted elsewhere: "+doc.url)
-      }
       var parsed = semver.valid(req.query.version)
       if (!parsed) {
         // it's a tag.
@@ -89,10 +86,6 @@ updates.package = function (doc, req) {
     if (doc._rev && doc._rev !== newdoc._rev) {
       return error( "must supply latest _rev to update existing package" )
     }
-    if (newdoc.url && (newdoc.versions || newdoc["dist-tags"])) {
-      return error("Do not supply versions or dist-tags for packages "+
-                   "hosted elsewhere. Just a URL is sufficient.")
-    }
     for (var i in newdoc) if (typeof newdoc[i] === "string" || i === "maintainers") {
       doc[i] = newdoc[i]
     }
@@ -111,13 +104,6 @@ updates.package = function (doc, req) {
     // Create new package doc
     doc = JSON.parse(req.body)
     if (!doc._id) doc._id = doc.name
-    if (doc.url) {
-      if (doc.versions || doc["dist-tags"]) {
-        return error("Do not supply versions or dist-tags for packages "+
-                     "hosted elsewhere. Just a URL is sufficient.")
-      }
-      return ok(doc, "created new entry")
-    }
     if (!doc.versions) doc.versions = {}
     var latest
     for (var v in doc.versions) {
