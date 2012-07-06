@@ -1,5 +1,5 @@
 var ddoc = module.exports =
-  { _id:'_design/app'
+  { _id:'_design/scratch'
   , shows: require("./shows.js")
   , updates: require("./updates.js")
   , rewrites: require("./rewrites.js")

@@ -30,12 +30,31 @@ esac
 
 # echo "couch=$c"
 
+scratch_message () {
+  cat <<-EOF
+
+Pushed to scratch ddoc. To make it real, use a COPY request.
+Something like this:
+
+curl -u "\$username:\$password" \\
+  \$couch/registry/_design/scratch \\
+  -X COPY \\
+  -H destination:'_design/app?rev=\$rev'
+
+But, before you do that, make sure to fetch the views and give
+them time to load, so that real users don't feel the pain of
+view generation latency.
+
+EOF
+}
+
 c=${c/PASSWORD/$PASSWORD}
 c=${c// /%20}
 which couchapp
 couchapp push registry/shadow.js "$c" && \
 couchapp push registry/app.js "$c" && \
 couchapp push www/app.js "$c" && \
+scratch_message && \
 exit 0 || \
 ( ret=$?
   echo "Failed with code $ret"
