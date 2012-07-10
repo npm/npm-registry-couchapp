@@ -141,6 +141,9 @@ lists.index = function (head, req) {
           i === 'time') continue
       p[i] = doc[i]
     }
+    if (doc.time) {
+      p.time = { modified: doc.time.modified }
+    }
     if (p['dist-tags'] && typeof p['dist-tags'] === 'object') {
       p.versions = Object.keys(p['dist-tags']).reduce(function (ac, v) {
         ac[ p['dist-tags'][v] ] = v
