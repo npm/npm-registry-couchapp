@@ -159,13 +159,21 @@ exports.Object =
 
 exports.Array =
   [ "exports.isArray = isArray"
-  , "exports.forEach = forEach"
+  , "exports.forEach = forEach",
+  , "exports.reduce = reduce",
   , function forEach (fn) {
       for (var i = 0, l = this.length; i < l; i ++) {
         if (this.hasOwnProperty(i)) {
           fn(this[i], i, this)
         }
       }
+    }
+  , function reduce (callback, initialValue) {
+      var previousValue = initialValue || this[0];
+      for (var i = initialValue ? 0 : 1; i < this.length; i++) {
+        previousValue = callback(previousValue, this[i], i, this);
+      }
+      return previousValue;
     }
   , function isArray (a) {
       return a instanceof Array
@@ -198,6 +206,9 @@ exports.monkeypatch =
 
       Array.prototype.forEach = Array.prototype.forEach
         || require("Array").forEach
+
+      Array.prototype.reduce = Array.prototype.reduce
+        || require("Array").reduce
 
       Array.isArray = Array.isArray
         || require("Array").isArray
