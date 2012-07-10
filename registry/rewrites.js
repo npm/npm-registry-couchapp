@@ -1,5 +1,5 @@
 module.exports =
-  [ { from: "/", to:"_list/short/listAll", method: "GET" }
+  [ { from: "/", to:"../../../registry", method: "GET" }
   , { from: "/-/jsonp/:jsonp", to:"_list/short/listAll", method: "GET" }
 
   , { from: "/-/all/since", to:"_list/index/modified", method: "GET" }
