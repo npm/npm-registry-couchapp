@@ -2,6 +2,12 @@ module.exports =
   [ { from: "/", to:"../../../registry", method: "GET" }
   , { from: "/-/jsonp/:jsonp", to:"_list/short/listAll", method: "GET" }
 
+  , { from: "/_session", to: "../../../_session", method: "GET" }
+  , { from: "/_session", to: "../../../_session", method: "PUT" }
+  , { from: "/_session", to: "../../../_session", method: "POST" }
+  , { from: "/_session", to: "../../../_session", method: "DELETE" }
+  , { from: "/_session", to: "../../../_session", method: "HEAD" }
+
   , { from: "/-/all/since", to:"_list/index/modified", method: "GET" }
 
   , { from: "/-/rss", to: "_list/rss/modified"
@@ -25,10 +31,18 @@ module.exports =
   , { from: "/-/users", to:"../../../_users/_design/_auth/_list/index/listAll"
     , method: "GET" }
   , { from: "/-/user/:user", to:"../../../_users/:user", method: "PUT" }
+
   , { from: "/-/user/:user/-rev/:rev", to:"../../../_users/:user"
     , method: "PUT" }
 
   , { from: "/-/user/:user", to:"../../../_users/:user", method: "GET" }
+
+  // Just have it work like a regular old couchdb thing
+  // this means that the couch-login module can be used to create accounts.
+  , { from: "/_users/:user", to:"../../../_users/:user", method: "PUT" }
+  , { from: "/_users/:user", to:"../../../_users/:user", method: "GET" }
+  , { from: "/public_users/:user", to:"../../../public_users/:user", method: "PUT" }
+  , { from: "/public_users/:user", to:"../../../public_users/:user", method: "GET" }
 
   , { from: "/-/user-by-email/:email"
     , to:"../../../_users/_design/_auth/_list/email/listAll"

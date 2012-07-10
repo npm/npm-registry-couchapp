@@ -8,7 +8,9 @@ function ghostRewrites () {
   return require("./rewrites.js").map(function (rule) {
 
     var to = rule.to
-    if (rule.to.match(/\/_users(?:\/|$)/)) {
+    // Note: requests to /_users/blah are still passed through directly.
+    if (rule.to.match(/\/_users(?:\/|$)/) &&
+        !rule.from.match(/^\/?_users/)) {
       if (rule.method === "GET") {
         to = to.replace(/\/_users(\/|$)/, "/public_users$1")
       } else if (rule.method === "PUT") {
