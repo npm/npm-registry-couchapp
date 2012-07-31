@@ -244,6 +244,36 @@ views.dependedUpon = { map: function (doc) {
   }
 }, reduce: '_sum' }
 
+views.browseStarUser = { map: function (doc) {
+  if (!doc) return
+  var l = doc['dist-tags'] && doc['dist-tags'].latest
+  if (!l) return
+  l = doc.versions && doc.versions[l]
+  if (!l) return
+  var desc = doc.description || l.description || ''
+  var readme = doc.readme || l.readme || ''
+  var d = doc.users
+  if (!d) return
+  for (var user in d) {
+    emit([user, doc._id, desc, readme], 1)
+  }
+}, reduce: '_sum' }
+
+views.browseStarPackage = { map: function (doc) {
+  if (!doc) return
+  var l = doc['dist-tags'] && doc['dist-tags'].latest
+  if (!l) return
+  l = doc.versions && doc.versions[l]
+  if (!l) return
+  var desc = doc.description || l.description || ''
+  var readme = doc.readme || l.readme || ''
+  var d = doc.users
+  if (!d) return
+  for (var user in d) {
+    emit([doc._id, desc, user, readme], 1)
+  }
+}, reduce: '_sum' }
+
 
 views.fieldsInUse = { map : function (doc) {
   if (!doc.versions || !doc["dist-tags"] || !doc["dist-tags"].latest) {
