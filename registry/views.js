@@ -195,9 +195,7 @@ views.browseUpdated = { map: function (doc) {
   if (!v) return
   var d = new Date(t)
   if (!d.getTime()) return
-  emit([ d.getUTCFullYear(),
-         d.getUTCMonth() + 1,
-         d.getUTCDate(),
+  emit([ d.toISOString(),
          doc._id,
          v.description,
          v.readme ], 1)
