@@ -31,6 +31,6 @@ esac
 
 node -pe 'Object.keys(require("./registry/app.js").views).join("\n")' \
 | while read view; do
-  curl -kv "$c/registry/_design/scratch/$view" \
+  curl -kv "$c/_design/scratch/_view/$view" \
     >/dev/null
 done
