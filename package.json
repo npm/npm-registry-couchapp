@@ -1,7 +1,17 @@
-{ "name": "npmjs.org"
-, "version": "1.0.0"
-, "description": "The npmjs.org registry couchapp"
-, "scripts": { "start": "./push.sh" }
-, "dependencies":
-  { "couchapp": "~0.8"
-  , "semver": "1.0" } }
+{
+  "name": "npmjs.org",
+  "version": "1.0.0",
+  "description": "The npmjs.org registry couchapp",
+  "scripts": {
+    "start": "./push.sh",
+    "load": "./load-views.sh",
+    "copy": "./copy.sh"
+  },
+  "dependencies": {
+    "couchapp": "~0.8",
+    "semver": "1.0"
+  },
+  "devDependencies": {
+    "jsontool": "~4.0.0"
+  }
+}
