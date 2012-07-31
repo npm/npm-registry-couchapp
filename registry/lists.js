@@ -1,5 +1,10 @@
 var lists = module.exports = {}
 
+lists.first = function (head, req) {
+  var row = getRow()
+  send(toJSON([row, row.id, row.doc]))
+}
+
 lists.short = function (head, req) {
   require("monkeypatch").patch(Object, Date, Array, String)
 
