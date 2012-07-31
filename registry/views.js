@@ -175,8 +175,13 @@ views.byUser = { map : function (doc) {
 
 views.browseAuthors = views.npmTop = { map: function (doc) {
   if (!doc || !doc.maintainers) return
+  var l = doc['dist-tags'] && doc['dist-tags'].latest
+  l = l && doc.versions && doc.versions[l]
+  if (!l) return
+  var desc = doc.description || l.description || ''
+  var readme = doc.readme || l.readme || ''
   doc.maintainers.forEach(function (m) {
-    emit([m.name, doc._id], 1)
+    emit([m.name, doc._id, desc, readme], 1)
   })
 }, reduce: "_sum" }
 
@@ -186,12 +191,16 @@ views.browseUpdated = { map: function (doc) {
   if (!l) return
   var t = doc.time && doc.time[l]
   if (!t) return
+  var v = doc.versions[l]
+  if (!v) return
   var d = new Date(t)
   if (!d.getTime()) return
   emit([ d.getUTCFullYear(),
          d.getUTCMonth() + 1,
          d.getUTCDate(),
-         doc._id ], 1)
+         doc._id,
+         v.description,
+         v.readme ], 1)
 }, reduce: "_sum" }
 
 views.browseAll = { map: function (doc) {
@@ -228,10 +237,12 @@ views.dependedUpon = { map: function (doc) {
   if (!l) return
   l = doc.versions && doc.versions[l]
   if (!l) return
+  var desc = doc.description || l.description || ''
+  var readme = doc.readme || l.readme || ''
   var d = l.dependencies
   if (!d) return
   for (var dep in d) {
-    emit([dep, doc._id], 1)
+    emit([dep, doc._id, desc, readme], 1)
   }
 }, reduce: '_sum' }
 
