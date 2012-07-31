@@ -118,38 +118,192 @@ ddoc.lists = {
 
 }
 
-ddoc.views = {
-  listAll : { map : function (doc) { return emit(doc._id, doc) } }
-}
 
-ddoc.updates = ddoc.updates || {}
-ddoc.updates.norev = function (doc, req) {
-  var rev, id
-
-  if (doc) {
-    id = doc._id
-    if (doc._revisions) {
-      rev = doc._revisions.start + "-" + doc._revisions.ids[0]
+ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx, secObj) {
+  if (newDoc._deleted === true) {
+    // allow deletes by admins and matching users
+    // without checking the other fields
+    if ((userCtx.roles.indexOf('_admin') !== -1) ||
+        (userCtx.name == oldDoc.name)) {
+      return;
+    } else {
+      throw({forbidden: 'Only admins may delete other user docs.'});
     }
   }
-  doc = JSON.parse(req.body)
 
-  delete doc._revisions
-  if (id) doc._id = id
-  if (rev) doc._rev = rev
-  else delete doc._rev
+  if ((oldDoc && oldDoc.type !== 'user') || newDoc.type !== 'user') {
+    throw({forbidden : 'doc.type must be user'});
+  } // we only allow user docs for now
 
-  var resp = {
-    code: 201,
-    headers: {
-      "content-type": "application/json"
-    },
-    body: toJSON({
-      ok: true,
-      id: id
+  if (!newDoc.name) {
+    throw({forbidden: 'doc.name is required'});
+  }
+
+  if (newDoc.roles && !isArray(newDoc.roles)) {
+    throw({forbidden: 'doc.roles must be an array'});
+  }
+
+  if (newDoc._id !== ('org.couchdb.user:' + newDoc.name)) {
+    throw({
+      forbidden: 'Doc ID must be of the form org.couchdb.user:name'
+    });
+  }
+
+  if (newDoc.name !== newDoc.name.toLowerCase()) {
+    throw({
+      forbidden: 'Name must be lower-case'
     })
   }
 
-  return [doc, resp]
+  if (newDoc.name !== encodeURIComponent(newDoc.name)) {
+    throw({
+      forbidden: 'Name cannot contain non-url-safe characters'
+    })
+  }
+
+  if (newDoc.name.charAt(0) === '.') {
+    throw({
+      forbidden: 'Name cannot start with .'
+    })
+  }
+
+  if (!(newDoc.email && newDoc.email.match(/^.+@.+\..+$/))) {
+    throw({forbidden: 'Email must be an email address'})
+  }
+
+  if (oldDoc) { // validate all updates
+    if (oldDoc.name !== newDoc.name) {
+      throw({forbidden: 'Usernames can not be changed.'});
+    }
+  }
+
+  if (newDoc.password_sha && !newDoc.salt) {
+    throw({
+      forbidden: 'Users with password_sha must have a salt.'
+    });
+  }
+
+  var is_server_or_database_admin = function(userCtx, secObj) {
+    // see if the user is a server admin
+    if(userCtx.roles.indexOf('_admin') !== -1) {
+      return true; // a server admin
+    }
+
+    // see if the user a database admin specified by name
+    if(secObj && secObj.admins && secObj.admins.names) {
+      if(secObj.admins.names.indexOf(userCtx.name) !== -1) {
+        return true; // database admin
+      }
+    }
+
+    // see if the user a database admin specified by role
+    if(secObj && secObj.admins && secObj.admins.roles) {
+      var db_roles = secObj.admins.roles;
+      for(var idx = 0; idx < userCtx.roles.length; idx++) {
+        var user_role = userCtx.roles[idx];
+        if(db_roles.indexOf(user_role) !== -1) {
+          return true; // role matches!
+        }
+      }
+    }
+
+    return false; // default to no admin
+  }
+
+  if (!is_server_or_database_admin(userCtx, secObj)) {
+    if (oldDoc) { // validate non-admin updates
+      if (userCtx.name !== newDoc.name) {
+        throw({
+          forbidden: 'You may only update your own user document.'
+        });
+      }
+      // validate role updates
+      var oldRoles = oldDoc.roles.sort();
+      var newRoles = newDoc.roles.sort();
+
+      if (oldRoles.length !== newRoles.length) {
+        throw({forbidden: 'Only _admin may edit roles'});
+      }
+
+      for (var i = 0; i < oldRoles.length; i++) {
+        if (oldRoles[i] !== newRoles[i]) {
+          throw({forbidden: 'Only _admin may edit roles'});
+        }
+      }
+    } else if (newDoc.roles.length > 0) {
+      throw({forbidden: 'Only _admin may set roles'});
+    }
+  }
+
+  // no system roles in users db
+  for (var i = 0; i < newDoc.roles.length; i++) {
+    if (newDoc.roles[i][0] === '_') {
+      throw({
+        forbidden: 'No system roles (starting with underscore) in users db.'
+      });
+    }
+  }
+
+  // no system names as names
+  if (newDoc.name[0] === '_') {
+    throw({forbidden: 'Username may not start with underscore.'});
+  }
+
+  var badUserNameChars = [':'];
+
+  for (var i = 0; i < badUserNameChars.length; i++) {
+    if (newDoc.name.indexOf(badUserNameChars[i]) >= 0) {
+      throw({forbidden: 'Character `' + badUserNameChars[i] +
+          '` is not allowed in usernames.'});
+    }
+  }
 }
 
+ddoc.views = {
+  listAll: { map : function (doc) { return emit(doc._id, doc) } },
+  invalid: { map: function (doc) {
+    if (doc.type !== 'user') {
+      return emit(['doc.type must be user', doc.email, doc.name], 1)
+    }
+
+    if (!doc.name) {
+      return emit(['doc.name is required', doc.email, doc.name], 1)
+    }
+
+    if (doc.roles && !isArray(doc.roles)) {
+      return emit(['doc.roles must be an array', doc.email, doc.name], 1)
+    }
+
+    if (doc.name !== ('org.couchdb.user:' + doc.name)) {
+      return emit(['Doc ID must be of the form org.couchdb.user:name', doc.email, doc.name], 1)
+    }
+
+    if (doc.name !== doc.name.toLowerCase()) {
+      return emit(['Name must be lower-case', doc.email, doc.name], 1)
+    }
+
+    if (doc.name !== encodeURIComponent(doc.name)) {
+      return emit(['Name cannot contain non-url-safe characters', doc.email, doc.name], 1)
+    }
+
+    if (doc.name.charAt(0) === '.') {
+      return emit(['Name cannot start with .', doc.email, doc.name], 1)
+    }
+
+    if (!(doc.email && doc.email.match(/^.+@.+\..+$/))) {
+      return emit(['Email must be an email address', doc.email, doc.name], 1)
+    }
+
+
+    if (doc.password_sha && !doc.salt) {
+      return emit(['Users with password_sha must have a salt.', doc.email, doc.name], 1)
+    }
+  }, reduce: '_sum'}
+}
+
+if (require.main === module) {
+  console.log(JSON.stringify(ddoc, function (k, v) {
+    if (typeof v !== 'function') return v;
+    return v.toString()
+  }))
+}
