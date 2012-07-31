@@ -45,6 +45,17 @@ But, before you do that, make sure to fetch the views and give
 them time to load, so that real users don't feel the pain of
 view generation latency.
 
+You can do it like this using npm:
+
+    npm run load
+    # Go get lunch and come back.
+    # Go take the dog for a walk, and play some frisbee in the park.
+    # If you don't have a dog, go get a puppy, provide it with love
+    # and appropriate discipline until it gets older, train it to play
+    # frisbee in the park, and then take it to the park and play frisbee.
+    # Wait some more.  It's probably almost done now.
+    # Make it live:
+    npm run copy
 EOF
 }
 
@@ -53,7 +64,6 @@ c=${c// /%20}
 which couchapp
 couchapp push registry/shadow.js "$c" && \
 couchapp push registry/app.js "$c" && \
-couchapp push www/app.js "$c" && \
 scratch_message && \
 exit 0 || \
 ( ret=$?
