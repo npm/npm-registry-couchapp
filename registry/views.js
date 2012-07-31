@@ -171,27 +171,85 @@ views.byUser = { map : function (doc) {
   })
 }}
 
-views.npmTop = { map: function (doc) {
+
+
+views.browseAuthors = views.npmTop = { map: function (doc) {
   if (!doc || !doc.maintainers) return
   doc.maintainers.forEach(function (m) {
     emit([m.name, doc._id], 1)
   })
 }, reduce: "_sum" }
 
-views.fieldsInUse =
-{ map : function (doc) {
-    if (!doc.versions || !doc["dist-tags"] || !doc["dist-tags"].latest) return
-    var d = doc.versions[doc["dist-tags"].latest]
-    if (!d) return
-    for (var f in d) {
-      emit(f, 1)
-      if (d[f] && typeof d[f] === "object" &&
-          (f === "scripts" || f === "directories")) {
-        for (var i in d[f]) emit(f+"."+i, 1)
-      }
+views.browseUpdated = { map: function (doc) {
+  if (!doc || !doc.versions) return
+  var l = doc['dist-tags'] && doc['dist-tags'].latest
+  if (!l) return
+  var t = doc.time && doc.time[l]
+  if (!t) return
+  var d = new Date(t)
+  if (!d.getTime()) return
+  emit([ d.getUTCFullYear(),
+         d.getUTCMonth() + 1,
+         d.getUTCDate(),
+         doc._id ], 1)
+}, reduce: "_sum" }
+
+views.browseAll = { map: function (doc) {
+  if (!doc || !doc.versions) return
+  var l = doc['dist-tags'] && doc['dist-tags'].latest
+  if (!l) return
+  l = doc.versions && doc.versions[l]
+  if (!l) return
+  var desc = doc.description || l.description || ''
+  var readme = doc.readme || l.readme || ''
+  emit([doc.name, desc, readme], 1)
+}, reduce: '_sum' }
+
+views.analytics = { map: function (doc) {
+  if (!doc || !doc.time) return
+  for (var i in doc.time) {
+    var t = doc.time[i]
+    var d = new Date(t)
+    if (!d.getTime()) return
+    var type = i === 'modified' ? 'latest'
+             : i === 'created' ? 'created'
+             : 'update'
+    emit([ type,
+           d.getUTCFullYear(),
+           d.getUTCMonth() + 1,
+           d.getUTCDate(),
+           doc._id ], 1)
+  }
+}, reduce: '_sum' }
+
+views.dependedUpon = { map: function (doc) {
+  if (!doc) return
+  var l = doc['dist-tags'] && doc['dist-tags'].latest
+  if (!l) return
+  l = doc.versions && doc.versions[l]
+  if (!l) return
+  var d = l.dependencies
+  if (!d) return
+  for (var dep in d) {
+    emit([dep, doc._id], 1)
+  }
+}, reduce: '_sum' }
+
+
+views.fieldsInUse = { map : function (doc) {
+  if (!doc.versions || !doc["dist-tags"] || !doc["dist-tags"].latest) {
+    return
+  }
+  var d = doc.versions[doc["dist-tags"].latest]
+  if (!d) return
+  for (var f in d) {
+    emit(f, 1)
+    if (d[f] && typeof d[f] === "object" &&
+        (f === "scripts" || f === "directories")) {
+      for (var i in d[f]) emit(f+"."+i, 1)
     }
   }
-, reduce : "_sum" }
+} , reduce : "_sum" }
 
 views.howBigIsYourPackage = {
   map : function (doc) {
