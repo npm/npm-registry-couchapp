@@ -45,7 +45,6 @@ views.byKeyword = {
 
 views.byField = {
   map: function (doc) {
-    require("monkeypatch").patch(Object, Date, Array, String)
     if (!doc || !doc.versions || !doc["dist-tags"]) return
     var v = doc["dist-tags"].latest
     //Object.keys(doc.versions).forEach(function (v) {
@@ -68,7 +67,6 @@ views.byField = {
 
 views.needBuild = {
   map : function (doc) {
-    // require("monkeypatch").patch(Object, Date, Array, String)
 
     if (!doc || !doc.versions || !doc["dist-tags"]) return
     var v = doc["dist-tags"].latest
@@ -114,7 +112,6 @@ views.nodeWafInstall = {
 
 views.badBins = {
   map : function (doc) {
-    require("monkeypatch").patch(Object, Date, Array, String)
     if (!doc || !doc.versions || !doc["dist-tags"]) return
     var v = doc["dist-tags"].latest
     if (!doc.versions[v]) return
