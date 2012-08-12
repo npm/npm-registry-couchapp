@@ -261,6 +261,48 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx, secObj) {
 
 ddoc.views = {
   listAll: { map : function (doc) { return emit(doc._id, doc) } },
+
+  invalidUser: { map: function (doc) {
+    var errors = []
+    if (doc.type !== 'user') {
+      errors.push('doc.type must be user')
+    }
+
+    if (!doc.name) {
+      errors.push('doc.name is required')
+    }
+
+    if (doc.roles && !isArray(doc.roles)) {
+      errors.push('doc.roles must be an array')
+    }
+
+    if (doc._id !== ('org.couchdb.user:' + doc.name)) {
+      errors.push('Doc ID must be of the form org.couchdb.user:name')
+    }
+
+    if (doc.name !== doc.name.toLowerCase()) {
+      errors.push('Name must be lower-case')
+    }
+
+    if (doc.name !== encodeURIComponent(doc.name)) {
+      errors.push('Name cannot contain non-url-safe characters')
+    }
+
+    if (doc.name.charAt(0) === '.') {
+      errors.push('Name cannot start with .')
+    }
+
+    if (!(doc.email && doc.email.match(/^.+@.+\..+$/))) {
+      errors.push('Email must be an email address')
+    }
+
+    if (doc.password_sha && !doc.salt) {
+      errors.push('Users with password_sha must have a salt.')
+    }
+    if (!errors.length) return
+    emit([doc.name, doc.email], errors)
+  }},
+
   invalid: { map: function (doc) {
     if (doc.type !== 'user') {
       return emit(['doc.type must be user', doc.email, doc.name], 1)
@@ -274,7 +316,7 @@ ddoc.views = {
       return emit(['doc.roles must be an array', doc.email, doc.name], 1)
     }
 
-    if (doc.name !== ('org.couchdb.user:' + doc.name)) {
+    if (doc._id !== ('org.couchdb.user:' + doc.name)) {
       return emit(['Doc ID must be of the form org.couchdb.user:name', doc.email, doc.name], 1)
     }
 
@@ -293,7 +335,6 @@ ddoc.views = {
     if (!(doc.email && doc.email.match(/^.+@.+\..+$/))) {
       return emit(['Email must be an email address', doc.email, doc.name], 1)
     }
-
 
     if (doc.password_sha && !doc.salt) {
       return emit(['Users with password_sha must have a salt.', doc.email, doc.name], 1)
