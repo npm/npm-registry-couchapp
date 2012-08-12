@@ -34,46 +34,47 @@ shows.package = function (doc, req) {
 
       var t = doc.versions[v].dist.tarball
       t = t.replace(/^https?:\/\/[^\/:]+(:[0-9]+)?/, '')
-      if (!t.match(/^\/[^\/]+\/_design\/app\/_rewrite/)) {
-        doc.versions[v].dist.tarball = t
 
-        // doc.versions[v].dist._headers = req.headers
-        // doc.versions[v].dist._query = req.query
-        // doc.versions[v].dist._reqPath = req.requested_path
-        // doc.versions[v].dist._path = req.path
-
-        var requestedPath = req.requested_path
-        if (requestedPath)
-          requestedPath = requestedPath.slice(0)
-        else {
-          var path = req.path
-          if (path) {
-            var i = path.indexOf('_show')
-            if (i !== -1) {
-              requestedPath = path.slice(0)
-              requestedPath.splice(i, i + 2, '_rewrite')
-            }
+      var requestedPath = req.requested_path
+      // workaround for old couch versions that didn't
+      // have requested_path
+      if (requestedPath && -1 === requestedPath.indexOf('show'))
+        requestedPath = requestedPath.slice(0)
+      else {
+        var path = req.path
+        if (path) {
+          var i = path.indexOf('_show')
+          if (i !== -1) {
+            requestedPath = path.slice(0)
+            requestedPath.splice(i, i + 2, '_rewrite')
           }
+        } else return {
+          code : 500,
+          body : JSON.stringify({error: 'bad couch'}),
+          headers : headers
         }
-        // doc.versions[v].dist._requested_path = requestedPath.join('/')
-
-        // pop off the package name and version
-        var p = requestedPath.pop()
-        if (req.query.version && p === req.query.version) {
-          var n = requestedPath[requestedPath.length-1]
-          if (n === doc._id) requestedPath.pop()
-        }
-
-        // make sure it starts with /
-        if (requestedPath.length) requestedPath.unshift('')
-
-        var basePath = requestedPath.join('/')
-        // doc.versions[v].dist._basePath = basePath
-
-        var h = "http://" + req.headers.Host
-
-        doc.versions[v].dist.tarball = h + basePath + t
       }
+
+      // doc.versions[v].dist._origTarball = doc.versions[v].dist.tarball
+      // doc.versions[v].dist._headers = req.headers
+      // doc.versions[v].dist._query = req.query
+      // doc.versions[v].dist._reqPath = req.requested_path
+      // doc.versions[v].dist._path = req.path
+      // doc.versions[v].dist._t = t.slice(0)
+
+      // actual location of tarball should always be:
+      // .../_rewrite/pkg/-/pkg-version.tgz
+      // or: /pkg/-/pkg-version.tgz
+      // depending on what requested path is.
+      var tf = t.split('/').slice(-3)
+      var i = requestedPath.indexOf('_rewrite')
+      if (i !== -1) {
+        tf = requestedPath.slice(0, i + 1).concat(tf)
+      }
+      t = '/' + tf.join('/')
+      var h = "http://" + req.headers.Host
+
+      doc.versions[v].dist.tarball = h + t
     }
   }
   if (doc["dist-tags"]) for (var tag in doc["dist-tags"]) {
@@ -113,7 +114,7 @@ shows.package = function (doc, req) {
   return {
     code : code,
     body : body,
-    headers : headers,
+    headers : headers
   }
 }
 
