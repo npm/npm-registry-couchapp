@@ -30,6 +30,13 @@ views.byEngine = {
   }
 }
 
+views.countVersions = { map: function (doc) {
+  if (!doc || !doc.name) return
+  var i = 0
+  if (!doc.versions) return emit([i, doc._id], 1)
+  for (var v in doc.versions) i++
+  emit([i, doc._id], 1)
+}, reduce: "_sum"}
 
 views.byKeyword = {
   map: function (doc) {
