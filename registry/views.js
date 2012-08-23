@@ -13,7 +13,7 @@ views.listAll = {
 
 views.modified = { map: modifiedTimeMap }
 function modifiedTimeMap (doc) {
-  if (!doc.versions) return
+  if (!doc.versions || doc.deprecated) return
   var latest = doc["dist-tags"].latest
   if (!doc.versions[latest]) return
   var time = doc.time && doc.time[latest] || 0
@@ -23,7 +23,7 @@ function modifiedTimeMap (doc) {
 
 views.byEngine = {
   map: function (doc) {
-    if (!doc || !doc.versions || !doc["dist-tags"]) return
+    if (!doc || !doc.versions || !doc["dist-tags"] || doc.deprecated) return
     var v = doc["dist-tags"].latest
     var d = doc.versions[v]
     if (d && d.engines) emit(doc._id, [d.engines, doc.maintainers])
@@ -31,7 +31,7 @@ views.byEngine = {
 }
 
 views.countVersions = { map: function (doc) {
-  if (!doc || !doc.name) return
+  if (!doc || !doc.name || doc.deprecated) return
   var i = 0
   if (!doc.versions) return emit([i, doc._id], 1)
   for (var v in doc.versions) i++
@@ -40,7 +40,7 @@ views.countVersions = { map: function (doc) {
 
 views.byKeyword = {
   map: function (doc) {
-    if (!doc || !doc.versions || !doc['dist-tags']) return
+    if (!doc || !doc.versions || !doc['dist-tags'] || doc.deprecated) return
     var v = doc.versions[doc['dist-tags'].latest]
     if (!v || !v.keywords || !Array.isArray(v.keywords)) return
     v.keywords.forEach(function (kw) {
@@ -186,7 +186,7 @@ views.byUser = { map : function (doc) {
 
 
 views.browseAuthors = views.npmTop = { map: function (doc) {
-  if (!doc || !doc.maintainers) return
+  if (!doc || !doc.maintainers || doc.deprecated) return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   l = l && doc.versions && doc.versions[l]
   if (!l) return
@@ -198,7 +198,7 @@ views.browseAuthors = views.npmTop = { map: function (doc) {
 }, reduce: "_sum" }
 
 views.browseUpdated = { map: function (doc) {
-  if (!doc || !doc.versions) return
+  if (!doc || !doc.versions || doc.deprecated) return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   var t = doc.time && doc.time[l]
@@ -214,7 +214,7 @@ views.browseUpdated = { map: function (doc) {
 }, reduce: "_sum" }
 
 views.browseAll = { map: function (doc) {
-  if (!doc || !doc.versions) return
+  if (!doc || !doc.versions || doc.deprecated) return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
@@ -225,7 +225,7 @@ views.browseAll = { map: function (doc) {
 }, reduce: '_sum' }
 
 views.analytics = { map: function (doc) {
-  if (!doc || !doc.time) return
+  if (!doc || !doc.time || doc.deprecated) return
   for (var i in doc.time) {
     var t = doc.time[i]
     var d = new Date(t)
@@ -242,7 +242,7 @@ views.analytics = { map: function (doc) {
 }, reduce: '_sum' }
 
 views.dependedUpon = { map: function (doc) {
-  if (!doc) return
+  if (!doc || doc.deprecated) return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
@@ -272,7 +272,7 @@ views.browseStarUser = { map: function (doc) {
 }, reduce: '_sum' }
 
 views.browseStarPackage = { map: function (doc) {
-  if (!doc) return
+  if (!doc || doc.deprecated) return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
@@ -288,7 +288,7 @@ views.browseStarPackage = { map: function (doc) {
 
 
 views.fieldsInUse = { map : function (doc) {
-  if (!doc.versions || !doc["dist-tags"] || !doc["dist-tags"].latest) {
+  if (!doc.versions || !doc["dist-tags"] || !doc["dist-tags"].latest || doc.deprecated) {
     return
   }
   var d = doc.versions[doc["dist-tags"].latest]
