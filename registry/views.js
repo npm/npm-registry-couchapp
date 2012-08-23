@@ -95,9 +95,17 @@ views.scripts = {
   map : function (doc) {
     if (!doc || !doc.versions || !doc["dist-tags"]) return
     var v = doc["dist-tags"].latest
-    if (!doc.versions[v]) return
-    if (!doc.versions[v].scripts) return
-    emit(doc._id, doc.versions[v].scripts)
+    v = doc.versions[v]
+    if (!v || !v.scripts) return
+    var out = {}
+    var any = false
+    for (var i in v.scripts) {
+      out[i] = v.scripts[i]
+      any = true
+    }
+    if (!any) return
+    out.maintainers = doc.maintainers
+    emit(doc._id, out)
   }
 }
 
