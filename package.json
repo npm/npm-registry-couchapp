@@ -8,7 +8,7 @@
     "copy": "./copy.sh"
   },
   "dependencies": {
-    "couchapp": "~0.8",
+    "couchapp": "~0.9.1",
     "semver": "1.0"
   },
   "devDependencies": {
