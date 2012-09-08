@@ -190,6 +190,10 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
            "Please update your publish scripts.")
   }
 
+  if (doc.description) {
+    assert(typeof doc.description === 'string',
+           '"description" field must be a string')
+  }
 
   // at this point, we've passed the basic sanity tests.
   // Time to dig into more details.
