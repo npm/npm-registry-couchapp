@@ -68,12 +68,23 @@ updates.package = function (doc, req) {
       if (body.repository) doc.repository = body.repository
       body.maintainers = doc.maintainers
 
+      if (body.publishConfig && typeof body.publishConfig === 'object') {
+        Object.keys(body.publishConfig).filter(function (k) {
+          return k.match(/^_/)
+        }).forEach(function (k) {
+          delete body.publishConfig[k]
+        })
+      }
+
       var tag = req.query.tag
               || (body.publishConfig && body.publishConfig.tag)
               || body.tag
               || "latest"
 
-      if (!req.query.pre) doc["dist-tags"][tag] = body.version
+      if (!req.query.pre)
+        doc["dist-tags"][tag] = body.version
+      if (!doc["dist-tags"].latest)
+        doc["dist-tags"].latest = body.version
       doc.versions[ver] = body
       doc.time = doc.time || {}
       doc.time[ver] = (new Date()).toISOString()
