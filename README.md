@@ -141,7 +141,7 @@ Create a new release version.
 MUST include all the metadata from package.json along with dist information
 as the JSON body of the request. MUST have `content-type:application/json`
 
-### PUT /pacakgename/latest
+### PUT /packagename/latest
 
 Link a distribution tag (ie. "latest") to a specific version string.
 
