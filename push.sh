@@ -41,6 +41,8 @@ curl -u "\$username:\$password" \\
   -X COPY \\
   -H destination:'_design/app?rev=\$rev'
 
+(If this is the first ever push, drop the "?rev=\$rev" part)
+
 But, before you do that, make sure to fetch the views and give
 them time to load, so that real users don't feel the pain of
 view generation latency.
