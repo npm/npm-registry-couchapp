@@ -35,7 +35,7 @@ Now install couchapp and semver:
 
 Sync the registry and search:
 
-    npm config set _npmjs.org:couch=$couch
+    export npm_package_config_couch=$couch
     ./push.sh
 
 Follow the instructions echoed by push.sh
