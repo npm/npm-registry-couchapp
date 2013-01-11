@@ -185,15 +185,33 @@ views.byUser = { map : function (doc) {
 
 
 
+views.browseAuthorsRecent = { map: function (doc) {
+  if (!doc || !doc.maintainers || doc.deprecated) return
+  var l = doc['dist-tags'] && doc['dist-tags'].latest
+  l = l && doc.versions && doc.versions[l]
+  if (!l) return
+  var t = doc.time && doc.time[l.version]
+  if (!t) return
+  var desc = doc.description || l.description || ''
+  var readme = doc.readme || l.readme || ''
+  doc.maintainers.forEach(function (m) {
+    // Have to sum it up by the author name in the app.
+    // couchdb makes me sad sometimes.
+    emit([t, m.name, doc._id, desc, readme], 1)
+  })
+}, reduce: "_sum" }
+
 views.browseAuthors = views.npmTop = { map: function (doc) {
   if (!doc || !doc.maintainers || doc.deprecated) return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   l = l && doc.versions && doc.versions[l]
   if (!l) return
+  var t = doc.time && doc.time[l.version]
+  if (!t) return
   var desc = doc.description || l.description || ''
   var readme = doc.readme || l.readme || ''
   doc.maintainers.forEach(function (m) {
-    emit([m.name, doc._id, desc, readme], 1)
+    emit([m.name, doc._id, desc, t, readme], 1)
   })
 }, reduce: "_sum" }
 
