@@ -274,6 +274,18 @@ views.dependedUpon = { map: function (doc) {
   }
 }, reduce: '_sum' }
 
+views.dependentVersions = { map: function (doc) {
+  if (!doc || doc.deprecated) return
+  var l = doc['dist-tags'] && doc['dist-tags'].latest
+  if (!l) return
+  l = doc.versions && doc.versions[l]
+  if (!l) return
+  var deps = l.dependencies
+  if (!deps) return
+  for (var dep in deps)
+    emit([dep, deps[dep], doc._id], 1)
+}, reduce: '_sum' }
+
 views.browseStarUser = { map: function (doc) {
   if (!doc) return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
