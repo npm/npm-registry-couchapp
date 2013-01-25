@@ -14,6 +14,10 @@ views.listAll = {
 views.modified = { map: modifiedTimeMap }
 function modifiedTimeMap (doc) {
   if (!doc.versions || doc.deprecated) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   var latest = doc["dist-tags"].latest
   if (!doc.versions[latest]) return
   var time = doc.time && doc.time[latest] || 0
@@ -24,6 +28,10 @@ function modifiedTimeMap (doc) {
 views.byEngine = {
   map: function (doc) {
     if (!doc || !doc.versions || !doc["dist-tags"] || doc.deprecated) return
+    if (doc._id.match(/^npm-test-.+$/) &&
+        doc.maintainers &&
+        doc.maintainers[0].name === 'isaacs')
+      return
     var v = doc["dist-tags"].latest
     var d = doc.versions[v]
     if (d && d.engines) emit(doc._id, [d.engines, doc.maintainers])
@@ -32,6 +40,10 @@ views.byEngine = {
 
 views.countVersions = { map: function (doc) {
   if (!doc || !doc.name || doc.deprecated) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   var i = 0
   if (!doc.versions) return emit([i, doc._id], 1)
   for (var v in doc.versions) i++
@@ -41,6 +53,10 @@ views.countVersions = { map: function (doc) {
 views.byKeyword = {
   map: function (doc) {
     if (!doc || !doc.versions || !doc['dist-tags'] || doc.deprecated) return
+    if (doc._id.match(/^npm-test-.+$/) &&
+        doc.maintainers &&
+        doc.maintainers[0].name === 'isaacs')
+      return
     var v = doc.versions[doc['dist-tags'].latest]
     if (!v || !v.keywords || !Array.isArray(v.keywords)) return
     v.keywords.forEach(function (kw) {
@@ -53,6 +69,10 @@ views.byKeyword = {
 views.byField = {
   map: function (doc) {
     if (!doc || !doc.versions || !doc["dist-tags"]) return
+    if (doc._id.match(/^npm-test-.+$/) &&
+        doc.maintainers &&
+        doc.maintainers[0].name === 'isaacs')
+      return
     var v = doc["dist-tags"].latest
     //Object.keys(doc.versions).forEach(function (v) {
       var d = doc.versions[v]
@@ -76,6 +96,10 @@ views.needBuild = {
   map : function (doc) {
 
     if (!doc || !doc.versions || !doc["dist-tags"]) return
+    if (doc._id.match(/^npm-test-.+$/) &&
+        doc.maintainers &&
+        doc.maintainers[0].name === 'isaacs')
+      return
     var v = doc["dist-tags"].latest
     //Object.keys(doc.versions).forEach(function (v) {
       var d = doc.versions[v]
@@ -94,6 +118,10 @@ views.needBuild = {
 views.scripts = {
   map : function (doc) {
     if (!doc || !doc.versions || !doc["dist-tags"]) return
+    if (doc._id.match(/^npm-test-.+$/) &&
+        doc.maintainers &&
+        doc.maintainers[0].name === 'isaacs')
+      return
     var v = doc["dist-tags"].latest
     v = doc.versions[v]
     if (!v || !v.scripts) return
@@ -112,6 +140,10 @@ views.scripts = {
 views.nodeWafInstall = {
   map : function (doc) {
     if (!doc || !doc.versions || !doc["dist-tags"]) return
+    if (doc._id.match(/^npm-test-.+$/) &&
+        doc.maintainers &&
+        doc.maintainers[0].name === 'isaacs')
+      return
     var v = doc["dist-tags"].latest
     if (!doc.versions[v]) return
     if (!doc.versions[v].scripts) return
@@ -128,6 +160,10 @@ views.nodeWafInstall = {
 views.badBins = {
   map : function (doc) {
     if (!doc || !doc.versions || !doc["dist-tags"]) return
+    if (doc._id.match(/^npm-test-.+$/) &&
+        doc.maintainers &&
+        doc.maintainers[0].name === 'isaacs')
+      return
     var v = doc["dist-tags"].latest
     if (!doc.versions[v]) return
     v = doc.versions[v]
@@ -162,6 +198,8 @@ views.orphanAttachments = {
 
 views.starredByUser = { map : function (doc) {
   if (!doc || !doc.users) return
+  if (doc._id.match(/^npm-test-.+$/) && doc.maintainers[0].name === 'isaacs')
+    return
   Object.keys(doc.users).forEach(function (m) {
     if (!doc.users[m]) return
     emit(m, doc._id)
@@ -170,6 +208,10 @@ views.starredByUser = { map : function (doc) {
 
 views.starredByPackage = { map : function (doc) {
   if (!doc || !doc.users) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   Object.keys(doc.users).forEach(function (m) {
     if (!doc.users[m]) return
     emit(doc._id, m)
@@ -178,6 +220,10 @@ views.starredByPackage = { map : function (doc) {
 
 views.byUser = { map : function (doc) {
   if (!doc || !doc.maintainers) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   doc.maintainers.forEach(function (m) {
     emit(m.name, doc._id)
   })
@@ -187,6 +233,10 @@ views.byUser = { map : function (doc) {
 
 views.browseAuthorsRecent = { map: function (doc) {
   if (!doc || !doc.maintainers || doc.deprecated) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   l = l && doc.versions && doc.versions[l]
   if (!l) return
@@ -203,6 +253,10 @@ views.browseAuthorsRecent = { map: function (doc) {
 
 views.browseAuthors = views.npmTop = { map: function (doc) {
   if (!doc || !doc.maintainers || doc.deprecated) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   l = l && doc.versions && doc.versions[l]
   if (!l) return
@@ -217,6 +271,10 @@ views.browseAuthors = views.npmTop = { map: function (doc) {
 
 views.browseUpdated = { map: function (doc) {
   if (!doc || !doc.versions || doc.deprecated) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   var t = doc.time && doc.time[l]
@@ -233,6 +291,10 @@ views.browseUpdated = { map: function (doc) {
 
 views.browseAll = { map: function (doc) {
   if (!doc || !doc.versions || doc.deprecated) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
@@ -244,6 +306,10 @@ views.browseAll = { map: function (doc) {
 
 views.analytics = { map: function (doc) {
   if (!doc || !doc.time || doc.deprecated) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   for (var i in doc.time) {
     var t = doc.time[i]
     var d = new Date(t)
@@ -261,6 +327,10 @@ views.analytics = { map: function (doc) {
 
 views.dependedUpon = { map: function (doc) {
   if (!doc || doc.deprecated) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
@@ -276,6 +346,10 @@ views.dependedUpon = { map: function (doc) {
 
 views.dependentVersions = { map: function (doc) {
   if (!doc || doc.deprecated) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
@@ -288,6 +362,10 @@ views.dependentVersions = { map: function (doc) {
 
 views.browseStarUser = { map: function (doc) {
   if (!doc) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
@@ -303,6 +381,10 @@ views.browseStarUser = { map: function (doc) {
 
 views.browseStarPackage = { map: function (doc) {
   if (!doc || doc.deprecated) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
@@ -321,6 +403,10 @@ views.fieldsInUse = { map : function (doc) {
   if (!doc.versions || !doc["dist-tags"] || !doc["dist-tags"].latest || doc.deprecated) {
     return
   }
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
   var d = doc.versions[doc["dist-tags"].latest]
   if (!d) return
   for (var f in d) {
@@ -334,9 +420,13 @@ views.fieldsInUse = { map : function (doc) {
 
 views.howBigIsYourPackage = {
   map : function (doc) {
+    if (!doc) return
+    if (doc._id.match(/^npm-test-.+$/) &&
+        doc.maintainers &&
+        doc.maintainers[0].name === 'isaacs')
+      return
     var s = 0
       , c = 0
-    if (!doc) return
     for (var i in doc._attachments) {
       s += doc._attachments[i].length
       c ++
