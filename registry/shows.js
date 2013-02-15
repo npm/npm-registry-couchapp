@@ -98,7 +98,7 @@ shows.package = function (doc, req) {
     }
   } else {
     body = doc
-    for (var i in body) if (i.charAt(0) === "_" && i !== "_id" && i !== "_rev") {
+    for (var i in body) if (i.charAt(0) === "_" && i !== "_id" && i !== "_rev" && i !== "_attachments") {
       delete body[i]
     }
     for (var i in body.time) {
