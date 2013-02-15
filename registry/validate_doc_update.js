@@ -1,28 +1,49 @@
 
 module.exports = function (doc, oldDoc, user, dbCtx) {
-  // can't write to the db without logging in.
-  if (!user || !user.name) {
-    throw { unauthorized: "Please log in before writing to the db" }
-  }
-
-  require("monkeypatch").patch(Object, Date, Array, String)
-
-  var semver = require("semver")
-  var valid = require("valid")
-  var deep = require("deep")
-  var deepEquals = deep.deepEquals
-
-
-  if (oldDoc) oldDoc.users = oldDoc.users || {}
-  doc.users = doc.users || {}
-
-
   function assert (ok, message) {
     if (!ok) throw {forbidden:message}
   }
 
+  // can't write to the db without logging in.
+  var userName
+  try {
+    userName = user && user.name
+  } catch (er) {
+    assert(false, "failed checking user.name")
+  }
+  if (!userName) {
+    throw { unauthorized: "Please log in before writing to the db" }
+  }
+
+  try {
+    require("monkeypatch").patch(Object, Date, Array, String)
+  } catch (er) {
+    assert(false, "failed monkeypatching")
+  }
+
+  try {
+    var semver = require("semver")
+    var valid = require("valid")
+    var deep = require("deep")
+    var deepEquals = deep.deepEquals
+  } catch (er) {
+    assert(false, "failed loading modules")
+  }
+
+  try {
+    if (oldDoc) oldDoc.users = oldDoc.users || {}
+    doc.users = doc.users || {}
+  } catch (er) {
+    assert(false, "failed checking users")
+  }
+
+
   // admins can do ANYTHING (even break stuff)
-  if (isAdmin()) return
+  try {
+    if (isAdmin()) return
+  } catch (er) {
+    assert(false, "failed checking admin-ness")
+  }
 
   // figure out what changed in the doc.
   function diffObj (o, n, p) {
@@ -64,14 +85,22 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   // something detected in the _updates/package script.
   // XXX: Make this not ever happen ever.  Validation belongs here,
   // not in the update function.
-  assert(!doc.forbidden || doc._deleted, doc.forbidden)
+  try {
+    assert(!doc.forbidden || doc._deleted, doc.forbidden)
+  } catch (er) {
+    assert(false, "failed checking doc.forbidden or doc._deleted")
+  }
 
   // everyone may alter his "starred" status on any package
-  if (oldDoc &&
-      !doc._deleted &&
-      deepEquals(doc, oldDoc,
-                 [["users", user.name], ["time", "modified"]])) {
-    return
+  try {
+    if (oldDoc &&
+        !doc._deleted &&
+        deepEquals(doc, oldDoc,
+                   [["users", user.name], ["time", "modified"]])) {
+      return
+    }
+  } catch (er) {
+    assert(false, "failed checking starred stuff")
   }
 
 
@@ -96,13 +125,18 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
         if (dbCtx.admins.roles.indexOf(user.roles[i]) !== -1) return true
       }
     }
-    return user.roles.indexOf("_admin") >= 0
+    return user && user.roles.indexOf("_admin") >= 0
   }
 
-  var vu = validUser()
+  try {
+    var vu = validUser()
+  } catch (er) {
+    assert(false, "problem checking user validity");
+  }
+
   if (!vu) {
     assert(vu, "user: " + user.name + " not authorized to modify "
-                        + doc.name + "\n"
+                        + oldDoc.name + "\n"
                         + diffObj(oldDoc, doc).join("\n"))
   }
 
