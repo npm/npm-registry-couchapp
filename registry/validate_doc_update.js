@@ -176,6 +176,12 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
            v + " version missing: " + ver)
   }
 
+  var depCount = 0
+  var maxDeps = 5000
+  function ridiculousDeps() {
+    if (++depCount > maxDeps)
+      assert(false, "too many deps.  please be less ridiculous.")
+  }
   for (var ver in versions) {
     var version = versions[ver]
     assert(semver.valid(ver),
@@ -186,6 +192,11 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
            "version must match: "+ver)
     assert(version.name === doc._id,
            "version "+ver+" has incorrect name: "+version.name)
+
+    depCount = 0
+    for (var dep in version.dependencies || {}) ridiculousDeps()
+    for (var dep in version.devDependencies || {}) ridiculousDeps()
+    for (var dep in version.optionalDependencies || {}) ridiculousDeps()
   }
 
   assert(Array.isArray(doc.maintainers),
