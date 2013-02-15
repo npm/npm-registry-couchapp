@@ -97,8 +97,10 @@ exports.valid =
      if (!name) return false
      var n = name.trim()
      if (!n || n.charAt(0) === "."
-         || n.match(/[\/\(\)&\?#\|<>@:%\s\\]/)
+         || !n.match(/^[a-zA-Z0-9]/)
+         || n.match(/[\/\(\)&\?#\|<>@:%\s\\\*'"!~`]/)
          || n.toLowerCase() === "node_modules"
+         || n !== encodeURIComponent(n)
          || n.toLowerCase() === "favicon.ico") {
        return false
      }
