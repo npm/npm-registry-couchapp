@@ -1,4 +1,3 @@
-
 module.exports = function (doc, oldDoc, user, dbCtx) {
   function assert (ok, message) {
     if (!ok) throw {forbidden:message}
@@ -176,9 +175,9 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   var version = versions[latest]
   if (!version.dist)
     assert(false, "no dist object in " + latest + " version")
-  if (!verions.dist.tarball)
+  if (!version.dist.tarball)
     assert(false, "no tarball in " + latest + " version")
-  if (!verions.dist.shasum)
+  if (!version.dist.shasum)
     assert(false, "no shasum in " + latest + " version")
 
   for (var v in doc["dist-tags"]) {
