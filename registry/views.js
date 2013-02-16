@@ -25,6 +25,18 @@ function modifiedTimeMap (doc) {
   emit(t.getTime(), doc)
 }
 
+views.noShasum = { map: function (doc) {
+  if (!doc || !doc.versions)
+    return
+
+  for (var ver in doc.versions) {
+    var version = doc.versions[ver]
+    if (!version || !version.dist || !version.dist.shasum) {
+      emit([doc.name, ver, !!version, !!version.dist, !!version.shasum], 1)
+    }
+  }
+}, reduce: "_sum" }
+
 views.byEngine = {
   map: function (doc) {
     if (!doc || !doc.versions || !doc["dist-tags"] || doc.deprecated) return
