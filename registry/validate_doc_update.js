@@ -168,6 +168,19 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     assert(versions[latest], "dist-tags.latest must be valid version")
   }
 
+  // the 'latest' version must have a dist and shasum
+  // I'd like to also require this of all past versions, but that
+  // means going back and cleaning up about 2000 old package versions,
+  // or else *new* versions of those packages can't be published.
+  // Until that time, do this instead:
+  var version = versions[latest]
+  if (!version.dist)
+    assert(false, "no dist object in " + latest + " version")
+  if (!verions.dist.tarball)
+    assert(false, "no tarball in " + latest + " version")
+  if (!verions.dist.shasum)
+    assert(false, "no shasum in " + latest + " version")
+
   for (var v in doc["dist-tags"]) {
     var ver = doc["dist-tags"][v]
     assert(semver.valid(ver),
