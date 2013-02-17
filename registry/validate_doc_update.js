@@ -173,12 +173,14 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   // or else *new* versions of those packages can't be published.
   // Until that time, do this instead:
   var version = versions[latest]
-  if (!version.dist)
-    assert(false, "no dist object in " + latest + " version")
-  if (!version.dist.tarball)
-    assert(false, "no tarball in " + latest + " version")
-  if (!version.dist.shasum)
-    assert(false, "no shasum in " + latest + " version")
+  if (version) {
+    if (!version.dist)
+      assert(false, "no dist object in " + latest + " version")
+    if (!version.dist.tarball)
+      assert(false, "no tarball in " + latest + " version")
+    if (!version.dist.shasum)
+      assert(false, "no shasum in " + latest + " version")
+  }
 
   for (var v in doc["dist-tags"]) {
     var ver = doc["dist-tags"][v]
