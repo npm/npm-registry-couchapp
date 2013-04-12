@@ -11,6 +11,16 @@ views.listAll = {
   map : function (doc) { return emit(doc._id, doc) }
 }
 
+views.created = { map: createdTimeMap }
+function createdTimeMap (doc) {
+  if (!doc.versions || doc.deprecated) return
+  var first = doc.versions[0]
+  if (!first) return
+  var time = doc.time && doc.time[first] || 0
+  var t = new Date(time)
+  emit(t.getTime(), doc)
+}
+
 views.modified = { map: modifiedTimeMap }
 function modifiedTimeMap (doc) {
   if (!doc.versions || doc.deprecated) return
