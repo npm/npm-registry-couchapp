@@ -4,13 +4,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   }
 
   // can't write to the db without logging in.
-  var userName
-  try {
-    userName = user && user.name
-  } catch (er) {
-    assert(false, "failed checking user.name")
-  }
-  if (!userName) {
+  if (!user) {
     throw { unauthorized: "Please log in before writing to the db" }
   }
 
