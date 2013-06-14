@@ -30,6 +30,7 @@ lists.short = function (head, req) {
   send(toJSON(Object.keys(out)))
 }
 
+
 lists.rss = function (head, req) {
   var limit = +req.query.limit
     , desc = req.query.descending
@@ -69,17 +70,7 @@ lists.rss = function (head, req) {
     doc = doc.versions[latest]
     if (!doc || !time || !date) continue
 
-    var url = doc.homepage
-      , repo = doc.repository || doc.repositories
-    if (!url && repo) {
-      if (Array.isArray(repo)) repo = repo.shift()
-      if (repo.url) repo = repo.url
-      if (repo && (typeof repo === "string")) {
-        url = repo.replace(/^git(@|:\/\/)/, 'http://')
-                  .replace(/\.git$/, '')+"#readme"
-      }
-    }
-    if (!url) url = "http://search.npmjs.org/#/" + doc.name
+    var url = "https://npmjs.org/package/" + doc.name
 
     send('\n    <item>'
         +'\n      <title>' + doc._id + '</title>'
