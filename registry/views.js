@@ -11,6 +11,13 @@ views.listAll = {
   map : function (doc) { return emit(doc._id, doc) }
 }
 
+views.allVersions = { map: function(doc) {
+  if (!doc || !doc.versions)
+    return
+  for (var i in doc.versions)
+    emit([i, doc._id], 1)
+}, reduce: "_sum" }
+
 views.modified = { map: modifiedTimeMap }
 function modifiedTimeMap (doc) {
   if (!doc.versions || doc.deprecated) return
