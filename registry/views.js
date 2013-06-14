@@ -25,6 +25,20 @@ function modifiedTimeMap (doc) {
   emit(t.getTime(), doc)
 }
 
+views.modifiedPackage = { map: function (doc) {
+  if (!doc.versions || doc.deprecated) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
+  var latest = doc["dist-tags"].latest
+  if (!doc.versions[latest]) return
+  var time = doc.time && doc.time[latest] || 0
+  var t = new Date(time)
+  emit([doc._id, t.getTime()], doc)
+}}
+
+
 views.noShasum = { map: function (doc) {
   if (!doc || !doc.versions)
     return

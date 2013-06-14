@@ -13,6 +13,9 @@ module.exports =
   , { from: "/-/rss", to: "_list/rss/modified"
     , method: "GET" }
 
+  , { from: "/-/rss/:package", to: "_list/rss/modifiedPackage"
+    , method: "GET" }
+
   , { from: "/-/all", to:"_list/index/listAll", method: "GET" }
   , { from: "/-/all/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
 
