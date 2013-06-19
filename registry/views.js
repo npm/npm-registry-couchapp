@@ -1,6 +1,16 @@
 
 var views = module.exports = exports = {}
 
+views.noCDN = { map: function (doc) {
+  if (!doc.versions || Object.keys(doc.versions).length === 0)
+    return
+  Object.keys(doc.versions).forEach(function(v) {
+    if (doc.versions[v].dist.cdn)
+      return
+    emit([doc._id, v], 1)
+  })
+}, reduce: "_sum" }
+
 views.updated = {map: function (doc) {
   var l = doc["dist-tags"].latest
     , t = doc.time && doc.time[l]
