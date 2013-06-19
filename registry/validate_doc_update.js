@@ -43,29 +43,37 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     p = p || ""
     var d = []
     var seenKeys = []
+
     for (var i in o) {
       seenKeys.push(i)
-      if (!(i in n)) {
+      if (n[i] === undefined) {
         d.push("Deleted: "+p+i)
       }
-      if (typeof o[i] !== typeof n[i]) {
+      else if (typeof o[i] !== typeof n[i]) {
         d.push("Changed Type: "+p+i)
       }
-      if (typeof o[i] === "object" && o[i] && !n[i]) {
-        d.push("Nulled: "+p+i)
-      }
-      if (typeof o[i] === "object" && !o[i] && n[i]) {
-        d.push("Un-nulled: "+p+i)
-      }
-      if (typeof o[i] === "object") {
-        d = d.concat(diffObj(o[i], n[i], p + i + "."))
-      } else {
-        if (o[i] !== n[i]) {
-          d.push("Changed: "+p+i+" "+JSON.stringify(o[i]) + " -> "
-                 +JSON.stringify(n[i]))
+      else if (typeof o[i] === "object") {
+        if (o[i]) {
+          if (n[i]) {
+            d = d.concat(diffObj(o[i], n[i], p + i + "."))
+          } else {
+            d.push("Nulled: "+p+i)
+          }
+        } else {
+          if (n[i]) {
+            d.push("Un-nulled: "+p+i)
+          } else {
+            // they're both null, and thus equal.  do nothing.
+          }
         }
       }
+      // non-object, non-null
+      else if (o[i] !== n[i]) {
+          d.push("Changed: "+p+i+" "+JSON.stringify(o[i]) + " -> "
+                 +JSON.stringify(n[i]))
+      }
     }
+
     for (var i in n) {
       if (-1 === seenKeys.indexOf(i)) {
         d.push("Added: "+p+i)
