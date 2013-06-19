@@ -27,54 +27,58 @@ shows.package = function (doc, req) {
       doc.versions[clean] = p
     }
     if (doc.versions[v].dist.tarball) {
-
+      // if there is an attachment for this tarball, then use that.
       // make it point at THIS registry that is being requested,
       // with the full /db/_design/app/_rewrite if that is being used,
       // or just the /name if not.
 
       var t = doc.versions[v].dist.tarball
       t = t.replace(/^https?:\/\/[^\/:]+(:[0-9]+)?/, '')
-
+      var f = t.match(/[^\/]+$/)[0]
       var requestedPath = req.requested_path
-      // workaround for old couch versions that didn't
-      // have requested_path
-      if (requestedPath && -1 === requestedPath.indexOf('show'))
-        requestedPath = requestedPath.slice(0)
-      else {
-        var path = req.path
-        if (path) {
-          var i = path.indexOf('_show')
-          if (i !== -1) {
-            requestedPath = path.slice(0)
-            requestedPath.splice(i, i + 2, '_rewrite')
+      if (doc._attachments && doc._attachments[f]) {
+        // workaround for old couch versions that didn't
+        // have requested_path
+        if (requestedPath && -1 === requestedPath.indexOf('show'))
+          requestedPath = requestedPath.slice(0)
+        else {
+          var path = req.path
+          if (path) {
+            var i = path.indexOf('_show')
+            if (i !== -1) {
+              requestedPath = path.slice(0)
+              requestedPath.splice(i, i + 2, '_rewrite')
+            }
+          } else return {
+            code : 500,
+            body : JSON.stringify({error: 'bad couch'}),
+            headers : headers
           }
-        } else return {
-          code : 500,
-          body : JSON.stringify({error: 'bad couch'}),
-          headers : headers
         }
+
+        // doc.versions[v].dist._origTarball = doc.versions[v].dist.tarball
+        // doc.versions[v].dist._headers = req.headers
+        // doc.versions[v].dist._query = req.query
+        // doc.versions[v].dist._reqPath = req.requested_path
+        // doc.versions[v].dist._path = req.path
+        // doc.versions[v].dist._t = t.slice(0)
+
+        // actual location of tarball should always be:
+        // .../_rewrite/pkg/-/pkg-version.tgz
+        // or: /pkg/-/pkg-version.tgz
+        // depending on what requested path is.
+        var tf = [doc.name, '-', t.split('/').pop()]
+        var i = requestedPath.indexOf('_rewrite')
+        if (i !== -1) {
+          tf = requestedPath.slice(0, i + 1).concat(tf)
+        }
+        t = '/' + tf.join('/')
+        var h = "http://" + req.headers.Host
+
+        doc.versions[v].dist.tarball = h + t
+      } else {
+        doc.versions[v].dist.noattachment = true
       }
-
-      // doc.versions[v].dist._origTarball = doc.versions[v].dist.tarball
-      // doc.versions[v].dist._headers = req.headers
-      // doc.versions[v].dist._query = req.query
-      // doc.versions[v].dist._reqPath = req.requested_path
-      // doc.versions[v].dist._path = req.path
-      // doc.versions[v].dist._t = t.slice(0)
-
-      // actual location of tarball should always be:
-      // .../_rewrite/pkg/-/pkg-version.tgz
-      // or: /pkg/-/pkg-version.tgz
-      // depending on what requested path is.
-      var tf = [doc.name, '-', t.split('/').pop()]
-      var i = requestedPath.indexOf('_rewrite')
-      if (i !== -1) {
-        tf = requestedPath.slice(0, i + 1).concat(tf)
-      }
-      t = '/' + tf.join('/')
-      var h = "http://" + req.headers.Host
-
-      doc.versions[v].dist.tarball = h + t
     }
   }
   if (doc["dist-tags"]) for (var tag in doc["dist-tags"]) {
