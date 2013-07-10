@@ -18,7 +18,7 @@ shows.package = function (doc, req) {
 
   // legacy kludge
   if (doc.versions) for (var v in doc.versions) {
-    var clean = semver.clean(v)
+    var clean = semver.clean(v, true)
     doc.versions[v].directories = doc.versions[v].directories || {}
     if (clean !== v) {
       var p = doc.versions[v]
@@ -82,14 +82,20 @@ shows.package = function (doc, req) {
     }
   }
   if (doc["dist-tags"]) for (var tag in doc["dist-tags"]) {
-    var clean = semver.clean(doc["dist-tags"][tag])
+    var clean = semver.clean(doc["dist-tags"][tag], true)
     if (!clean) delete doc["dist-tags"][tag]
     else doc["dist-tags"][tag] = clean
   }
   // end kludge
 
   if (req.query.version) {
+    // could be either one!
     var ver = req.query.version
+    var clean = semver.clean(ver, true)
+
+    if (clean && clean !== ver && (clean in doc.versions))
+      ver = clean
+
     // if not a valid version, then treat as a tag.
     if ((!(ver in doc.versions) && (ver in doc["dist-tags"]))
         || !semver.valid(ver)) {

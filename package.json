@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "couchapp": "~0.9",
-    "semver": "1.0"
+    "semver": "~2.0.10"
   },
   "devDependencies": {
     "jsontool": "~4.0.0"

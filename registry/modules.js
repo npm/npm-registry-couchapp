@@ -70,24 +70,7 @@ exports.deep =
     }
   ].map(function (s) { return s.toString() }).join("\n")
 
-exports.semver =
-  [ 'var expr = exports.expression = '
-    + require("semver").expressions.parse.toString()
-  , 'exports.valid = valid'
-  , 'exports.clean = clean'
-  , function valid (v) {
-      return v && typeof v === "string" && v.match(expr)
-    }
-  , function clean (v) {
-      v = valid(v)
-      if (!v) return v
-      return [ v[1]||'0',
-               v[2]||'0',
-               v[3]||'0' ].join('.') +
-             (v[4]||'') +
-             (v[5]||'')
-    }
-  ].map(function (s) { return s.toString() }).join("\n")
+exports.semver = require('fs').readFileSync(require.resolve('semver'), 'utf8')
 
 exports.valid =
   [ 'var semver = require("semver")'
