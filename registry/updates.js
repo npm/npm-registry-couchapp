@@ -26,7 +26,7 @@ updates.package = function (doc, req) {
 
   if (doc) {
     if (req.query.version) {
-      var parsed = semver.valid(req.query.version)
+      var parsed = semver.valid(req.query.version, true)
       if (!parsed) {
         // it's a tag.
         var tag = req.query.version
@@ -34,12 +34,12 @@ updates.package = function (doc, req) {
         if (!semver.valid(ver)) {
           return error("setting tag "+tag+" to invalid version: "+req.body)
         }
-        doc["dist-tags"][tag] = semver.clean(ver)
+        doc["dist-tags"][tag] = semver.clean(ver, true)
         return ok(doc, "updated tag")
       }
       // adding a new version.
       var ver = req.query.version
-      if (!semver.valid(ver)) {
+      if (!semver.valid(ver, true)) {
         return error("invalid version: "+ver)
       }
 
@@ -55,8 +55,8 @@ updates.package = function (doc, req) {
       if (!valid.name(body.name)) {
         return error( "Invalid name: "+JSON.stringify(body.name))
       }
-      body.version = semver.clean(body.version)
-      ver = semver.clean(ver)
+      body.version = semver.clean(body.version, true)
+      ver = semver.clean(ver, true)
       if (body.version !== ver) {
         return error( "version in doc doesn't match version in request: "
                     + JSON.stringify(body.version)
@@ -118,12 +118,12 @@ updates.package = function (doc, req) {
     if (!doc.versions) doc.versions = {}
     var latest
     for (var v in doc.versions) {
-      if (!semver.valid(v)) return error("Invalid version: "+JSON.stringify(v))
+      if (!semver.valid(v, true)) return error("Invalid version: "+JSON.stringify(v))
       var p = doc.versions[v]
       if (p.version !== v) return error("Version mismatch: "+JSON.stringify(v)
                                        +" !== "+JSON.stringify(p.version))
       if (!valid.name(p.name)) return error("Invalid name: "+JSON.stringify(p.name))
-      latest = semver.clean(v)
+      latest = semver.clean(v, true)
     }
     if (!doc['dist-tags']) doc['dist-tags'] = {}
     if (latest) doc["dist-tags"].latest = latest
