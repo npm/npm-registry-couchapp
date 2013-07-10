@@ -24,6 +24,7 @@ shows.package = function (doc, req) {
       var p = doc.versions[v]
       delete doc.versions[v]
       p.version = v = clean
+      p._id = p.name + '@' + p.version
       doc.versions[clean] = p
     }
     if (doc.versions[v].dist.tarball) {
