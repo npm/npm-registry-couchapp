@@ -91,8 +91,9 @@ shows.package = function (doc, req) {
 
   if (req.query.version) {
     // could be either one!
+    // if it's a fuzzy version or a range, use the max satisfying version
     var ver = req.query.version
-    var clean = semver.clean(ver, true)
+    var clean = semver.maxSatisfying(Object.keys(doc.versions), ver, true)
 
     if (clean && clean !== ver && (clean in doc.versions))
       ver = clean
