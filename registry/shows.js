@@ -114,6 +114,12 @@ shows.package = function (doc, req) {
       delete body[i]
     }
     for (var i in body.time) {
+      var clean = semver.clean(i, true)
+      if (clean !== i) {
+        body.time[clean] = body.time[i]
+        delete body.time[i]
+        i = clean
+      }
       if (!body.versions[i]) delete body.time[i]
       else body.time[i] = new Date(Date.parse(body.time[i])).toISOString()
     }
