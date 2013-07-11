@@ -186,7 +186,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
   for (var v in doc["dist-tags"]) {
     var ver = doc["dist-tags"][v]
-    assert(semver.valid(ver),
+    assert(semver.valid(ver, true),
            v + " version invalid version: " + ver)
     assert(versions[ver],
            v + " version missing: " + ver)
@@ -200,7 +200,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   }
   for (var ver in versions) {
     var version = versions[ver]
-    assert(semver.valid(ver),
+    assert(semver.valid(ver, true),
            "invalid version: " + ver)
     assert(typeof version === "object",
            "version entries must be objects")
