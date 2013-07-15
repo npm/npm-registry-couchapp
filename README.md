@@ -75,6 +75,20 @@ then omit the port altogether.
 Then for example you can reference the repository like so:
 
     npm config set registry http://registry.mydomain.com:5984
+    
+# Optional: Disable secure rewrites in CouchDB
+
+CouchDB monitors URL rewriting as part of its security model. You may need to disable secure rewrites in CouchDB so that `npm install --registry` works correctly with your local replica.
+
+You can turn this off by editing `/usr/local/etc/couchdb/local.ini` and adding 
+
+    secure_rewrites = false
+
+on line 11 in the httpd section.
+
+You can also go to your config page at `http://localhost:5984/_utils/config.html`
+
+Look for `secure_rewrites`.  Double-click the word 'true' next to it. Type `false` and hit enter. 
 
 # API
 
