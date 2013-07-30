@@ -141,6 +141,10 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
                         + diffObj(oldDoc, doc).join("\n"))
   }
 
+  // you may not delete the npm document!
+  if (doc._deleted && doc.name === "npm")
+    throw { forbidden: "you may not delete npm!" }
+
   // deleting a document entirely *is* allowed.
   if (doc._deleted) return
 
