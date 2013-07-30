@@ -191,8 +191,9 @@ views.nodeWafInstall = {
     if (!doc.versions[v]) return
     if (!doc.versions[v].scripts) return
     for (var i in doc.versions[v].scripts) {
-      if (doc.versions[v].scripts[i].indexOf("node-waf") !== -1 ||
-          doc.versions[v].scripts[i].indexOf("make") !== -1) {
+      if (typeof doc.versions[v].scripts[i] === 'string' &&
+          (doc.versions[v].scripts[i].indexOf("node-waf") !== -1 ||
+           doc.versions[v].scripts[i].indexOf("make") !== -1)) {
         emit(doc._id, doc.versions[v]._id)
         return
       }
