@@ -18,7 +18,7 @@ Clone the repository if you haven't already, and cd into it:
     git clone https://github.com/isaacs/npmjs.org.git
     cd npmjs.org
 
-Now globally install couchapp and local dependencies:
+Now globally install couchapp and install local dependencies:
 
     [sudo] npm install couchapp -g
     npm install
