@@ -217,6 +217,20 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     for (var dep in version.dependencies || {}) ridiculousDeps()
     for (var dep in version.devDependencies || {}) ridiculousDeps()
     for (var dep in version.optionalDependencies || {}) ridiculousDeps()
+
+    // NEW versions must only have strings in the 'scripts' field,
+    // and versions that are strictly valid semver 2.0
+    if (oldDoc && oldDoc.versions && !oldDoc.versions[ver]) {
+      assert(semver.valid(ver), "Invalid SemVer 2.0 version: " + ver)
+      if (version.hasOwnProperty('scripts')) {
+        assert(version.scripts && typeof version.scripts === "object",
+               "'scripts' field must be an object")
+        for (var s in version.scripts) {
+          assert(typeof version.scripts[s] === "string",
+                 "Non-string script field: " + s)
+        }
+      }
+    }
   }
 
   assert(Array.isArray(doc.maintainers),
