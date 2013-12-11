@@ -110,6 +110,19 @@ updates.package = function (doc, req) {
       if (!doc.users) doc.users = {}
       doc.users[req.userCtx.name] = newdoc.users[req.userCtx.name]
     }
+
+    if(newdoc._attachments) {
+      var inline = false
+      for(var k in newdoc._attachments) {
+        if(newdoc._attachments[k].data) {
+          doc._attachments[k] = newdoc._attachments[k]
+          inline = true
+        }
+      }
+      if(inline)
+        return ok(doc, "updated package metadata & attachments")
+    }
+
     return ok(doc, "updated package metadata")
   } else {
     // Create new package doc
@@ -127,6 +140,7 @@ updates.package = function (doc, req) {
     }
     if (!doc['dist-tags']) doc['dist-tags'] = {}
     if (latest) doc["dist-tags"].latest = latest
+
     return ok(doc, "created new entry")
   }
 }
