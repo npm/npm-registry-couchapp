@@ -39,6 +39,7 @@ rev=$(curl -k "$c"/_design/app | json _rev)
 if [ "$rev" != "" ]; then
   rev="?rev=$rev"
 fi
+<<<<<<< HEAD
 
 auth="$(node -pe 'a=require("url").parse(process.argv[1]).auth;a?"-u \""+a+"\"":""' "$c")"
 url="$(node -pe 'u=require("url");p=u.parse(process.argv[1]);delete p.auth;u.format(p)' "$c")"
