@@ -337,9 +337,18 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
              "(You probably need to upgrade your npm version)")
       assert(doc.versions[v]._npmUser.name === user.name,
              "_npmUser.name must === user.name")
-      assert(deepEquals(doc.versions[v].maintainers,
-                        doc.maintainers),
-             "modified version 'maintainers' must === doc.maintainers")
+
+      function names (maintainers) {
+        return maintainers.map(function(m) {
+          return m.name
+        }).sort()
+      }
+
+      assert(deepEquals(names(doc.versions[v].maintainers),
+                        names(doc.maintainers)),
+             "modified version " + v + " 'maintainers' must === doc.maintainers\n" +
+             "expected: " + JSON.stringify(doc.maintainers) + "\n" +
+             "actual:   " + JSON.stringify(doc.versions[v].maintainers))
 
       // make sure that the _npmUser is one of the maintainers
       var found = false
