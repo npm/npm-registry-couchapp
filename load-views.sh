@@ -28,9 +28,16 @@ case $c in
   *);;
 esac
 
+host="$(node -pe 'require("url").parse(process.argv[1]).host' "$c")"
+hostname="$(node -pe 'require("url").parse(process.argv[1]).hostname' "$c")"
+ips=($(dig +short "$hostname" | egrep '^[0-9]'))
 
-node -pe 'Object.keys(require("./registry/app.js").views).join("\n")' \
-| while read view; do
-  echo "LOADING: $view"
-  curl -Ik "$c/_design/scratch/_view/$view"
+for ip in "${ips[@]}"; do
+  ipurl="${c/$hostname/$ip}"
+  echo $ip
+  node -pe 'Object.keys(require("./registry/app.js").views).join("\n")' \
+  | while read view; do
+    echo "LOADING: $view"
+    curl -Ik "$ipurl/_design/scratch/_view/$view" -H "host:$host"
+  done
 done
