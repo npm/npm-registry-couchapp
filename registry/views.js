@@ -1,6 +1,21 @@
 
 var views = module.exports = exports = {}
 
+views.oddhost = { map: function (doc) {
+  if (!doc.versions || Object.keys(doc.versions).length === 0)
+    return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
+  Object.keys(doc.versions).forEach(function (v) {
+    var ver = doc.versions[v]
+    if (!ver.dist.tarball.match(/^https?:\/\/registry.npmjs.org\//)) {
+      emit([doc._id, ver._id, ver.dist.tarball], 1)
+    }
+  })
+}, reduce: "_sum" }
+
 views.noCDN = { map: function (doc) {
   if (!doc.versions || Object.keys(doc.versions).length === 0)
     return
