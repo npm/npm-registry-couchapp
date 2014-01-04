@@ -66,6 +66,10 @@ To be snazzier, add a vhost config:
     registry.mydomain.com:5984 = /registry/_design/app/_rewrite
     search.mydomain.com:5984 = /registry/_design/ui/_rewrite
 
+or via curl:
+
+    curl -X PUT http://localhost:5984/_config/vhosts/registry.mydomain.com -d '"/registry/_design/app/_rewrite"'
+    curl -X PUT http://localhost:5984/_config/vhosts/search.mydomain.com -d '"/registry/_design/ui/_rewrite"'
 
 Where `registry.mydomain.com` and `search.mydomain.com` are
 the hostnames where you're running the thing, and `5984` is the
