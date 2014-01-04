@@ -7,7 +7,7 @@ www/ is the code for search.npmjs.org, eventually maybe www.npmjs.org
 # Installing
 
 You'll need CouchDB version 1.1.0 or higher.  We're using some newish features.
-I recommend getting one from http://iriscouch.com/
+I recommend getting one from http://www.iriscouch.com/
 
 Once you have CouchDB installed, create a new database:
 
