@@ -5,6 +5,7 @@ updates.package = function (doc, req) {
 
   var semver = require("semver")
   var valid = require("valid")
+  var now = null
   function error (reason) {
     return [{_id: "error: forbidden", forbidden:reason}, JSON.stringify({forbidden:reason})]
   }
@@ -13,13 +14,13 @@ updates.package = function (doc, req) {
     delete doc.mtime
     delete doc.ctime
     var time = doc.time = doc.time || {}
-    time.modified = (new Date()).toISOString()
+    time.modified = now || (new Date()).toISOString()
     time.created = time.created || time.modified
     for (var v in doc.versions) {
       var ver = doc.versions[v]
       delete ver.ctime
       delete ver.mtime
-      time[v] = time[v] || (new Date()).toISOString()
+      time[v] = time[v] || now || (new Date()).toISOString()
     }
     return [doc, JSON.stringify({ok:message})]
   }
@@ -87,7 +88,7 @@ updates.package = function (doc, req) {
         doc["dist-tags"].latest = body.version
       doc.versions[ver] = body
       doc.time = doc.time || {}
-      doc.time[ver] = (new Date()).toISOString()
+      doc.time[ver] = now = (new Date()).toISOString()
       return ok(doc, "added version")
     }
 
