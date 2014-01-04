@@ -76,6 +76,26 @@ Then for example you can reference the repository like so:
 
     npm config set registry http://registry.mydomain.com:5984
 
+# Contributing Packages
+
+Create a user (saved as `email`, `_auth` and `authCrypt` in `~/.npmrc`)
+
+    npm adduser
+    
+Create `package.json` defaults (all added to `~/.npmrc`)
+
+    npm config set init.author.name "Your Name"
+    npm config set init.author.email "you@example.com"
+    npm config set init.author.url "http://yourblog.com"
+
+Create and publish a package
+
+    mkdir -p ~/new-pacakge-name/lib
+    cd ~/new-package-name
+    touch lib/index.js      # `index.js` is the default `package.json.main`
+    npm init                # creates `package.json` based on prompts and defaults
+    npm publish ./          # pushes the package to npm
+
 # API
 
 ### GET /packagename
