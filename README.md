@@ -9,9 +9,18 @@ www/ is the code for search.npmjs.org, eventually maybe www.npmjs.org
 You'll need CouchDB version 1.1.0 or higher.  We're using some newish features.
 I recommend getting one from http://iriscouch.com/
 
-Once you have CouchDB installed, create a new database:
+Once you have CouchDB installed, begin by setting some handy
+environment variables related to your CouchDB installation:
 
-    curl -X PUT http://localhost:5984/registry
+    export username=admin
+    export password=********
+    export host=localhost
+    export port=5984
+    export couch=http://$username:$password@$host:$port/registry
+
+Now, create a new database:
+
+    curl -X PUT $couch
 
 Clone the repository if you haven't already, and cd into it:
 
@@ -26,13 +35,10 @@ Now install couchapp and semver:
 
 Sync the registry and search:
 
-    couchapp push registry/app.js http://localhost:5984/registry
-    couchapp push www/app.js http://localhost:5984/registry
+    export npm_package_config_couch=$couch
+    ./push.sh
 
-You may need to put a username and password in the URL:
-
-    couchapp push www/app.js http://user:pass@localhost:5984/registry
-    couchapp push registry/app.js http://user:pass@localhost:5984/registry
+Follow the instructions echoed by push.sh
 
 To synchronize from the public npm registry to your private registry,
 create a replication task from http://isaacs.ic.ht/registry --> local
@@ -40,7 +46,7 @@ database registry. This can be done through Futon (the CouchDB administrative
 UI) or via an HTTP call to '/_replicate like so:
 
     curl -X POST -H "Content-Type:application/json" \
-        http://localhost:5984/_replicate -d \
+        $couch/_replicate -d \
         '{"source":"http://isaacs.iriscouch.com/registry/", "target":"registry"}'
 
 # Using the registry with the npm client
