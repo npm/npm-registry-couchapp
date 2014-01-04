@@ -9,9 +9,34 @@ www/ is the code for search.npmjs.org, eventually maybe www.npmjs.org
 You'll need CouchDB version 1.1.0 or higher.  We're using some newish features.
 I recommend getting one from http://iriscouch.com/
 
-Once you have CouchDB installed, create a new database:
+***
 
-    curl -X PUT http://localhost:5984/registry
+### Note for those using an internal server running Ubuntu
+
+Replication will fail as in [#19](https://github.com/isaacs/npmjs.org/issues/19), [#39](https://github.com/isaacs/npmjs.org/issues/39), [#11](https://github.com/isaacs/npmjs.org/issues/11), etc. if you use the default ubuntu package *OR* install from source via the apache source package.
+
+You will need the ppa from [novacut/daily](http://stackoverflow.com/questions/11602182/replication-to-iriscouch-fails#answer-13831087)[1]
+
+	sudo apt-add-repository ppa:novacut/daily
+	sudo apt-get update
+	sudo apt-get install couchdb
+
+***
+
+To synchronize from the public npm registry to your private registry,
+create a replication task from http://isaacs.ic.ht/registry --> local
+database registry. This can be done through Futon (the CouchDB administrative
+UI) or via an HTTP call to '/_replicate like so:
+
+    curl -X POST -H "Content-Type:application/json" \
+        http://localhost:5984/_replicate -d \
+        '{"source":"http://isaacs.iriscouch.com/registry/","target":"registry","create_target":true}'
+
+You may need to put a username and password in the target URL:
+
+    curl -X POST -H "Content-Type:application/json" \
+        http://localhost:5984/_replicate -d \
+        '{"source":"http://isaacs.iriscouch.com/registry/","target":"http://admin:password@localhost:5984/registry","create_target":true}'
 
 Clone the repository if you haven't already, and cd into it:
 
@@ -34,14 +59,6 @@ You may need to put a username and password in the URL:
     couchapp push www/app.js http://user:pass@localhost:5984/registry
     couchapp push registry/app.js http://user:pass@localhost:5984/registry
 
-To synchronize from the public npm registry to your private registry,
-create a replication task from http://isaacs.ic.ht/registry --> local
-database registry. This can be done through Futon (the CouchDB administrative
-UI) or via an HTTP call to '/_replicate like so:
-
-    curl -X POST -H "Content-Type:application/json" \
-        http://localhost:5984/_replicate -d \
-        '{"source":"http://isaacs.iriscouch.com/registry/", "target":"registry"}'
 
 # Using the registry with the npm client
 
@@ -150,3 +167,5 @@ MUST be a JSON string as the body. Example:
     "0.1.2"
 
 Must have `content-type:application/json`.
+
+[1] - http://stackoverflow.com/questions/11602182/replication-to-iriscouch-fails#answer-13831087#answer-13831087
