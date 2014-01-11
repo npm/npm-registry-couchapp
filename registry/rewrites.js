@@ -66,6 +66,12 @@ module.exports =
   , { from: "/:pkg/:version/-/jsonp/:jsonp", to: "_show/package/:pkg"
     , method: "GET" }
 
+  , { from: "/npm/public/registry/:pkg/_attachments/:att", to: "../../:pkg/:att", method: "GET" }
+  , { from: "/npm/public/registry/:pkg/_attachments/:att/:rev", to: "../../:pkg/:att", method: "PUT" }
+  , { from: "/npm/public/registry/:pkg/_attachments/:att/-rev/:rev", to: "../../:pkg/:att", method: "PUT" }
+  , { from: "/npm/public/registry/:pkg/_attachments/:att/:rev", to: "../../:pkg/:att", method: "DELETE" }
+  , { from: "/npm/public/registry/:pkg/_attachments/:att/-rev/:rev", to: "../../:pkg/:att", method: "DELETE" }
+
   , { from: "/:pkg/-/:att", to: "../../:pkg/:att", method: "GET" }
   , { from: "/:pkg/-/:att/:rev", to: "../../:pkg/:att", method: "PUT" }
   , { from: "/:pkg/-/:att/-rev/:rev", to: "../../:pkg/:att", method: "PUT" }
