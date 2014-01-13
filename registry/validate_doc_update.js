@@ -336,20 +336,25 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
       assert(typeof doc.versions[v]._npmUser === "object",
              "_npmUser field must be object\n"+
              "(You probably need to upgrade your npm version)")
-      assert(doc.versions[v]._npmUser.name === user.name,
+
+      var _npmUser = doc.versions[v]._npmUser
+      assert(_npmUser.name === user.name,
+             "version=" + v + "\n" +
+             "user.name=" + user.name + "\n" +
+             "_npmUser.name=" + _npmUser.name + "\n" +
              "_npmUser.name must === user.name")
 
-      function names (maintainers) {
-        return maintainers.map(function(m) {
-          return m.name
-        }).sort()
-      }
+      // function names (maintainers) {
+      //   return maintainers.map(function(m) {
+      //     return m.name
+      //   }).sort()
+      // }
 
-      assert(deepEquals(names(doc.versions[v].maintainers),
-                        names(doc.maintainers)),
-             "modified version " + v + " 'maintainers' must === doc.maintainers\n" +
-             "expected: " + JSON.stringify(doc.maintainers) + "\n" +
-             "actual:   " + JSON.stringify(doc.versions[v].maintainers))
+      // assert(deepEquals(names(doc.versions[v].maintainers),
+      //                   names(doc.maintainers)),
+      //        "modified version " + v + " 'maintainers' must === doc.maintainers\n" +
+      //        "expected: " + JSON.stringify(doc.maintainers) + "\n" +
+      //        "actual:   " + JSON.stringify(doc.versions[v].maintainers))
 
       // make sure that the _npmUser is one of the maintainers
       var found = false
