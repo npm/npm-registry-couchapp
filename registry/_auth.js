@@ -131,6 +131,12 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx, secObj) {
     return false; // default to no admin
   }
 
+  if (newDoc.name.length > 50) {
+    throw({
+      forbidden: 'Username is too long.  Pick a shorter one.'
+    })
+  }
+
   if (!is_server_or_database_admin(userCtx, secObj)) {
     if (oldDoc) { // validate non-admin updates
       if (userCtx.name !== newDoc.name) {
