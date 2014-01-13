@@ -159,6 +159,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   }
 
   assert(doc.name === doc._id, "name must match _id")
+  assert(doc.name.length < 512, "name is too long")
   assert(!doc.mtime, "doc.mtime is deprecated")
   assert(!doc.ctime, "doc.ctime is deprecated")
   assert(typeof doc.time === "object", "time must be object")
