@@ -25,6 +25,7 @@ updates.package = function (doc, req) {
     return [doc, JSON.stringify({ok:message})]
   }
 
+  var README_MAXLEN = 64 * 1024
   function readmeTrim(doc) {
     var readme = doc.readme || ''
     var readmeFilename = doc.readmeFilename || ''
@@ -33,8 +34,6 @@ updates.package = function (doc, req) {
       if (latest && latest.readme) {
         readme = latest.readme
         readmeFilename = latest.readmeFilename || ''
-        if (readme.length > 2*1024*1024)
-          readme = readme.slice(0, 2*1024*1024)
       }
       for (var v in doc.versions) {
         // If we still don't have one, just take the first one.
@@ -47,6 +46,10 @@ updates.package = function (doc, req) {
         delete doc.versions[v].readmeFilename
       }
     }
+
+    if (readme && readme.length > README_MAXLEN)
+      readme = readme.slice(0, README_MAXLEN)
+
     doc.readme = readme
     doc.readmeFilename = readmeFilename
   }
