@@ -198,7 +198,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   }
 
   var depCount = 0
-  var maxDeps = 5000
+  var maxDeps = 1000
   function ridiculousDeps() {
     if (++depCount > maxDeps)
       assert(false, "too many deps.  please be less ridiculous.")
@@ -302,16 +302,22 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   var oldVersions = oldDoc ? oldDoc.versions || {} : {}
   var oldTime = oldDoc ? oldDoc.time || {} : {}
 
-  var versions = Object.keys(doc.versions)
+  var versions = Object.keys(doc.versions || {})
     , modified = null
+    , allowedChange = [["directories"], ["deprecated"]]
 
   for (var i = 0, l = versions.length; i < l; i ++) {
     var v = versions[i]
     if (!v) continue
     assert(doc.time[v], "must have time entry for "+v)
 
-    if (!deepEquals(doc.versions[v], oldVersions[v], [["directories"], ["deprecated"]]) &&
-        doc.versions[v]) {
+    // new npm's "fix" the version
+    // but that makes it look like it's been changed.
+    if (doc && doc.versions[v] && oldDoc && oldDoc.versions[v])
+      doc.versions[v].version = oldDoc.versions[v].version
+
+    if (doc.versions[v] && oldDoc && oldDoc.versions[v] &&
+        !deepEquals(doc.versions[v], oldVersions[v], allowedChange)) {
       // this one was modified
       // if it's more than a few minutes off, then something is wrong.
       var t = Date.parse(doc.time[v])
@@ -342,6 +348,8 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
              "version=" + v + "\n" +
              "user.name=" + user.name + "\n" +
              "_npmUser.name=" + _npmUser.name + "\n" +
+             //"new=" + JSON.stringify(doc.versions[v]) + "\n" +
+             //"old=" + JSON.stringify(oldVersions[v]) + "\n" +
              "_npmUser.name must === user.name")
 
       // function names (maintainers) {
