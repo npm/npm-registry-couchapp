@@ -313,8 +313,13 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
     // new npm's "fix" the version
     // but that makes it look like it's been changed.
-    if (doc && doc.versions[v] && oldDoc && oldDoc.versions[v])
+    if (doc && doc.versions[v] && oldDoc && oldDoc.versions[v]) {
       doc.versions[v].version = oldDoc.versions[v].version
+
+      // *removing* a readme is fine, too
+      if (!doc.versions[v].readme && oldDoc.versions[v].readme)
+        doc.versions[v].readme = oldDoc.versions[v].readme
+    }
 
     if (doc.versions[v] && oldDoc && oldDoc.versions[v] &&
         !deepEquals(doc.versions[v], oldVersions[v], allowedChange)) {
