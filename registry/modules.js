@@ -78,7 +78,7 @@ exports.valid =
   , 'exports.package = validPackage'
   , function validName (name) {
      if (!name) return false
-     var n = name.trim()
+     var n = name.replace(/^\s+|\s+$/g, '')
      if (!n || n.charAt(0) === "."
          || !n.match(/^[a-zA-Z0-9]/)
          || n.match(/[\/\(\)&\?#\|<>@:%\s\\\*'"!~`]/)

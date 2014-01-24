@@ -2,6 +2,18 @@
 var views = module.exports = exports = {}
 
 views.oddhost = { map: function (doc) {
+  Object.keys = Object.keys || function keys (o) {
+      var a = []
+      for (var i in o) a.push(i)
+      return a }
+  Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
+      for (var i = 0, l = this.length; i < l; i ++) {
+        if (this.hasOwnProperty(i)) {
+          fn(this[i], i, this)
+        }
+      }
+    }
+
   if (!doc.versions || Object.keys(doc.versions).length === 0)
     return
   if (doc._id.match(/^npm-test-.+$/) &&
@@ -17,6 +29,18 @@ views.oddhost = { map: function (doc) {
 }, reduce: "_sum" }
 
 views.noCDN = { map: function (doc) {
+  Object.keys = Object.keys || function keys (o) {
+      var a = []
+      for (var i in o) a.push(i)
+      return a }
+  Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
+      for (var i = 0, l = this.length; i < l; i ++) {
+        if (this.hasOwnProperty(i)) {
+          fn(this[i], i, this)
+        }
+      }
+    }
+
   if (!doc.versions || Object.keys(doc.versions).length === 0)
     return
   Object.keys(doc.versions).forEach(function(v) {
@@ -110,6 +134,17 @@ views.countVersions = { map: function (doc) {
 
 views.byKeyword = {
   map: function (doc) {
+    Array.isArray = Array.isArray || function isArray (a) {
+      return a instanceof Array
+        || Object.prototype.toString.call(a) === "[object Array]"
+        || (typeof a === "object" && typeof a.length === "number") }
+  Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
+      for (var i = 0, l = this.length; i < l; i ++) {
+        if (this.hasOwnProperty(i)) {
+          fn(this[i], i, this)
+        }
+      }
+    }
     if (!doc || !doc.versions || !doc['dist-tags'] || doc.deprecated) return
     if (doc._id.match(/^npm-test-.+$/) &&
         doc.maintainers &&
@@ -126,6 +161,18 @@ views.byKeyword = {
 
 views.byField = {
   map: function (doc) {
+  Object.keys = Object.keys || function keys (o) {
+      var a = []
+      for (var i in o) a.push(i)
+      return a }
+  Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
+      for (var i = 0, l = this.length; i < l; i ++) {
+        if (this.hasOwnProperty(i)) {
+          fn(this[i], i, this)
+        }
+      }
+    }
+
     if (!doc || !doc.versions || !doc["dist-tags"]) return
     if (doc._id.match(/^npm-test-.+$/) &&
         doc.maintainers &&
@@ -152,6 +199,18 @@ views.byField = {
 
 views.needBuild = {
   map : function (doc) {
+
+  Object.keys = Object.keys || function keys (o) {
+      var a = []
+      for (var i in o) a.push(i)
+      return a }
+  Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
+      for (var i = 0, l = this.length; i < l; i ++) {
+        if (this.hasOwnProperty(i)) {
+          fn(this[i], i, this)
+        }
+      }
+    }
 
     if (!doc || !doc.versions || !doc["dist-tags"]) return
     if (doc._id.match(/^npm-test-.+$/) &&
@@ -218,6 +277,11 @@ views.nodeWafInstall = {
 
 views.badBins = {
   map : function (doc) {
+  Object.keys = Object.keys || function keys (o) {
+      var a = []
+      for (var i in o) a.push(i)
+      return a }
+
     if (!doc || !doc.versions || !doc["dist-tags"]) return
     if (doc._id.match(/^npm-test-.+$/) &&
         doc.maintainers &&
@@ -283,6 +347,18 @@ views.noAttachment = {
 }
 
 views.starredByUser = { map : function (doc) {
+  Object.keys = Object.keys || function keys (o) {
+      var a = []
+      for (var i in o) a.push(i)
+      return a }
+  Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
+      for (var i = 0, l = this.length; i < l; i ++) {
+        if (this.hasOwnProperty(i)) {
+          fn(this[i], i, this)
+        }
+      }
+    }
+
   if (!doc || !doc.users) return
   if (doc._id.match(/^npm-test-.+$/) && doc.maintainers[0].name === 'isaacs')
     return
@@ -293,6 +369,19 @@ views.starredByUser = { map : function (doc) {
 }}
 
 views.starredByPackage = { map : function (doc) {
+  Object.keys = Object.keys || function keys (o) {
+      var a = []
+      for (var i in o) a.push(i)
+      return a }
+
+  Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
+      for (var i = 0, l = this.length; i < l; i ++) {
+        if (this.hasOwnProperty(i)) {
+          fn(this[i], i, this)
+        }
+      }
+    }
+
   if (!doc || !doc.users) return
   if (doc._id.match(/^npm-test-.+$/) &&
       doc.maintainers &&
@@ -310,6 +399,13 @@ views.byUser = { map : function (doc) {
       doc.maintainers &&
       doc.maintainers[0].name === 'isaacs')
     return
+  Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
+      for (var i = 0, l = this.length; i < l; i ++) {
+        if (this.hasOwnProperty(i)) {
+          fn(this[i], i, this)
+        }
+      }
+    }
   doc.maintainers.forEach(function (m) {
     emit(m.name, doc._id)
   })
@@ -318,6 +414,13 @@ views.byUser = { map : function (doc) {
 
 
 views.browseAuthorsRecent = { map: function (doc) {
+  Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
+      for (var i = 0, l = this.length; i < l; i ++) {
+        if (this.hasOwnProperty(i)) {
+          fn(this[i], i, this)
+        }
+      }
+    }
   if (!doc || !doc.maintainers || doc.deprecated) return
   if (doc._id.match(/^npm-test-.+$/) &&
       doc.maintainers &&
@@ -338,6 +441,13 @@ views.browseAuthorsRecent = { map: function (doc) {
 }, reduce: "_sum" }
 
 views.browseAuthors = views.npmTop = { map: function (doc) {
+  Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
+      for (var i = 0, l = this.length; i < l; i ++) {
+        if (this.hasOwnProperty(i)) {
+          fn(this[i], i, this)
+        }
+      }
+    }
   if (!doc || !doc.maintainers || doc.deprecated) return
   if (doc._id.match(/^npm-test-.+$/) &&
       doc.maintainers &&
@@ -369,6 +479,19 @@ views.browseUpdated = { map: function (doc) {
   if (!v) return
   var d = new Date(t)
   if (!d.getTime()) return
+
+  Date.prototype.toISOString = Date.prototype.toISOString ||
+  function toISOString () { return ISODateString(this) }
+  function pad(n){return n<10 ? '0'+n : n}
+  function ISODateString(){
+      var d = this
+      return d.getUTCFullYear()+'-'
+           + pad(d.getUTCMonth()+1)+'-'
+           + pad(d.getUTCDate())+'T'
+           + pad(d.getUTCHours())+':'
+           + pad(d.getUTCMinutes())+':'
+           + pad(d.getUTCSeconds())+'Z'}
+
   emit([ d.toISOString(),
          doc._id,
          v.description,

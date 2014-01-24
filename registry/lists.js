@@ -32,6 +32,18 @@ lists.short = function (head, req) {
 
 
 lists.rss = function (head, req) {
+  Date.prototype.toISOString = Date.prototype.toISOString ||
+  function toISOString () { return ISODateString(this) }
+  function pad(n){return n<10 ? '0'+n : n}
+  function ISODateString(){
+      var d = this
+      return d.getUTCFullYear()+'-'
+           + pad(d.getUTCMonth()+1)+'-'
+           + pad(d.getUTCDate())+'T'
+           + pad(d.getUTCHours())+':'
+           + pad(d.getUTCMinutes())+':'
+           + pad(d.getUTCSeconds())+'Z'}
+
   var limit = +req.query.limit
     , desc = req.query.descending
   if (!desc || !limit || limit > 50 || limit < 0) {
@@ -77,7 +89,8 @@ lists.rss = function (head, req) {
         +'\n      <link>' + url + '</link>'
         +'\n      ' + authors
         +'\n      <description><![CDATA['
-          + (doc.description || '').trim() + ']]></description>'
+          + (doc.description || '').replace(/^\s+|\s+$/g, '')
+          + ']]></description>'
         +'\n      <pubDate>' + date.toISOString() + '</pubDate>'
         +'\n    </item>')
   }
