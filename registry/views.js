@@ -255,6 +255,33 @@ views.orphanAttachments = {
   }
 }
 
+views.noAttachment = {
+  map: function (doc) {
+    if (!doc || !doc._id) return
+    var att = doc._attachments || {}
+    var versions = doc.versions || {}
+    var missing = []
+    for (var i in versions) {
+      var v = versions[i]
+      if (!v.dist || !v.dist.tarball) {
+        emit([doc._id, i, null], 1)
+        continue
+      }
+      var f = v.dist.tarball.match(/([^\/]+\.tgz$)/)
+      if (!f) {
+        emit([doc._id, i, v.dist.tarball], 1)
+        continue
+      }
+      f = f[1]
+      if (!f || !att[f]) {
+        emit([doc._id, i, v.dist.tarball], 1)
+        continue
+      }
+    }
+  },
+  reduce: "_sum"
+}
+
 views.starredByUser = { map : function (doc) {
   if (!doc || !doc.users) return
   if (doc._id.match(/^npm-test-.+$/) && doc.maintainers[0].name === 'isaacs')
