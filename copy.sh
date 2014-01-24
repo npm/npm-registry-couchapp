@@ -43,6 +43,6 @@ fi
 auth="$(node -pe 'a=require("url").parse(process.argv[1]).auth;a?"-u \""+a+"\"":""' "$c")"
 url="$(node -pe 'u=require("url");p=u.parse(process.argv[1]);delete p.auth;u.format(p)' "$c")"
 
-curl -k $auth "$url/_design/scratch" \
+curl -k ${auth:+-u "$auth"} "$url/_design/scratch" \
   -X COPY \
   -H destination:'_design/app'$rev
