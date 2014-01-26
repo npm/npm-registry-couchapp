@@ -89,7 +89,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   try {
     assert(!doc.forbidden || doc._deleted, doc.forbidden)
   } catch (er) {
-    assert(false, "failed checking doc.forbidden or doc._deleted")
+    assert(false, "failed checking doc.forbidden or doc._deleted\n" + doc.forbidden)
   }
 
   // everyone may alter his "starred" status on any package

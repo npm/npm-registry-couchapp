@@ -134,7 +134,7 @@ updates.package = function (doc, req) {
     var newdoc = JSON.parse(req.body)
       , changed = false
     if (doc._rev && doc._rev !== newdoc._rev) {
-      return error( "must supply latest _rev to update existing package" )
+      return [newdoc, JSON.stringify({error:'409 should happen now'})]
     }
     for (var i in newdoc) if (typeof newdoc[i] === "string" || i === "maintainers") {
       doc[i] = newdoc[i]
@@ -151,6 +151,7 @@ updates.package = function (doc, req) {
     }
 
     if(newdoc._attachments) {
+      if (!doc._attachments) doc._attachments = {}
       var inline = false
       for(var k in newdoc._attachments) {
         if(newdoc._attachments[k].data) {
