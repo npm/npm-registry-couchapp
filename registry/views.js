@@ -480,11 +480,10 @@ views.browseUpdated = { map: function (doc) {
   var d = new Date(t)
   if (!d.getTime()) return
 
-  Date.prototype.toISOString = Date.prototype.toISOString ||
-  function toISOString () { return ISODateString(this) }
   function pad(n){return n<10 ? '0'+n : n}
-  function ISODateString(){
-      var d = this
+  Date.prototype.toISOString = Date.prototype.toISOString ||
+    function toISOString(){
+      var d = this;
       return d.getUTCFullYear()+'-'
            + pad(d.getUTCMonth()+1)+'-'
            + pad(d.getUTCDate())+'T'
