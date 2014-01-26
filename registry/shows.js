@@ -11,6 +11,8 @@ shows.package = function (doc, req) {
 
   delete doc.ctime
   delete doc.mtime
+  if (!doc._attachments) doc._attachments = {}
+
   if (doc.versions) Object.keys(doc.versions).forEach(function (v) {
     delete doc.versions[v].ctime
     delete doc.versions[v].mtime
@@ -77,8 +79,6 @@ shows.package = function (doc, req) {
         var h = "http://" + req.headers.Host
 
         doc.versions[v].dist.tarball = h + t
-      } else {
-        doc.versions[v].dist.noattachment = true
       }
     }
   }
