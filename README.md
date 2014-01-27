@@ -34,6 +34,26 @@ You may need to put a username and password in the URL:
     couchapp push www/app.js http://user:pass@localhost:5984/registry
     couchapp push registry/app.js http://user:pass@localhost:5984/registry
 
+# Vhosts
+
+Add a vhost config:
+
+    [vhosts]
+    registry.mydomain.com:5984 = /registry/_design/app/_rewrite
+    search.mydomain.com:5984 = /registry/_design/ui/_rewrite
+
+
+Where `registry.mydomain.com` and `search.mydomain.com` are
+the hostnames where you're running the thing, and `5984` is the
+port that CouchDB is running on. If you're running on port 80,
+then omit the port altogether.
+
+Then for example you can reference the repository like so:
+
+    npm config set registry http://registry.mydomain.com:5984
+
+# Replicate (optional)
+
 To synchronize from the public npm registry to your private registry,
 create a replication task from http://isaacs.ic.ht/registry --> local
 database registry. This can be done through Futon (the CouchDB administrative
@@ -57,24 +77,6 @@ You can also set the npm registry config property like:
 Or you can simple override the registry config on each call:
 
     npm --registry http://localhost:5984/registry/_design/app/_rewrite install <package>
-
-# Optional: top-of-host urls
-
-To be snazzier, add a vhost config:
-
-    [vhosts]
-    registry.mydomain.com:5984 = /registry/_design/app/_rewrite
-    search.mydomain.com:5984 = /registry/_design/ui/_rewrite
-
-
-Where `registry.mydomain.com` and `search.mydomain.com` are
-the hostnames where you're running the thing, and `5984` is the
-port that CouchDB is running on. If you're running on port 80,
-then omit the port altogether.
-
-Then for example you can reference the repository like so:
-
-    npm config set registry http://registry.mydomain.com:5984
 
 # API
 
