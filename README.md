@@ -34,33 +34,9 @@ You may need to put a username and password in the URL:
     couchapp push www/app.js http://user:pass@localhost:5984/registry
     couchapp push registry/app.js http://user:pass@localhost:5984/registry
 
-To synchronize from the public npm registry to your private registry,
-create a replication task from http://isaacs.ic.ht/registry --> local
-database registry. This can be done through Futon (the CouchDB administrative
-UI) or via an HTTP call to '/_replicate like so:
+# Vhosts
 
-    curl -X POST -H "Content-Type:application/json" \
-        http://localhost:5984/_replicate -d \
-        '{"source":"http://isaacs.iriscouch.com/registry/", "target":"registry"}'
-
-# Using the registry with the npm client
-
-With the setup so far, you can point the npm client at the registry by
-putting this in your ~/.npmrc file:
-
-    registry = http://localhost:5984/registry/_design/app/_rewrite
-
-You can also set the npm registry config property like:
-
-    npm config set registry http://localhost:5984/registry/_design/app/_rewrite
-
-Or you can simple override the registry config on each call:
-
-    npm --registry http://localhost:5984/registry/_design/app/_rewrite install <package>
-
-# Optional: top-of-host urls
-
-To be snazzier, add a vhost config:
+Add a vhost config:
 
     [vhosts]
     registry.mydomain.com:5984 = /registry/_design/app/_rewrite
@@ -75,6 +51,34 @@ then omit the port altogether.
 Then for example you can reference the repository like so:
 
     npm config set registry http://registry.mydomain.com:5984
+
+Note that you may have to set the configuration field *secure_rewrites* to `false` to prevent a couchdb error `Error: insecure_rewrite_rule too many ../.. segments`.
+
+# Replicate (optional)
+
+To synchronize from the public npm registry to your private registry,
+create a replication task from http://isaacs.ic.ht/registry --> local
+database registry. This can be done through Futon (the CouchDB administrative
+UI) or via an HTTP call to '/_replicate like so:
+
+    curl -X POST -H "Content-Type:application/json" \
+        http://localhost:5984/_replicate -d \
+        '{"source":"http://isaacs.iriscouch.com/registry/", "target":"registry"}'
+
+# Using the registry with the npm client
+
+With the setup so far, you can point the npm client at the registry by
+putting this in your ~/.npmrc file:
+
+    registry = http://registry.mydomain.com:5984
+
+You can also set the npm registry config property like:
+
+    npm config set registry http://registry.mydomain.com:5984
+
+Or you can simple override the registry config on each call:
+
+    npm --registry http://registry.mydomain.com:5984 install <package>
 
 # API
 
