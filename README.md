@@ -52,6 +52,8 @@ Then for example you can reference the repository like so:
 
     npm config set registry http://registry.mydomain.com:5984
 
+Note that you may have to set the configuration field *secure_rewrites* to `false` to prevent a couchdb error `Error: insecure_rewrite_rule too many ../.. segments`.
+
 # Replicate (optional)
 
 To synchronize from the public npm registry to your private registry,
@@ -68,15 +70,15 @@ UI) or via an HTTP call to '/_replicate like so:
 With the setup so far, you can point the npm client at the registry by
 putting this in your ~/.npmrc file:
 
-    registry = http://localhost:5984/registry/_design/app/_rewrite
+    registry = http://registry.mydomain.com:5984
 
 You can also set the npm registry config property like:
 
-    npm config set registry http://localhost:5984/registry/_design/app/_rewrite
+    npm config set registry http://registry.mydomain.com:5984
 
 Or you can simple override the registry config on each call:
 
-    npm --registry http://localhost:5984/registry/_design/app/_rewrite install <package>
+    npm --registry http://registry.mydomain.com:5984 install <package>
 
 # API
 
