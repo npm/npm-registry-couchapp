@@ -1,6 +1,22 @@
 
 var views = module.exports = exports = {}
 
+views.norevs = { map: function (doc) {
+  if (doc._revisions && doc._revisions.ids.length === 1 &&
+      doc._revisions.start > 3) {
+    // we have a problem
+    emit(doc._id, 1)
+  }
+}, reduce: "_sum" }
+
+views.conflicts = { map: function (doc) {
+  if (doc._conflicts) {
+    for (var i = 0; i < doc._conflicts.length; i++) {
+      emit([doc._id, doc._conflicts[i]], 1)
+    }
+  }
+}, reduce: "_sum" }
+
 views.oddhost = { map: function (doc) {
   Object.keys = Object.keys || function keys (o) {
       var a = []
