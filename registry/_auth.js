@@ -275,6 +275,15 @@ ddoc.views = {
   }, reduce: '_sum'}
 }
 
+ddoc.views.conflicts = { map: function (doc) {
+  if (doc._conflicts) {
+    for (var i = 0; i < doc._conflicts.length; i++) {
+      emit([doc._id, doc._conflicts[i]], 1)
+    }
+  }
+}, reduce: "_sum" }
+
+
 if (require.main === module) {
   console.log(JSON.stringify(ddoc, function (k, v) {
     if (typeof v !== 'function') return v;
