@@ -62,7 +62,6 @@ EOF
 c=${c/PASSWORD/$PASSWORD}
 c=${c// /%20}
 which couchapp
-couchapp push registry/shadow.js "$c" && \
 couchapp push registry/app.js "$c" && \
 scratch_message && \
 exit 0 || \
