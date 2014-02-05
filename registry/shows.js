@@ -29,6 +29,7 @@ shows.package = function (doc, req) {
       p._id = p.name + '@' + p.version
       doc.versions[clean] = p
     }
+
     if (doc.versions[v].dist.tarball) {
       // if there is an attachment for this tarball, then use that.
       // make it point at THIS registry that is being requested,
@@ -89,6 +90,7 @@ shows.package = function (doc, req) {
   }
   // end kludge
 
+
   if (req.query.version) {
     // could be either one!
     // if it's a fuzzy version or a range, use the max satisfying version
@@ -136,3 +138,43 @@ shows.package = function (doc, req) {
   }
 }
 
+
+shows.new_package = function (doc, req) {
+  var semver = require("semver")
+    , code = 200
+    , headers = {"Content-Type":"application/json"}
+    , body = null
+
+  if (!doc._attachments) doc._attachments = {}
+
+  if (req.query.version) {
+    // could be either one!
+    // if it's a fuzzy version or a range, use the max satisfying version
+    var ver = req.query.version
+    var clean = semver.maxSatisfying(Object.keys(doc.versions), ver, true)
+
+    if (clean && clean !== ver && (clean in doc.versions))
+      ver = clean
+
+    // if not a valid version, then treat as a tag.
+    if ((!(ver in doc.versions) && (ver in doc["dist-tags"]))
+        || !semver.valid(ver)) {
+      ver = doc["dist-tags"][ver]
+    }
+    body = doc.versions[ver]
+    if (!body) {
+      code = 404
+      body = {"error" : "version not found: "+req.query.version}
+    }
+  } else {
+    body = doc
+  }
+
+  body = toJSON(body)
+
+  return {
+    code : code,
+    body : body,
+    headers : headers
+  }
+}
