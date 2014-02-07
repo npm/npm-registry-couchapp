@@ -5,13 +5,15 @@
   "scripts": {
     "start": "./push.sh",
     "load": "bash -x ./load-views.sh",
-    "copy": "bash -x ./copy.sh"
+    "copy": "bash -x ./copy.sh",
+    "test": "tap test/*.js"
   },
   "dependencies": {
     "couchapp": "~0.9",
     "semver": "~2.1.0"
   },
   "devDependencies": {
-    "jsontool": "~4.0.0"
+    "jsontool": "~4.0.0",
+    "test": "*"
   }
 }
