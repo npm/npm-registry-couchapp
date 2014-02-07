@@ -4,11 +4,12 @@
   "description": "The npmjs.org registry couchapp",
   "scripts": {
     "start": "./push.sh",
-    "load": "bash -x ./load-views.sh",
-    "copy": "bash -x ./copy.sh"
+    "load": "bash ./load-views.sh",
+    "copy": "bash ./copy.sh",
+    "test": "tap test/*.js"
   },
   "dependencies": {
-    "couchapp": "~0.10.0",
+    "couchapp": "~0.10",
     "semver": "~2.1.0"
   },
   "devDependencies": {
