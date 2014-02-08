@@ -35,7 +35,7 @@ Now install the stuff:
 
 Sync the ddoc to `_design/scratch`
 
-    npm run push \
+    npm start \
       --npmjs.org:couch=http://admin:password@localhost:5984/registry
 
 Next, make sure that views are loaded:
