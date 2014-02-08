@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "jsontool": "~4.0.0",
-    "tap": "*"
+    "tap": "*",
+    "rimraf": "~2.2.6"
   }
 }
