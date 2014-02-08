@@ -6,7 +6,7 @@ updates.package = function (doc, req) {
   var semver = require("semver")
   var valid = require("valid")
   function error (reason) {
-    return [{_id: "error: forbidden", forbidden:reason}, JSON.stringify({forbidden:reason})]
+    return [{_id: "_error_", forbidden:reason}, JSON.stringify({forbidden:reason})]
   }
 
   function ok (doc, message) {
