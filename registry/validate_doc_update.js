@@ -23,6 +23,51 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     assert(false, "failed loading modules")
   }
 
+  // We always allow anyone to remove extraneous readme data,
+  // and this is done in the process of starring or other non-publish
+  // updates that go through the _update/package function anyway.
+  // Just trim both, and go from that assumption.
+  var README_MAXLEN = 64 * 1024
+  function readmeTrim(doc) {
+    var changed = false
+    var readme = doc.readme || ''
+    var readmeFilename = doc.readmeFilename || ''
+
+    if (doc['dist-tags'] && doc['dist-tags'].latest) {
+      var latest = doc.versions[doc['dist-tags'].latest]
+      if (latest && latest.readme) {
+        readme = latest.readme
+        readmeFilename = latest.readmeFilename || ''
+      }
+    }
+
+    for (var v in doc.versions) {
+      // If we still don't have one, just take the first one.
+      if (doc.versions[v].readme && !readme)
+        readme = doc.versions[v].readme
+      if (doc.versions[v].readmeFilename && !readmeFilename)
+        readmeFilename = doc.versions[v].readmeFilename
+
+      if (doc.versions[v].readme)
+        changed = true
+
+      delete doc.versions[v].readme
+      delete doc.versions[v].readmeFilename
+    }
+
+    if (readme && readme.length > README_MAXLEN) {
+      changed = true
+      readme = readme.slice(0, README_MAXLEN)
+    }
+    doc.readme = readme
+    doc.readmeFilename = readmeFilename
+
+    return changed
+  }
+
+  if (doc.versions) readmeTrim(doc)
+  if (oldDoc && oldDoc.versions) readmeTrim(oldDoc)
+
   try {
     if (oldDoc) oldDoc.users = oldDoc.users || {}
     doc.users = doc.users || {}
@@ -307,46 +352,6 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     , allowedChange = [["directories"], ["deprecated"]]
 
 
-
-  var README_MAXLEN = 64 * 1024
-  function readmeTrim(doc) {
-    var changed = false
-    var readme = doc.readme || ''
-    var readmeFilename = doc.readmeFilename || ''
-    if (doc['dist-tags'] && doc['dist-tags'].latest) {
-      var latest = doc.versions[doc['dist-tags'].latest]
-      if (latest && latest.readme) {
-        readme = latest.readme
-        readmeFilename = latest.readmeFilename || ''
-      }
-    }
-
-    for (var v in doc.versions) {
-      // If we still don't have one, just take the first one.
-      if (doc.versions[v].readme && !readme)
-        readme = doc.versions[v].readme
-      if (doc.versions[v].readmeFilename && !readmeFilename)
-        readmeFilename = doc.versions[v].readmeFilename
-
-      if (doc.versions[v].readme)
-        changed = true
-
-      delete doc.versions[v].readme
-      delete doc.versions[v].readmeFilename
-    }
-
-    if (readme && readme.length > README_MAXLEN) {
-      changed = true
-      readme = readme.slice(0, README_MAXLEN)
-    }
-    doc.readme = readme
-    doc.readmeFilename = readmeFilename
-
-    return changed
-  }
-
-  readmeTrim(doc)
-  if (oldDoc) readmeTrim(oldDoc)
 
   for (var i = 0, l = versions.length; i < l; i ++) {
     var v = versions[i]
