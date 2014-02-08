@@ -82,12 +82,10 @@ updates.package = function (doc, req) {
         return error("invalid version: "+ver)
       }
 
-      if ((ver in doc.versions) || (semver.clean(ver) in doc.versions)) {
+      if ((ver in doc.versions) || (semver.clean(ver, true) in doc.versions)) {
         // attempting to overwrite an existing version.
-        // not supported at this time.
-        if (!req.query.rev || req.query.rev !== doc._rev) {
-          return error("cannot modify existing version")
-        }
+        // not allowed
+        return error("cannot modify existing version")
       }
 
       var body = JSON.parse(req.body)
@@ -140,17 +138,36 @@ updates.package = function (doc, req) {
       doc[i] = newdoc[i]
     }
     if (newdoc.versions) {
-      doc.versions = newdoc.versions
+      if (!doc.versions) doc.versions = {}
+      // Make sure that we record the maintainers list on the new version
+      for (var v in newdoc.versions) {
+        if (!doc.versions[v]) {
+          var vc = semver.clean(v, true)
+          if (!vc)
+            return error('Invalid version: ' + v)
+          doc.versions[vc] = newdoc.versions[v]
+          doc.versions[vc].version = vc
+          doc.versions[vc].maintainers = doc.maintainers
+          doc.time[vc] = new Date().toISOString()
+        }
+      }
+      for (var v in doc.versions) {
+        if (!newdoc.versions[v])
+          delete doc.versions[v]
+      }
     }
     if (newdoc["dist-tags"]) {
       doc["dist-tags"] = newdoc["dist-tags"]
     }
     if (newdoc.users) {
       if (!doc.users) doc.users = {}
-      doc.users[req.userCtx.name] = newdoc.users[req.userCtx.name]
+      if (newdoc.users[req.userCtx.name])
+        doc.users[req.userCtx.name] = newdoc.users[req.userCtx.name]
+      else
+        delete doc.users[req.userCtx.name]
     }
 
-    if(newdoc._attachments) {
+    if (newdoc._attachments) {
       if (!doc._attachments) doc._attachments = {}
       var inline = false
       for(var k in newdoc._attachments) {
@@ -159,7 +176,7 @@ updates.package = function (doc, req) {
           inline = true
         }
       }
-      if(inline)
+      if (inline)
         return ok(doc, "updated package metadata & attachments")
     }
 

@@ -78,13 +78,10 @@ var version023 = {
     "email": "other@example.com"
   },
   "maintainers": [
-    // XXX(isaacs)
-    // npm bug:  It should get the current maintainers list, rather than
-    // just showing the one pushing only.
-    // {
-    //   "name": "user",
-    //   "email": "email@example.com"
-    // },
+    {
+      "name": "user",
+      "email": "email@example.com"
+    },
     {
       "name": "other",
       "email": "other@example.com"
