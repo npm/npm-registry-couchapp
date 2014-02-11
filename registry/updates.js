@@ -1,6 +1,10 @@
 var updates = exports
 
 updates.delete = function (doc, req) {
+  if (req.method !== "DELETE")
+    return [ { _id: ".error.", forbidden: "Method not allowed" },
+             { error: "method not allowed" } ]
+
   require("monkeypatch").patch(Object, Date, Array, String)
   var t = doc.time || {}
   t.unpublished = {
@@ -21,7 +25,7 @@ updates.package = function (doc, req) {
   var semver = require("semver")
   var valid = require("valid")
   function error (reason) {
-    return [{_id: "_error_", forbidden:reason}, JSON.stringify({forbidden:reason})]
+    return [{_id: ".error.", forbidden:reason}, JSON.stringify({forbidden:reason})]
   }
 
   function ok (doc, message) {

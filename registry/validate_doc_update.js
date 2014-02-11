@@ -76,7 +76,8 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   }
 
   // you may not delete the npm document!
-  if ((doc._deleted || doc.time.unpublished) && doc._id === "npm")
+  if ((doc._deleted || (doc.time && doc.time.unpublished))
+      && doc._id === "npm")
     throw { forbidden: "you may not delete npm!" }
 
   // admins can do ANYTHING (even break stuff)
@@ -134,13 +135,10 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   // something detected in the _updates/package script.
   // XXX: Make this not ever happen ever.  Validation belongs here,
   // not in the update function.
-  try {
-    assert(!doc.forbidden, doc.forbidden)
-  } catch (er) {
-    assert(false, "failed checking doc.forbidden\n" + doc.forbidden)
-  }
+  assert(!doc.forbidden, doc.forbidden)
 
-  assert(!doc._deleted, "deleting docs entirely is not allowed")
+  assert(!doc._deleted, "deleting docs directly not allowed.\n" +
+                        "Use the _update/delete method.")
 
   assert(doc.name === doc._id, "name must match _id")
   assert(doc.name.length < 512, "name is too long")
@@ -200,6 +198,8 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   // unpublishing.  no sense in checking versions
   if (doc.time.unpublished) {
     assert(oldDoc, "nothing to unpublish")
+    if (oldDoc.time)
+      assert(!oldDoc.time.unpublished, "already unpublished")
     var name = user.name
     var unpublisher = doc.time.unpublished.name
     assert(name === unpublisher, name + "!==" + unpublisher)
