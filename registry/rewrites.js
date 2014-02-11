@@ -95,7 +95,8 @@ module.exports =
   , { from: "/:pkg/:version/-pre/:pre/-rev/:rev", to: "_update/package/:pkg"
     , method: "PUT" }
 
-  , { from: "/:pkg/-rev/:rev", to: "../../:pkg", method: "DELETE" }
+  , { from: "/:pkg/-rev/:rev", to: "_update/delete/:pkg", method: "DELETE" }
+
 
   , {from:'/-/_view/*', to:'_view/*', method: 'GET'}
   , {from:'/-/_list/*', to:'_list/*', method: 'GET'}

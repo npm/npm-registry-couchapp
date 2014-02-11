@@ -75,6 +75,9 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     assert(false, "failed checking users")
   }
 
+  // you may not delete the npm document!
+  if ((doc._deleted || doc.time.unpublished) && doc._id === "npm")
+    throw { forbidden: "you may not delete npm!" }
 
   // admins can do ANYTHING (even break stuff)
   try {
@@ -132,15 +135,23 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   // XXX: Make this not ever happen ever.  Validation belongs here,
   // not in the update function.
   try {
-    assert(!doc.forbidden || doc._deleted, doc.forbidden)
+    assert(!doc.forbidden, doc.forbidden)
   } catch (er) {
-    assert(false, "failed checking doc.forbidden or doc._deleted\n" + doc.forbidden)
+    assert(false, "failed checking doc.forbidden\n" + doc.forbidden)
   }
+
+  assert(!doc._deleted, "deleting docs entirely is not allowed")
+
+  assert(doc.name === doc._id, "name must match _id")
+  assert(doc.name.length < 512, "name is too long")
+  assert(!doc.mtime, "doc.mtime is deprecated")
+  assert(!doc.ctime, "doc.ctime is deprecated")
+  assert(typeof doc.time === "object", "time must be object")
 
   // everyone may alter his "starred" status on any package
   try {
     if (oldDoc &&
-        !doc._deleted &&
+        !doc.time.unpublished &&
         deepEquals(doc, oldDoc,
                    [["users", user.name], ["time", "modified"]])) {
       return
@@ -186,12 +197,22 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
                         + diffObj(oldDoc, doc).join("\n"))
   }
 
-  // you may not delete the npm document!
-  if (doc._deleted && doc.name === "npm")
-    throw { forbidden: "you may not delete npm!" }
-
-  // deleting a document entirely *is* allowed.
-  if (doc._deleted) return
+  // unpublishing.  no sense in checking versions
+  if (doc.time.unpublished) {
+    assert(oldDoc, "nothing to unpublish")
+    var name = user.name
+    var unpublisher = doc.time.unpublished.name
+    assert(name === unpublisher, name + "!==" + unpublisher)
+    var k = []
+    for (var i in doc)
+      k.push(i)
+    k = k.sort().join(",")
+    var e = "_id,_rev,_revisions,name,time,users"
+    assert(k === e, "must only have " + e + ", has:" + k)
+    assert(JSON.stringify(doc.users) == '{}',
+           'must remove users when unpublishing')
+    return
+  }
 
   // sanity checks.
   assert(valid.name(doc.name), "name invalid: "+doc.name)
@@ -202,12 +223,6 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   if (!oldDoc && doc.name !== doc.name.toLowerCase()) {
     assert(false, "New packages must have all-lowercase names")
   }
-
-  assert(doc.name === doc._id, "name must match _id")
-  assert(doc.name.length < 512, "name is too long")
-  assert(!doc.mtime, "doc.mtime is deprecated")
-  assert(!doc.ctime, "doc.ctime is deprecated")
-  assert(typeof doc.time === "object", "time must be object")
 
   assert(typeof doc["dist-tags"] === "object", "dist-tags must be object")
 
@@ -360,30 +375,17 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
     // new npm's "fix" the version
     // but that makes it look like it's been changed.
-    if (doc && doc.versions[v] && oldDoc && oldDoc.versions[v]) {
-      doc.versions[v].version = oldDoc.versions[v].version
+    if (doc && doc.versions[v] && oldDoc && oldVersions[v]) {
+      doc.versions[v].version = oldVersions[v].version
 
       // *removing* a readme is fine, too
-      if (!doc.versions[v].readme && oldDoc.versions[v].readme)
-        doc.versions[v].readme = oldDoc.versions[v].readme
+      if (!doc.versions[v].readme && oldVersions[v].readme)
+        doc.versions[v].readme = oldVersions[v].readme
     }
 
-    if (doc.versions[v] && oldDoc && oldDoc.versions[v] &&
+    if (doc.versions[v] && oldDoc && oldVersions[v] &&
         !deepEquals(doc.versions[v], oldVersions[v], allowedChange)) {
       // this one was modified
-      // if it's more than a few minutes off, then something is wrong.
-      var t = Date.parse(doc.time[v])
-        , n = Date.now()
-      // assert(doc.time[v] !== oldTime[v] &&
-      //        Math.abs(n - t) < 1000 * 60 * 60,
-      //        v + " time needs to be updated\n" +
-      //        "new=" + JSON.stringify(doc.versions[v]) + "\n" +
-      //        "old=" + JSON.stringify(oldVersions[v]))
-
-      // var mt = Date.parse(doc.time.modified).getTime()
-      //   , vt = t.getTime()
-      // assert(Math.abs(mt - vt) < 1000 * 60 * 60,
-      //        v + " is modified, should match modified time")
 
       // XXX Remove the guard these once old docs have been found and
       // fixed.  It's too big of a pain to have to manually fix
@@ -410,11 +412,11 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
       //   }).sort()
       // }
 
-      // assert(deepEquals(names(doc.versions[v].maintainers),
-      //                   names(doc.maintainers)),
-      //        "modified version " + v + " 'maintainers' must === doc.maintainers\n" +
-      //        "expected: " + JSON.stringify(doc.maintainers) + "\n" +
-      //        "actual:   " + JSON.stringify(doc.versions[v].maintainers))
+      assert(deepEquals(names(doc.versions[v].maintainers),
+                        names(doc.maintainers)),
+             "modified version " + v + " 'maintainers' must === doc.maintainers\n" +
+             "expected: " + JSON.stringify(doc.maintainers) + "\n" +
+             "actual:   " + JSON.stringify(doc.versions[v].maintainers))
 
       // make sure that the _npmUser is one of the maintainers
       var found = false
@@ -437,7 +439,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
   // now go through all the time settings that weren't covered
   for (var v in oldTime) {
-    if (doc.versions[v] || !oldVersions[v]) continue
+    if (v === "modified" || v === "unpublished") continue
     assert(doc.time[v] === oldTime[v],
            v + " time should not be modified 2")
   }

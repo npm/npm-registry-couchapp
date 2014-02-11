@@ -13,6 +13,15 @@ shows.package = function (doc, req) {
   delete doc.mtime
   if (!doc._attachments) doc._attachments = {}
 
+  if (doc.time && doc.time.unpublished) {
+    delete doc._revisions
+    return {
+      code : 404,
+      body : JSON.stringify(doc),
+      headers : headers
+    }
+  }
+
   if (doc.versions) Object.keys(doc.versions).forEach(function (v) {
     delete doc.versions[v].ctime
     delete doc.versions[v].mtime
@@ -112,19 +121,7 @@ shows.package = function (doc, req) {
     }
   } else {
     body = doc
-    for (var i in body) if (i.charAt(0) === "_" && i !== "_id" && i !== "_rev" && i !== "_attachments") {
-      delete body[i]
-    }
-    for (var i in body.time) {
-      var clean = semver.clean(i, true)
-      if (clean !== i) {
-        body.time[clean] = body.time[i]
-        delete body.time[i]
-        i = clean
-      }
-      if (!body.versions[i]) delete body.time[i]
-      else body.time[i] = new Date(Date.parse(body.time[i])).toISOString()
-    }
+    delete body._revisions
   }
 
   body = req.query.jsonp

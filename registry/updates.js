@@ -1,5 +1,20 @@
 var updates = exports
 
+updates.delete = function (doc, req) {
+  require("monkeypatch").patch(Object, Date, Array, String)
+  var t = doc.time || {}
+  t.unpublished = {
+    name: req.userCtx.name,
+    time: new Date().toISOString()
+  }
+  return [ {
+    _id: doc._id,
+    _rev: doc._rev,
+    name: doc._id,
+    time: t
+  }, JSON.stringify({ ok: "deleted" }) ]
+}
+
 updates.package = function (doc, req) {
   require("monkeypatch").patch(Object, Date, Array, String)
 
@@ -82,10 +97,12 @@ updates.package = function (doc, req) {
         return error("invalid version: "+ver)
       }
 
-      if ((ver in doc.versions) || (semver.clean(ver, true) in doc.versions)) {
-        // attempting to overwrite an existing version.
-        // not allowed
-        return error("cannot modify existing version")
+      if (doc.versions) {
+        if ((ver in doc.versions) || (semver.clean(ver, true) in doc.versions)) {
+          // attempting to overwrite an existing version.
+          // not allowed
+          return error("cannot modify existing version")
+        }
       }
 
       var body = JSON.parse(req.body)
@@ -131,6 +148,12 @@ updates.package = function (doc, req) {
     // update the package info
     var newdoc = JSON.parse(req.body)
       , changed = false
+
+    if (doc.time && doc.time.unpublished) {
+      delete doc.time.unpublished
+      newdoc._rev = doc._rev
+    }
+
     if (doc._rev && doc._rev !== newdoc._rev) {
       return [newdoc, JSON.stringify({error:'409 should happen now'})]
     }
