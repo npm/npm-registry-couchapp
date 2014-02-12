@@ -433,7 +433,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
     } else if (oldTime[v]) {
       assert(oldTime[v] === doc.time[v],
-             v + " time should not be modified 1")
+             "Cannot replace previously published version: "+v)
     }
   }
 
@@ -441,7 +441,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   for (var v in oldTime) {
     if (v === "modified" || v === "unpublished") continue
     assert(doc.time[v] === oldTime[v],
-           v + " time should not be modified 2")
+           "Cannot replace previously published version: "+v)
   }
 
 }
