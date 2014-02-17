@@ -259,10 +259,12 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
   var depCount = 0
   var maxDeps = 1000
+
   function ridiculousDeps() {
     if (++depCount > maxDeps)
       assert(false, "too many deps.  please be less ridiculous.")
   }
+
   for (var ver in versions) {
     var version = versions[ver]
     assert(semver.valid(ver, true),
@@ -335,38 +337,12 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
            '"description" field must be a string')
   }
 
-  // at this point, we've passed the basic sanity tests.
-  // Time to dig into more details.
-  // Valid operations:
-  // 1. Add a version
-  // 2. Remove a version
-  // 3. Modify a version
-  // 4. Add or remove onesself from the "users" hash (already done)
-  //
-  // If a version is being added or changed, make sure that the
-  // _npmUser field matches the current user, and that the
-  // time object has the proper entry, and that the "maintainers"
-  // matches the current "maintainers" field.
-  //
-  // Things that must not change:
-  //
-  // 1. More than one version being modified.
-  // 2. Removing keys from the "time" hash
-  //
-  // Later, once we are off of the update function 3-stage approach,
-  // these things should also be errors:
-  //
-  // 1. Lacking an attachment for any published version.
-  // 2. Having an attachment for any version not published.
-
   var oldVersions = oldDoc ? oldDoc.versions || {} : {}
   var oldTime = oldDoc ? oldDoc.time || {} : {}
 
   var versions = Object.keys(doc.versions || {})
     , modified = null
     , allowedChange = [["directories"], ["deprecated"]]
-
-
 
   for (var i = 0, l = versions.length; i < l; i ++) {
     var v = versions[i]
@@ -383,57 +359,10 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
         doc.versions[v].readme = oldVersions[v].readme
     }
 
-    if (doc.versions[v] && oldDoc && oldVersions[v] &&
-        !deepEquals(doc.versions[v], oldVersions[v], allowedChange)) {
+    if (doc.versions[v] && oldDoc && oldVersions[v]) {
       // this one was modified
-
-      // XXX Remove the guard these once old docs have been found and
-      // fixed.  It's too big of a pain to have to manually fix
-      // each one every time someone complains.
-      if (typeof doc.versions[v]._npmUser !== "object") continue
-
-
-      assert(typeof doc.versions[v]._npmUser === "object",
-             "_npmUser field must be object\n"+
-             "(You probably need to upgrade your npm version)")
-
-      var _npmUser = doc.versions[v]._npmUser
-      assert(_npmUser.name === user.name,
-             "version=" + v + "\n" +
-             "user.name=" + user.name + "\n" +
-             "_npmUser.name=" + _npmUser.name + "\n" +
-             //"new=" + JSON.stringify(doc.versions[v]) + "\n" +
-             //"old=" + JSON.stringify(oldVersions[v]) + "\n" +
-             "_npmUser.name must === user.name")
-
-      // function names (maintainers) {
-      //   return maintainers.map(function(m) {
-      //     return m.name
-      //   }).sort()
-      // }
-
-      assert(deepEquals(names(doc.versions[v].maintainers),
-                        names(doc.maintainers)),
-             "modified version " + v + " 'maintainers' must === doc.maintainers\n" +
-             "expected: " + JSON.stringify(doc.maintainers) + "\n" +
-             "actual:   " + JSON.stringify(doc.versions[v].maintainers))
-
-      // make sure that the _npmUser is one of the maintainers
-      var found = false
-      for (var j = 0, lm = doc.maintainers.length; j < lm; j ++) {
-        var m = doc.maintainers[j]
-        if (m.name === doc.versions[v]._npmUser.name) {
-          found = true
-          break
-        }
-      }
-      assert(found, "_npmUser must be a current maintainer.\n"+
-                    "maintainers=" + JSON.stringify(doc.maintainers)+"\n"+
-                    "current user=" + JSON.stringify(doc.versions[v]._npmUser))
-
-    } else if (oldTime[v]) {
-      assert(oldTime[v] === doc.time[v],
-             "Cannot replace previously published version: "+v)
+      assert(deepEquals(doc.versions[v], oldVersions[v], allowedChange),
+             "Changing published version metadata is not allowed")
     }
   }
 
@@ -443,6 +372,4 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     assert(doc.time[v] === oldTime[v],
            "Cannot replace previously published version: "+v)
   }
-
 }
-
