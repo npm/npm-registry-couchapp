@@ -19,6 +19,9 @@ var vdu = require("../registry/app.js").validate_doc_update
 var test = require("tap").test
 
 for (var i in cases) {
+  if (process.argv[2] && i !== process.argv[2])
+    continue
+
   test("vdu test case " + i, function (t) {
     var c = cases[i]
     var threw = true
@@ -28,8 +31,9 @@ for (var i in cases) {
     } catch (er) {
       if (c.throw)
         t.same(er, c.throw, "got expected error")
-      else
-        t.ifError(er)
+      else {
+        t.notOk(er, JSON.stringify(er))
+      }
     } finally {
       if (c.throw)
         t.ok(threw, "Expected throw:\n" + JSON.stringify(c.throw))

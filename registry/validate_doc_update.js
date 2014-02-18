@@ -275,6 +275,11 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
            "version must match: "+ver)
     assert(version.name === doc._id,
            "version "+ver+" has incorrect name: "+version.name)
+    assert(typeof version._npmUser === "object",
+           "_npmUser must be object: " + ver)
+    assert(typeof version._npmUser.name === user.name,
+           "_npmUser.name must match user.name: " + ver)
+
 
     depCount = 0
     for (var dep in version.dependencies || {}) ridiculousDeps()
@@ -285,6 +290,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     // and versions that are strictly valid semver 2.0
     if (oldDoc && oldDoc.versions && !oldDoc.versions[ver]) {
       assert(semver.valid(ver), "Invalid SemVer 2.0 version: " + ver)
+
       if (version.hasOwnProperty('scripts')) {
         assert(version.scripts && typeof version.scripts === "object",
                "'scripts' field must be an object")
