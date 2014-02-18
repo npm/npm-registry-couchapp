@@ -3,8 +3,8 @@ var cases = {}
 fs.readdirSync(__dirname + "/fixtures/vdu/").forEach(function(d) {
   var m = d.match(/^([0-9]+)-(old|new|throw|user|db)\.json$/)
   if (!m) return;
-  var c = cases[n] = cases[n] || {}
   var n = m[1]
+  var c = cases[n] = cases[n] || {}
   var t = m[2]
   c[t] = require("./fixtures/vdu/" + d)
 })
@@ -31,8 +31,10 @@ for (var i in cases) {
       else
         t.ifError(er)
     } finally {
-      if (c.throw && !threw)
-        t.fail("Expected throw, didn't get it")
+      if (c.throw)
+        t.ok(threw, "Expected throw:\n" + JSON.stringify(c.throw))
+      else if (threw)
+        t.notOk(threw, "should not throw")
     }
     t.end()
   })
