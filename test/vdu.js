@@ -4,6 +4,7 @@ fs.readdirSync(__dirname + "/fixtures/vdu/").forEach(function(d) {
   var m = d.match(/^([0-9]+)-(old|new|throw|user|db)\.json$/)
   if (!m) return;
   var n = m[1]
+  if (process.argv[2] && n !== process.argv[2]) return
   var c = cases[n] = cases[n] || {}
   var t = m[2]
   c[t] = require("./fixtures/vdu/" + d)
@@ -19,14 +20,11 @@ var vdu = require("../registry/app.js").validate_doc_update
 var test = require("tap").test
 
 for (var i in cases) {
-  if (process.argv[2] && i !== process.argv[2])
-    continue
-
   test("vdu test case " + i, function (t) {
     var c = cases[i]
     var threw = true
     try {
-      vdu(c.old, c.new, c.user, c.db)
+      vdu(c.new, c.old, c.user, c.db)
       threw = false
     } catch (er) {
       if (c.throw)

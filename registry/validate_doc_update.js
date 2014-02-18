@@ -1,4 +1,10 @@
 module.exports = function (doc, oldDoc, user, dbCtx) {
+  if (typeof console === "object") {
+    var d = console.error
+  } else {
+    var d = function() {}
+  }
+
   function assert (ok, message) {
     if (!ok) throw {forbidden:message}
   }
@@ -275,10 +281,6 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
            "version must match: "+ver)
     assert(version.name === doc._id,
            "version "+ver+" has incorrect name: "+version.name)
-    assert(typeof version._npmUser === "object",
-           "_npmUser must be object: " + ver)
-    assert(typeof version._npmUser.name === user.name,
-           "_npmUser.name must match user.name: " + ver)
 
 
     depCount = 0
@@ -347,7 +349,6 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   var oldTime = oldDoc ? oldDoc.time || {} : {}
 
   var versions = Object.keys(doc.versions || {})
-    , modified = null
     , allowedChange = [["directories"], ["deprecated"]]
 
   for (var i = 0, l = versions.length; i < l; i ++) {
@@ -366,9 +367,15 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     }
 
     if (doc.versions[v] && oldDoc && oldVersions[v]) {
-      // this one was modified
+      // Pre-existing version
       assert(deepEquals(doc.versions[v], oldVersions[v], allowedChange),
              "Changing published version metadata is not allowed")
+    } else {
+      // New version
+      assert(typeof doc.versions[v]._npmUser === "object",
+             "_npmUser must be object: " + v)
+      assert(doc.versions[v]._npmUser.name === user.name,
+             "_npmUser.name must match user.name: " + v)
     }
   }
 
