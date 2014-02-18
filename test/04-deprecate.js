@@ -1,0 +1,50 @@
+var test = require('tap').test
+var reg = 'http://127.0.0.1:15984/'
+var path = require('path')
+var rimraf = require('rimraf')
+var conf = path.resolve(__dirname, 'fixtures', 'npmrc')
+var conf3 = path.resolve(__dirname, 'fixtures', 'npmrc3')
+var spawn = require('child_process').spawn
+var pkg = path.resolve(__dirname, 'fixtures/package')
+var pkg002 = path.resolve(pkg, '0.0.2')
+var pkg024 = path.resolve(pkg, '0.2.4')
+var inst = path.resolve(__dirname, 'fixtures/install')
+var http = require('http')
+var env = { PATH: process.env.PATH }
+
+test('deprecate', function (t) {
+  var c = spawn('npm', [
+    '--color=always',
+    '--registry=' + reg,
+    '--userconf=' + conf,
+    'deprecate', 'package@0.0.2', 'message goes here'
+  ], { env: env })
+
+  c.stderr.pipe(process.stderr)
+
+  var v = ''
+  c.stdout.setEncoding('utf8')
+  c.stdout.on('data', function(d) {
+    v += d
+  })
+  c.on('close', function(code) {
+    t.notOk(code)
+    t.equal(v, '')
+    t.end()
+  })
+})
+
+test('get data after deprecation', function (t) {
+  http.get('http://127.0.0.1:15984/package', function(res) {
+    var c = ''
+    res.setEncoding('utf8')
+    res.on('data', function (d) {
+      c += d
+    })
+    res.on('end', function () {
+      c = JSON.parse(c)
+      t.equal(c.versions['0.0.2'].deprecated, 'message goes here')
+      t.end()
+    })
+  })
+})
