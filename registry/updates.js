@@ -22,10 +22,46 @@ updates.delete = function (doc, req) {
 updates.package = function (doc, req) {
   require("monkeypatch").patch(Object, Date, Array, String)
 
+  var d
+  if (typeof console === 'object')
+    d = console.error
+  else
+    d = function() {}
+
   var semver = require("semver")
   var valid = require("valid")
   function error (reason) {
     return [{_id: ".error.", forbidden:reason}, JSON.stringify({forbidden:reason})]
+  }
+
+  function latestCopy(doc) {
+    d('latestCopy', doc['dist-tags'])
+
+    if (!doc['dist-tags'] || !doc.versions)
+      return
+
+    // Make sure that these are copied from the "latest" version, not
+    // some other random old thing.
+    var copyFields = [
+      "description",
+      "homepage",
+      "keywords",
+      "repository",
+      "contributors",
+      "author",
+      "bugs",
+      "license"
+    ]
+
+    var latest = doc.versions && doc.versions[doc["dist-tags"].latest]
+    if (latest && typeof latest === "object") {
+      copyFields.forEach(function(k) {
+        if (!latest[k])
+          delete doc[k]
+        else
+          doc[k] = latest[k]
+      })
+    }
   }
 
   function ok (doc, message) {
@@ -41,6 +77,7 @@ updates.package = function (doc, req) {
       time[v] = time[v] || (new Date()).toISOString()
     }
     readmeTrim(doc)
+    latestCopy(doc)
     return [doc, JSON.stringify({ok:message})]
   }
 
@@ -191,6 +228,7 @@ updates.package = function (doc, req) {
     if (newdoc["dist-tags"]) {
       doc["dist-tags"] = newdoc["dist-tags"]
     }
+
     if (newdoc.users) {
       if (!doc.users) doc.users = {}
       if (newdoc.users[req.userCtx.name])
