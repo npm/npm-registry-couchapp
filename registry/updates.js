@@ -161,9 +161,11 @@ updates.package = function (doc, req) {
     if (doc._rev && doc._rev !== newdoc._rev) {
       return [newdoc, JSON.stringify({error:'409 should happen now'})]
     }
+
     for (var i in newdoc) if (typeof newdoc[i] === "string" || i === "maintainers") {
       doc[i] = newdoc[i]
     }
+
     if (newdoc.versions) {
       if (!doc.versions) doc.versions = {}
       // Make sure that we record the maintainers list on the new version
@@ -176,6 +178,8 @@ updates.package = function (doc, req) {
           doc.versions[vc].version = vc
           doc.versions[vc].maintainers = doc.maintainers
           doc.time[vc] = new Date().toISOString()
+        } else if (newdoc.versions[v].deprecated) {
+          doc.versions[v].deprecated = newdoc.versions[v].deprecated
         }
       }
       for (var v in doc.versions) {
@@ -183,6 +187,7 @@ updates.package = function (doc, req) {
           delete doc.versions[v]
       }
     }
+
     if (newdoc["dist-tags"]) {
       doc["dist-tags"] = newdoc["dist-tags"]
     }
