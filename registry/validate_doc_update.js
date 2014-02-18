@@ -203,6 +203,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
   // unpublishing.  no sense in checking versions
   if (doc.time.unpublished) {
+    d(doc)
     assert(oldDoc, "nothing to unpublish")
     if (oldDoc.time)
       assert(!oldDoc.time.unpublished, "already unpublished")
@@ -211,9 +212,9 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     assert(name === unpublisher, name + "!==" + unpublisher)
     var k = []
     for (var i in doc)
-      k.push(i)
+      if (!i.match(/^_/)) k.push(i)
     k = k.sort().join(",")
-    var e = "_id,_rev,_revisions,name,time,users"
+    var e = "name,time,users"
     assert(k === e, "must only have " + e + ", has:" + k)
     assert(JSON.stringify(doc.users) == '{}',
            'must remove users when unpublishing')
