@@ -19,7 +19,7 @@ var vdu = require("../registry/app.js").validate_doc_update
 
 var test = require("tap").test
 
-for (var i in cases) {
+for (var i in cases) (function(i) {
   test("vdu test case " + i, function (t) {
     var c = cases[i]
     var threw = true
@@ -40,4 +40,4 @@ for (var i in cases) {
     }
     t.end()
   })
-}
+})(i)
