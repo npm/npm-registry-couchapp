@@ -127,7 +127,9 @@ updates.package = function (doc, req) {
       "license"
     ]
 
-    var latest = doc.versions && doc.versions[doc["dist-tags"].latest]
+    var latest = doc.versions &&
+                 doc['dist-tags'] &&
+                 doc.versions[doc["dist-tags"].latest]
     if (latest && typeof latest === "object") {
       copyFields.forEach(function(k) {
         if (!latest[k])
@@ -193,7 +195,7 @@ updates.package = function (doc, req) {
     latestCopy(doc)
 
     if (!doc.maintainers)
-      return error("no maintainers?\n" + JSON.stringify(doc))
+      return error("no maintainers. Please upgrade your npm client.")
 
     if (output.length) {
       message += "\n" + output.map(function(n) {
@@ -250,7 +252,8 @@ updates.package = function (doc, req) {
     }
 
     if (doc.versions) {
-      if ((ver in doc.versions) || (semver.clean(ver, true) in doc.versions)) {
+      if ((ver in doc.versions) ||
+          (semver.clean(ver, true) in doc.versions)) {
         // attempting to overwrite an existing version.
         // not allowed
         return error("cannot modify existing version")
@@ -287,10 +290,15 @@ updates.package = function (doc, req) {
             || body.tag
             || "latest"
 
+    doc["dist-tags"] = doc["dist-tags"] || {}
+    doc.versions = doc.versions || {}
+    doc.time = doc.time || {}
+
     if (!req.query.pre)
       doc["dist-tags"][tag] = body.version
     if (!doc["dist-tags"].latest)
       doc["dist-tags"].latest = body.version
+
     doc.versions[ver] = body
     doc.time = doc.time || {}
     doc.time[ver] = (new Date()).toISOString()
@@ -338,10 +346,10 @@ updates.package = function (doc, req) {
         // it worked, without actually updating.  The vdu would
         // catch it anyway.  Problem there is that then the user
         // doesn't see their stuff update, and wonders why.
-        return error('Document Update Conflict: ' +
-                     'cannot modify pre-existing version: ' + v + '\n' +
-                     'old=' + JSON.stringify(ov) + '\n' +
-                     'new=' + JSON.stringify(nv))
+        return conflict(
+          'cannot modify pre-existing version: ' + v + '\n' +
+          'old=' + JSON.stringify(ov) + '\n' +
+          'new=' + JSON.stringify(nv))
       }
     }
 
