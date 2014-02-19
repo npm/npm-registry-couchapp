@@ -40,10 +40,10 @@ var doc =
 }
 
 var newdoc = JSON.parse(JSON.stringify(doc))
-console.error(newdoc.versions)
 newdoc.versions['2.3.4'] = {
   name: "video.js",
   _id: "video.js@2.3.4",
+  "version": "2.3.4",
   "description": "foo and blz",
   "readme": "a new readme",
   "repository": {
@@ -92,7 +92,10 @@ var expect =
         {
           "name": "user"
         }
-      ]
+      ],
+      "_npmUser" : {
+        "name" : "user" // != undefined
+      }
     }
   },
   "time": {
@@ -115,7 +118,7 @@ test("hange the things", function (t) {
   var res = pkg(doc, req)
   expect.time.modified = doc.time.modified
   expect.time['2.3.4'] = doc.time['2.3.4']
-  t.same(res[1], '{"ok":"updated package metadata"}')
+  t.same(res[1], '{"ok":"updated package"}')
   t.same(res[0], expect)
   t.end()
 })

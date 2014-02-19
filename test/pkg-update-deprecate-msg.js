@@ -148,7 +148,7 @@ var req = {
 
 test("deprecation update", function (t) {
   var res = pkg(doc, req)
-  t.same(res[1], '{"ok":"updated package metadata"}')
+  t.same(res[1], '{"ok":"updated package"}')
   t.same(res[0].versions, newdoc.versions)
   t.end()
 })

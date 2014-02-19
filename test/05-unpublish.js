@@ -97,6 +97,7 @@ test('publish new version as new user', function(t) {
     'publish'
   ], { cwd: pkg024, env: env })
   var v = ''
+  c.stderr.pipe(process.stderr)
   c.stdout.setEncoding('utf8')
   c.stdout.on('data', function(d) {
     v += d

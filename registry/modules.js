@@ -202,4 +202,3 @@ exports.monkeypatch =
         || require("String").trim
     }
   ].map(function (s) { return s.toString() }).join("\n")
-
