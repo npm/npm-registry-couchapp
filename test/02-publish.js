@@ -1,5 +1,6 @@
 var test = require('tap').test
 var reg = 'http://127.0.0.1:15984/'
+var db = 'http://localhost:15984/registry/'
 var path = require('path')
 var rimraf = require('rimraf')
 var conf = path.resolve(__dirname, 'fixtures', 'npmrc')
@@ -17,6 +18,7 @@ var maintainers = [
     "email": "email@example.com"
   }
 ]
+var url = require("url")
 
 var expect = null
 
@@ -370,5 +372,63 @@ test('install the thing we published', function(t) {
     t.equal(out, "package@0.2.3 node_modules/package\n")
     rimraf.sync(path.resolve(inst, 'node_modules'))
     t.end()
+  })
+})
+
+test('remove all the tarballs', function(t) {
+  http.get(db + 'package', function(res) {
+    t.equal(res.statusCode, 200)
+    var c = ''
+    res.setEncoding('utf8')
+    res.on('data', function (d) {
+      c += d
+    })
+    res.on('end', function() {
+      var doc = JSON.parse(c)
+      doc._attachments = {}
+      var body = new Buffer(JSON.stringify(doc), 'utf8')
+      var p = url.parse(db + 'package')
+      p.auth = 'admin:admin'
+      p.headers = {
+        'content-type': 'application/json',
+        'content-length': body.length,
+        connection: 'close'
+      }
+      p.method = 'PUT'
+      http.request(p, function(res) {
+        res.pipe(process.stderr)
+        t.equal(res.statusCode, 201)
+        res.on('end', t.end.bind(t))
+      }).end(body)
+    })
+  })
+})
+
+test('try to attach a new tarball (and fail)', function(t) {
+  http.get(db + 'package', function(res) {
+    t.equal(res.statusCode, 200)
+    var c = ''
+    res.setEncoding('utf8')
+    res.on('data', function (d) {
+      c += d
+    })
+    res.on('end', function() {
+      var doc = JSON.parse(c)
+      var rev = doc._rev
+      var p = url.parse(db + 'package/package-0.2.3.tgz?rev=' + rev)
+      body = new Buffer("this is the attachment data")
+      p.auth = 'other:pass'
+      p.headers = {
+        'content-type': 'application/octet-stream',
+        'content-length': body.length,
+        connection: 'close'
+      }
+      p.method = 'PUT'
+      http.request(p, function(res) {
+        res.pipe(process.stderr)
+        res.on('end', t.end.bind(t))
+        t.equal(res.statusCode, 403)
+      }).end(body)
+    })
   })
 })

@@ -386,4 +386,33 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     assert(doc.time[v] === oldTime[v],
            "Cannot replace previously published version: "+v)
   }
+
+  // Do not allow creating a NEW attachment for a version that
+  // already had an attachment in its metadata.
+  // All this can do is corrupt things.
+  // doc, oldDoc
+  var newAtt = doc._attachments || {}
+  var oldAtt = oldDoc && oldDoc._attachments || {}
+  var oldVersions = oldDoc && oldDoc.versions
+  for (var f in newAtt) {
+    if (oldAtt[f]) {
+      // Same bits are ok.
+      assert(oldAtt[f].digest === newAtt[f].digest &&
+             oldAtt[f].length === newAtt[f].length,
+             "Cannot replace existing tarball attachment")
+    } else {
+      // see if any version was using that version already
+      for (var v in oldVersions) {
+        var ver = oldVersions[v]
+        var tgz = ver.dist && ver.dist.tarball
+        var m = tgz.match(/[^\/]+$/)
+        if (!m) {
+          continue
+        }
+        var tf = m[0]
+        assert(tf !== f, 'Cannot replace existing tarball attachment')
+      }
+    }
+  }
+
 }
