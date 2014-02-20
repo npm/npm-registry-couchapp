@@ -346,7 +346,7 @@ updates.package = function (doc, req) {
         // it worked, without actually updating.  The vdu would
         // catch it anyway.  Problem there is that then the user
         // doesn't see their stuff update, and wonders why.
-        return conflict(
+        return error(
           'cannot modify pre-existing version: ' + v + '\n' +
           'old=' + JSON.stringify(ov) + '\n' +
           'new=' + JSON.stringify(nv))
