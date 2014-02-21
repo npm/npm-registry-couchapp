@@ -7,6 +7,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
   function assert (ok, message) {
     if (!ok) throw {forbidden:message}
+    d("pass: " + message)
   }
 
   // can't write to the db without logging in.
@@ -153,15 +154,15 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   assert(typeof doc.time === "object", "time must be object")
 
   // everyone may alter his "starred" status on any package
-  try {
-    if (oldDoc &&
-        !doc.time.unpublished &&
-        deepEquals(doc, oldDoc,
-                   [["users", user.name], ["time", "modified"]])) {
-      return
+  if (oldDoc &&
+      !doc.time.unpublished &&
+      deepEquals(doc, oldDoc,
+                 [["users", user.name], ["time", "modified"]])) {
+    if (doc.users && (user.name in doc.users)) {
+      assert(typeof doc.users[user.name] === "boolean",
+             "star setting must be a boolean, got " + (typeof doc.users[user.name]))
     }
-  } catch (er) {
-    assert(false, "failed checking starred stuff")
+    return
   }
 
 
@@ -353,6 +354,12 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
                       oldDoc.users, [[user.name]]),
            "you may only alter your own 'star' setting")
   }
+
+  Object.keys(doc.users || {}).forEach(function(u) {
+    d("doc.users[%j] = %j", u, doc.users[u])
+    assert(typeof doc.users[u] === 'boolean',
+           'star settings must be boolean values')
+  })
 
   if (doc.url) {
     assert(false,
