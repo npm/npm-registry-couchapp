@@ -221,6 +221,25 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     return
   }
 
+  // Now we know that it is not an unpublish.
+  assert(typeof doc['dist-tags'] === 'object', 'dist-tags must be object')
+  // old crusty npm's would first PUT with dist-tags={} and versions={}
+  // however, if we HAVE keys in versions, then dist-tags must also have
+  // a "latest" key, and all dist-tags keys must point to extant versions
+  var tags = Object.keys(doc['dist-tags'])
+  var vers = Object.keys(doc.versions)
+  if (vers.length > 0) {
+    assert(tags.length > 0, 'may not remove dist-tags')
+    assert(doc['dist-tags'].latest, 'must have a "latest" dist-tag')
+    for (var i = 0; i < tags.length; i ++) {
+      var tag = tags[i]
+      assert(typeof doc['dist-tags'][tag] === 'string',
+             'dist-tags values must be strings')
+      assert(doc.versions[doc['dist-tags'][tag]],
+             'tag points to invalid version: '+tag)
+    }
+  }
+
   // sanity checks.
   assert(valid.name(doc.name), "name invalid: "+doc.name)
 
