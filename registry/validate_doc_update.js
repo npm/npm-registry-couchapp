@@ -182,9 +182,12 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
         dbCtx.admins) {
       if (dbCtx.admins.names &&
           dbCtx.admins.roles &&
+          Array.isArray(dbCtx.admins.names) &&
           dbCtx.admins.names.indexOf(user.name) !== -1) return true
-      for (var i=0;i<user.roles.length;i++) {
-        if (dbCtx.admins.roles.indexOf(user.roles[i]) !== -1) return true
+      if (Array.isArray(dbCtx.admins.roles)) {
+        for (var i = 0; i < user.roles.length; i++) {
+          if (dbCtx.admins.roles.indexOf(user.roles[i]) !== -1) return true
+        }
       }
     }
     return user && user.roles.indexOf("_admin") >= 0
