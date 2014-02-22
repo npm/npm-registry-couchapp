@@ -72,8 +72,45 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     return changed
   }
 
-  if (doc.versions) readmeTrim(doc)
-  if (oldDoc && oldDoc.versions) readmeTrim(oldDoc)
+  // Copy relevant properties from the "latest" published version to root
+  function latestCopy(doc) {
+    if (!doc['dist-tags'] || !doc.versions)
+      return
+
+    var copyFields = [
+      "description",
+      "homepage",
+      "keywords",
+      "repository",
+      "contributors",
+      "author",
+      "bugs",
+      "license"
+    ]
+
+    var latest = doc.versions &&
+                 doc['dist-tags'] &&
+                 doc.versions[doc["dist-tags"].latest]
+    if (latest && typeof latest === "object") {
+      copyFields.forEach(function(k) {
+        if (!latest[k])
+          delete doc[k]
+        else
+          doc[k] = latest[k]
+      })
+    }
+  }
+
+  function finishing(doc) {
+    if (doc && doc.versions) {
+      readmeTrim(doc)
+      latestCopy(doc)
+    }
+  }
+
+
+  finishing(doc)
+  finishing(oldDoc)
 
   try {
     if (oldDoc) oldDoc.users = oldDoc.users || {}
