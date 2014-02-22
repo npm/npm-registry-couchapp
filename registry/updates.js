@@ -406,8 +406,15 @@ updates.package = function (doc, req) {
       doc.maintainers = newdoc.maintainers
     }
 
-    if (newdoc["dist-tags"])
-      doc["dist-tags"] = newdoc["dist-tags"]
+    // Don't copy over a dist-tags that is:
+    // a) empty
+    // b) not an object
+    if (newdoc["dist-tags"] && typeof newdoc["dist-tags"] === "object") {
+      var tags = Object.keys(newdoc["dist-tags"])
+      if (tags.length) {
+        doc["dist-tags"] = newdoc["dist-tags"]
+      }
+    }
 
     var res = mergeVersions(newdoc, doc)
     if (isError(res))
