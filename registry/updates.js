@@ -51,6 +51,12 @@ updates.package = function (doc, req) {
   // Sure would be nice if there was an easy way to toggle this in
   // couchdb somehow.
   var DEBUG = false
+  if (typeof process === 'object' &&
+      process &&
+      process.env &&
+      process.env === 'object')
+    DEBUG = true
+
   var d
   var output = []
   if (typeof console === 'object')
