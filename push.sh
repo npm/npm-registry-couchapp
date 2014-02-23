@@ -62,7 +62,7 @@ EOF
 c=${c/PASSWORD/$PASSWORD}
 c=${c// /%20}
 which couchapp
-couchapp push registry/app.js "$c" && \
+DEPLOY_VERSION=`git describe --tags` couchapp push registry/app.js "$c" && \
 scratch_message && \
 exit 0 || \
 ( ret=$?

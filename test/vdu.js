@@ -15,6 +15,7 @@ Object.keys(mod).forEach(function (m) {
   process.binding('natives')[m] = mod[m]
 })
 
+process.env.DEPLOY_VERSION = 'testing'
 var vdu = require("../registry/app.js").validate_doc_update
 
 var test = require("tap").test

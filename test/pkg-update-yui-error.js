@@ -5,6 +5,7 @@ Object.keys(mod).forEach(function (m) {
   process.binding('natives')[m] = mod[m]
 })
 
+process.env.DEPLOY_VERSION = 'testing'
 var pkg = require("../registry/app.js").updates.package
 
 var doc = require("./fixtures/yui-old.json")
