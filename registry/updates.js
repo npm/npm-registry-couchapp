@@ -197,8 +197,11 @@ updates.package = function (doc, req) {
       delete ver.mtime
       time[v] = time[v] || (new Date()).toISOString()
     }
-    readmeTrim(doc)
+    delete doc.time.unpublished
+
+    findLatest(doc)
     latestCopy(doc)
+    readmeTrim(doc)
 
     if (!doc.maintainers)
       return error("no maintainers. Please upgrade your npm client.")
@@ -213,6 +216,21 @@ updates.package = function (doc, req) {
     return [doc, JSON.stringify({ok:message})]
   }
 
+  function findLatest(doc) {
+    var tags = doc['dist-tags'] = doc['dist-tags'] || {}
+    var versions = doc.versions = doc.versions || {}
+    var lv = tags.latest
+    var latest = versions[lv]
+    if (latest)
+      return
+
+    // figure out what the "latest" tag should be
+    var vers = Object.keys(versions)
+    if (!vers.length) return
+
+    vers = vers.sort(semver.compare)
+    tags.latest = vers.pop()
+  }
 
   // Create new package doc
   function newDoc (doc) {
