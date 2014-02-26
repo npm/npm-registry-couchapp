@@ -35,7 +35,7 @@ ips=($(dig +short "$hostname" | egrep '^[0-9]'))
 for ip in "${ips[@]}"; do
   ipurl="${c/$hostname/$ip}"
   echo $ip
-  node -pe 'Object.keys(require("./registry/app.js").views).join("\n")' \
+  DEPLOY_VERSION=`git describe --tags` node -pe 'Object.keys(require("./registry/app.js").views).join("\n")' \
   | while read view; do
     echo "LOADING: $view"
     curl -Ik "$ipurl/_design/scratch/_view/$view" -H "host:$host"
