@@ -249,7 +249,10 @@ updates.package = function (doc, req) {
       latest = semver.clean(v, true)
     }
     if (!doc['dist-tags']) doc['dist-tags'] = {}
-    if (latest) doc["dist-tags"].latest = latest
+
+    if (latest && !doc['dist-tags'].latest) {
+      doc["dist-tags"].latest = latest
+    }
 
     return ok(doc, "created new entry")
   }
@@ -318,8 +321,9 @@ updates.package = function (doc, req) {
     doc.versions = doc.versions || {}
     doc.time = doc.time || {}
 
-    if (!req.query.pre)
+    if (!req.query.pre && !doc['dist-tags'][tag])
       doc["dist-tags"][tag] = body.version
+
     if (!doc["dist-tags"].latest)
       doc["dist-tags"].latest = body.version
 
@@ -436,7 +440,10 @@ updates.package = function (doc, req) {
     if (newdoc["dist-tags"] && typeof newdoc["dist-tags"] === "object") {
       var tags = Object.keys(newdoc["dist-tags"])
       if (tags.length) {
-        doc["dist-tags"] = newdoc["dist-tags"]
+        doc["dist-tags"] = doc["dist-tags"] || {}
+        tags.forEach(function (t) {
+          doc["dist-tags"][t] = newdoc["dist-tags"][t]
+        })
       }
     }
 
