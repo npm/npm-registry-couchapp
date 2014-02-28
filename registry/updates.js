@@ -66,12 +66,16 @@ updates.package = function (doc, req) {
   else
     d = function() {}
 
-  if (!doc)
+  if (!doc) {
+    d('newDoc', body)
     return newDoc(body)
-  else if (req.query.version)
-    return legacyUpdate(doc, body, req.query.version)
-  else
+  } else if (req.query.version || req.query.tag) {
+    d('legacyupdate', req.query)
+    return legacyUpdate(doc, body, req.query)
+  } else {
+    d('updateDoc')
     return updateDoc(body, doc)
+  }
 
   // unreachable
   return error("bug in update function. please report this.")
@@ -81,19 +85,20 @@ updates.package = function (doc, req) {
   // methods
 
   function legacyUpdate(doc, body, query) {
+    d('in legacyUpdate', body, query)
     // we know that there's already a document to merge into.
     // Figure out what we're trying to add into it.
     //
     // legacy npm clients would PUT the version to /:pkg/:version
     // tagging is done by PUT /:pkg/:tag with a "version" string
     if (typeof body === "string") {
-      var tag = query
+      var tag = query.version
       var ver = body
       return addTag(tag, ver)
     }
 
     // adding a new version.
-    return addNewVersion(query, body)
+    return addNewVersion(body.version, body)
   }
 
   // return error(reason) to abort at any point.
@@ -117,7 +122,7 @@ updates.package = function (doc, req) {
 
   // Copy relevant properties from the "latest" published version to root
   function latestCopy(doc) {
-    d('latestCopy', doc['dist-tags'])
+    d('latestCopy', doc['dist-tags'], doc)
 
     if (!doc['dist-tags'] || !doc.versions)
       return
@@ -270,6 +275,7 @@ updates.package = function (doc, req) {
   }
 
   function addNewVersion(ver, body) {
+    d('addNewVersion ver=', ver)
     if (typeof body !== "object" || !body) {
       return error("putting invalid object to version "+req.query.version)
     }
@@ -321,7 +327,7 @@ updates.package = function (doc, req) {
     doc.versions = doc.versions || {}
     doc.time = doc.time || {}
 
-    if (!req.query.pre && !doc['dist-tags'][tag])
+    if (!req.query.pre)
       doc["dist-tags"][tag] = body.version
 
     if (!doc["dist-tags"].latest)
