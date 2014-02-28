@@ -35,6 +35,7 @@ ips=($(dig +short "$hostname" | egrep '^[0-9]'))
 for ip in "${ips[@]}"; do
   ipurl="${c/$hostname/$ip}"
   echo $ip
+  DEPLOY_VERSION=test \
   node -pe 'Object.keys(require("./registry/app.js").views).join("\n")' \
   | while read view; do
     echo "LOADING: $view"
