@@ -42,7 +42,13 @@ fi
 auth="$(node -pe 'require("url").parse(process.argv[1]).auth' "$c")"
 url="$(node -pe 'u=require("url");p=u.parse(process.argv[1]);delete p.auth;u.format(p)' "$c")"
 
-curl "$url/_design/scratch" \
-   -k -u "$auth" \
-  -X COPY \
-  -H destination:'_design/app'$rev
+if [[ $auth != null ]]; then
+  curl "$url/_design/scratch" \
+     -k -u "$auth" \
+    -X COPY \
+    -H destination:'_design/app'$rev
+else
+  curl "$url/_design/scratch" \
+    -X COPY \
+    -H destination:'_design/app'$rev
+fi
