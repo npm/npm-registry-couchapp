@@ -437,11 +437,10 @@ views.browseAuthorsRecent = { map: function (doc) {
   var t = doc.time && doc.time[l.version]
   if (!t) return
   var desc = doc.description || l.description || ''
-  var readme = doc.readme || l.readme || ''
   doc.maintainers.forEach(function (m) {
     // Have to sum it up by the author name in the app.
     // couchdb makes me sad sometimes.
-    emit([t, m.name, doc._id, desc, readme], 1)
+    emit([t, m.name, doc._id, desc], 1)
   })
 }, reduce: "_sum" }
 
@@ -464,9 +463,8 @@ views.browseAuthors = views.npmTop = { map: function (doc) {
   var t = doc.time && doc.time[l.version]
   if (!t) return
   var desc = doc.description || l.description || ''
-  var readme = doc.readme || l.readme || ''
   doc.maintainers.forEach(function (m) {
-    emit([m.name, doc._id, desc, t, readme], 1)
+    emit([m.name, doc._id, desc, t], 1)
   })
 }, reduce: "_sum" }
 
@@ -518,8 +516,7 @@ views.browseUpdated = { map: function (doc) {
 
   emit([ d.toISOString(),
          doc._id,
-         v.description,
-         v.readme ], 1)
+         v.description ], 1)
 }, reduce: "_sum" }
 
 views.browseAll = { map: function (doc) {
@@ -533,8 +530,7 @@ views.browseAll = { map: function (doc) {
   l = doc.versions && doc.versions[l]
   if (!l) return
   var desc = doc.description || l.description || ''
-  var readme = doc.readme || l.readme || ''
-  emit([doc.name, desc, readme], 1)
+  emit([doc.name, desc], 1)
 }, reduce: '_sum' }
 
 views.analytics = { map: function (doc) {
@@ -588,11 +584,10 @@ views.dependedUpon = { map: function (doc) {
   l = doc.versions && doc.versions[l]
   if (!l) return
   var desc = doc.description || l.description || ''
-  var readme = doc.readme || l.readme || ''
   var d = l.dependencies
   if (!d) return
   for (var dep in d) {
-    emit([dep, doc._id, desc, readme], 1)
+    emit([dep, doc._id, desc], 1)
   }
 }, reduce: '_sum' }
 
@@ -623,11 +618,10 @@ views.browseStarUser = { map: function (doc) {
   l = doc.versions && doc.versions[l]
   if (!l) return
   var desc = doc.description || l.description || ''
-  var readme = doc.readme || l.readme || ''
   var d = doc.users
   if (!d) return
   for (var user in d) {
-    emit([user, doc._id, desc, readme], 1)
+    emit([user, doc._id, desc], 1)
   }
 }, reduce: '_sum' }
 
@@ -642,11 +636,10 @@ views.browseStarPackage = { map: function (doc) {
   l = doc.versions && doc.versions[l]
   if (!l) return
   var desc = doc.description || l.description || ''
-  var readme = doc.readme || l.readme || ''
   var d = doc.users
   if (!d) return
   for (var user in d) {
-    emit([doc._id, desc, user, readme], 1)
+    emit([doc._id, desc, user], 1)
   }
 }, reduce: '_sum' }
 
