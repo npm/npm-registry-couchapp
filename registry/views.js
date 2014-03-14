@@ -44,28 +44,6 @@ views.oddhost = { map: function (doc) {
   })
 }, reduce: "_sum" }
 
-views.noCDN = { map: function (doc) {
-  Object.keys = Object.keys || function keys (o) {
-      var a = []
-      for (var i in o) a.push(i)
-      return a }
-  Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
-      for (var i = 0, l = this.length; i < l; i ++) {
-        if (this.hasOwnProperty(i)) {
-          fn(this[i], i, this)
-        }
-      }
-    }
-
-  if (!doc.versions || Object.keys(doc.versions).length === 0)
-    return
-  Object.keys(doc.versions).forEach(function(v) {
-    if (doc.versions[v].dist.cdn)
-      return
-    emit([doc._id, v], 1)
-  })
-}, reduce: "_sum" }
-
 views.updated = {map: function (doc) {
   var l = doc["dist-tags"].latest
     , t = doc.time && doc.time[l]
@@ -328,33 +306,6 @@ views.nodeWafInstall = {
     }
   }
 }
-
-views.badBins = {
-  map : function (doc) {
-  Object.keys = Object.keys || function keys (o) {
-      var a = []
-      for (var i in o) a.push(i)
-      return a }
-
-    if (!doc || !doc.versions || !doc["dist-tags"]) return
-    if (doc._id.match(/^npm-test-.+$/) &&
-        doc.maintainers &&
-        doc.maintainers[0].name === 'isaacs')
-      return
-    var v = doc["dist-tags"].latest
-    if (!doc.versions[v]) return
-    v = doc.versions[v]
-    var b = v.bin
-      , d = v.directories && v.directories.bin
-    if (!b && !d) return
-    if (b && (typeof b === "string" || Object.keys(b).length === 1)) {
-      // it's ok.
-      return
-    }
-    emit(doc._id, {binHash:b, binDir:d})
-  }
-}
-
 
 views.orphanAttachments = {
   map : function (doc) {
@@ -718,21 +669,3 @@ views.fieldsInUse = { map : function (doc) {
     }
   }
 } , reduce : "_sum" }
-
-views.howBigIsYourPackage = {
-  map : function (doc) {
-    if (!doc) return
-    if (doc._id.match(/^npm-test-.+$/) &&
-        doc.maintainers &&
-        doc.maintainers[0].name === 'isaacs')
-      return
-    var s = 0
-      , c = 0
-    for (var i in doc._attachments) {
-      s += doc._attachments[i].length
-      c ++
-    }
-    if (s === 0) return
-    emit(doc._id, {_id: doc._id, size: s, count: c, avg: s/c})
-  }
-}
