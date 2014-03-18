@@ -1,6 +1,5 @@
 module.exports =
   [ { from: "/", to:"../..", method: "GET" }
-  , { from: "/-/jsonp/:jsonp", to:"_list/short/listAll", method: "GET" }
 
   , { from: "/_session", to: "../../../_session", method: "GET" }
   , { from: "/_session", to: "../../../_session", method: "PUT" }
@@ -19,20 +18,14 @@ module.exports =
   , { from: "/-/all", to:"_list/index/listAll", method: "GET" }
   , { from: "/-/all/-/jsonp/:jsonp", to:"_list/index/listAll", method: "GET" }
 
-  , { from: "/-/short", to:"_list/short/listAll", method: "GET" }
   , { from: "/-/scripts", to:"_list/scripts/scripts", method: "GET" }
   , { from: "/-/by-field", to:"_list/byField/byField", method: "GET" }
   , { from: "/-/fields", to:"_list/sortCount/fieldsInUse", method: "GET",
       query: { group: "true" } }
 
   , { from: "/-/needbuild", to:"_list/needBuild/needBuild", method: "GET" }
-  , { from: "/-/prebuilt", to:"_list/preBuilt/needBuild", method: "GET" }
-  , { from: "/-/nonlocal", to:"_list/short/nonlocal", method: "GET" }
-
   , { from : "/favicon.ico", to:"../../npm/favicon.ico", method:"GET" }
 
-  , { from: "/-/users", to:"../../../_users/_design/_auth/_list/index/listAll"
-    , method: "GET" }
   , { from: "/-/user/:user", to:"../../../_users/:user", method: "PUT" }
 
   , { from: "/-/user/:user/-rev/:rev", to:"../../../_users/:user"
