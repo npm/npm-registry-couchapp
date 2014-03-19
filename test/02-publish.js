@@ -199,10 +199,11 @@ test('fail to publish as other user', function(t) {
   })
 })
 
-test('publish update', function(t) {
+test('publish update as non-latest', function(t) {
   var c = spawn('npm', [
     '--registry=' + reg,
     '--userconf=' + conf,
+    '--tag=alpha',
     'publish'
   ], { cwd: pkg023a, env: env })
   c.stderr.pipe(process.stderr)
@@ -222,18 +223,19 @@ test('GET after update', function(t) {
   expect = {
     "_id": "package",
     "name": "package",
-    "description": "just an npm test, but with a **markdown** readme.",
+    "description": "just an npm test",
     "dist-tags": {
-      "latest": "0.2.3-alpha"
+      "latest": "0.0.2",
+      "alpha": "0.2.3-alpha"
     },
     "versions": {
       "0.0.2": version002,
       "0.2.3-alpha": version023a
     },
-    "readme": "just an npm test, but with a **markdown** readme.\n",
+    "readme": "just an npm test\n",
     "maintainers": maintainers,
     "time": time,
-    "readmeFilename": "README.md",
+    "readmeFilename": "README",
     "_attachments": {
       "package-0.0.2.tgz": {
         "content_type": "application/octet-stream",
@@ -339,8 +341,12 @@ test('get after other publish', function(t) {
       // rev and time will be different
       t.like(c._rev, /4-[0-9a-f]+$/)
       expect._rev = c._rev
+      expect.description = "just an npm test, but with a **markdown** readme."
+      expect.readmeFilename = "README.md"
+      expect.readme = "just an npm test, but with a **markdown** readme.\n"
       expect['dist-tags'] = {
-        "latest": "0.2.3"
+        "latest": "0.2.3",
+        "alpha": "0.2.3-alpha"
       }
       expect.versions['0.2.3'] = version023
       expect._attachments["package-0.2.3.tgz"] = {

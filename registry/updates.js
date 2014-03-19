@@ -428,12 +428,6 @@ updates.package = function (doc, req) {
       delete doc.time.unpublished
     }
 
-    for (var i in newdoc) {
-      if (typeof newdoc[i] === "string") {
-        doc[i] = newdoc[i]
-      }
-    }
-
     // Only allow maintainer update if the rev matches
     if (newdoc.maintainers && newdoc._rev === doc._rev) {
       d("set doc.maintainers to newdoc.maintainers", newdoc.maintainers)
@@ -451,7 +445,24 @@ updates.package = function (doc, req) {
           doc["dist-tags"][t] = newdoc["dist-tags"][t]
         })
       }
+      // If the user sent us a single dist-tags entry, then treat it as
+      // the effective "?tag=foo" param, for the purporses of updating.
+      if (tags.length === 1) {
+        if (!req.query.tag)
+          req.query.tag = tags[0]
+      }
     }
+
+    // Don't update the readme if we're publishing an alpha/pre-release
+    // only if it's a new default "latest" version
+    if (!req.query.pre && (!req.query.tag || req.query.tag === "latest")) {
+      for (var i in newdoc) {
+        if (typeof newdoc[i] === "string") {
+          doc[i] = newdoc[i]
+        }
+      }
+    }
+
 
     var res = mergeVersions(newdoc, doc)
     if (isError(res))
