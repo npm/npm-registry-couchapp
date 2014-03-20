@@ -30,6 +30,17 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     assert(false, "failed loading modules")
   }
 
+  function descTrim(doc) {
+    if (doc.description && doc.description.length > 255) {
+      doc.description = doc.description.slice(0, 255)
+    }
+    if (doc.versions) {
+      for (var v in doc.versions) {
+        descTrim(doc.versions[v])
+      }
+    }
+  }
+
   // We always allow anyone to remove extraneous readme data,
   // and this is done in the process of starring or other non-publish
   // updates that go through the _update/package function anyway.
@@ -104,6 +115,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   function finishing(doc) {
     if (doc && doc.versions) {
       readmeTrim(doc)
+      descTrim(doc)
       latestCopy(doc)
     }
   }

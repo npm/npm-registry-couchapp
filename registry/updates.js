@@ -151,6 +151,17 @@ updates.package = function (doc, req) {
     }
   }
 
+  function descTrim(doc) {
+    if (doc.description && doc.description.length > 255) {
+      doc.description = doc.description.slice(0, 255)
+    }
+    if (doc.versions) {
+      for (var v in doc.versions) {
+        descTrim(doc.versions[v])
+      }
+    }
+  }
+
   // Clean up excessive readmes and move to root of doc.
   function readmeTrim(doc) {
     var changed = false
@@ -207,6 +218,7 @@ updates.package = function (doc, req) {
     findLatest(doc)
     latestCopy(doc)
     readmeTrim(doc)
+    descTrim(doc)
 
     if (!doc.maintainers)
       return error("no maintainers. Please upgrade your npm client.")
@@ -336,6 +348,7 @@ updates.package = function (doc, req) {
     doc.versions[ver] = body
     doc.time = doc.time || {}
     doc.time[ver] = (new Date()).toISOString()
+
     return ok(doc, "added version")
   }
 
