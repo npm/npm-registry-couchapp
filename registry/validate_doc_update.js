@@ -136,6 +136,13 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
       && doc._id === "npm")
     throw { forbidden: "you may not delete npm!" }
 
+
+  // if the doc is an {error:"blerg"}, then throw that right out.
+  // something detected in the _updates/package script.
+  // XXX: Make this not ever happen ever.  Validation belongs here,
+  // not in the update function.
+  assert(!doc.forbidden, doc.forbidden)
+
   // admins can do ANYTHING (even break stuff)
   try {
     if (isAdmin()) return
@@ -186,12 +193,6 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     }
     return d
   }
-
-  // if the doc is an {error:"blerg"}, then throw that right out.
-  // something detected in the _updates/package script.
-  // XXX: Make this not ever happen ever.  Validation belongs here,
-  // not in the update function.
-  assert(!doc.forbidden, doc.forbidden)
 
   assert(!doc._deleted, "deleting docs directly not allowed.\n" +
                         "Use the _update/delete method.")
