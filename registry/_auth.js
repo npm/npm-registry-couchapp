@@ -1,6 +1,6 @@
 // sync to $host/_users/_design/_auth
 
-var ddoc = {_id:"_design/_auth", language:"javascript"}
+var ddoc = {_id:"_design/scratch", language:"javascript"}
 
 module.exports = ddoc
 
@@ -293,9 +293,12 @@ ddoc.views.conflicts = { map: function (doc) {
 }, reduce: "_sum" }
 
 
-if (require.main === module) {
+if (require.main === module)
   console.log(JSON.stringify(ddoc, function (k, v) {
     if (typeof v !== 'function') return v;
     return v.toString()
   }))
-}
+else if (process.env.DEPLOY_VERSION)
+  ddoc.deploy_version = process.env.DEPLOY_VERSION
+else
+  throw new Error('Must set DEPLOY_VERSION env to `git describe` output')

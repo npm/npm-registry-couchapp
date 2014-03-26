@@ -61,8 +61,13 @@ EOF
 
 c=${c/PASSWORD/$PASSWORD}
 c=${c// /%20}
+
+c="$(node -p 'process.argv[1].replace(/\/$/, "")' "$c")"
+u="$(node -p 'require("url").resolve(process.argv[1], "_users")' "$c")"
+
 which couchapp
 DEPLOY_VERSION=`git describe --tags` couchapp push registry/app.js "$c" && \
+DEPLOY_VERSION=`git describe --tags` couchapp push registry/_auth.js "$u" && \
 scratch_message && \
 exit 0 || \
 ( ret=$?

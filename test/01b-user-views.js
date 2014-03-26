@@ -34,7 +34,7 @@ var expect = {
 }
 
 var test = require('tap').test
-var u = 'http://admin:admin@localhost:15984/_users/_design/_auth/_view/'
+var u = 'http://admin:admin@localhost:15984/_users/_design/scratch/_view/'
 var http = require('http')
 var parse = require('parse-json-response')
 
