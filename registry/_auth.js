@@ -195,6 +195,15 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx, secObj) {
 ddoc.views = {
   listAll: { map : function (doc) { return emit(doc._id, doc) } },
 
+  userByEmail: {
+    map: function (doc) {
+      if (doc.email || doc.name) {
+        emit([ doc.email, doc.name ], 1)
+      }
+    },
+    reduce: "_sum"
+  },
+
   invalidUser: { map: function (doc) {
     var errors = []
     if (doc.type !== 'user') {

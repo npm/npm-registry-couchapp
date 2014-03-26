@@ -14,7 +14,8 @@
   },
   "devDependencies": {
     "jsontool": "~7.0.1",
-    "tap": "*",
-    "rimraf": "~2.2.6"
+    "parse-json-response": "^1.0.1",
+    "rimraf": "~2.2.6",
+    "tap": "*"
   }
 }

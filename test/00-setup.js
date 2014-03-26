@@ -96,3 +96,15 @@ test('ddoc', function(t) {
     t.end()
   })
 })
+
+test('users ddoc', function(t) {
+  var app = require.resolve('../registry/_auth.js')
+  var couch = 'http://admin:admin@localhost:15984/_users'
+  var c = spawn('couchapp', ['push', app, couch])
+  c.stderr.pipe(process.stderr)
+  c.stdout.pipe(process.stdout)
+  c.on('exit', function(code) {
+    t.notOk(code)
+    t.end()
+  })
+})
