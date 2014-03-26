@@ -1,10 +1,10 @@
 # npmjs.org
 
-The design doc for The npm Registry CouchApp
+The design doc for the npm Registry CouchApp
 
 # Installing
 
-You need CouchDB version 1.4.0 or higher.  1.5.0 or higher is best.
+You need CouchDB version 1.4.0 or higher, 1.5.0 or higher is best.
 
 Once you have CouchDB installed, create a new database:
 
@@ -29,7 +29,7 @@ Clone the repository if you haven't already, and cd into it:
     git clone git://github.com/npm/npmjs.org
     cd npmjs.org
 
-Now install the stuff:
+Now install our package and dependencies:
 
     npm install
 
