@@ -1,5 +1,5 @@
 var test = require('tap').test
-var reg = 'http://127.0.0.1:15984/'
+var reg = 'http://127.0.0.1:15986/'
 var path = require('path')
 var rimraf = require('rimraf')
 var conf = path.resolve(__dirname, 'fixtures', 'npmrc')
@@ -35,7 +35,7 @@ test('deprecate', function (t) {
 })
 
 test('get data after deprecation', function (t) {
-  http.get('http://127.0.0.1:15984/package', function(res) {
+  http.get('http://127.0.0.1:15986/package', function(res) {
     var c = ''
     res.setEncoding('utf8')
     res.on('data', function (d) {

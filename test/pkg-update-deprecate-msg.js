@@ -25,7 +25,7 @@ var doc =
       "_id": "package@0.0.2",
       "dist": {
         "shasum": "c633471c3673ac68d432670cef7c5c0263ae524b",
-        "tarball": "http://127.0.0.1:15984/package/-/package-0.0.2.tgz"
+        "tarball": "http://127.0.0.1:15986/package/-/package-0.0.2.tgz"
       },
       "_from": ".",
       "_npmVersion": "1.4.3",
@@ -48,7 +48,7 @@ var doc =
       "_id": "package@0.2.3-alpha",
       "dist": {
         "shasum": "b145d84e98f8b506d02038a6842d25c70236c6e5",
-        "tarball": "http://127.0.0.1:15984/package/-/package-0.2.3-alpha.tgz"
+        "tarball": "http://127.0.0.1:15986/package/-/package-0.2.3-alpha.tgz"
       },
       "_from": ".",
       "_npmVersion": "1.4.3",
@@ -71,7 +71,7 @@ var doc =
       "_id": "package@0.2.3",
       "dist": {
         "shasum": "40c38d32b5c6642c6256b44a00b0f3bd6ac6cea2",
-        "tarball": "http://127.0.0.1:15984/package/-/package-0.2.3.tgz"
+        "tarball": "http://127.0.0.1:15986/package/-/package-0.2.3.tgz"
       },
       "_from": ".",
       "_npmVersion": "1.4.3",

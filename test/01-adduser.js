@@ -1,5 +1,5 @@
 var test = require('tap').test
-var reg = 'http://127.0.0.1:15984/'
+var reg = 'http://127.0.0.1:15986/'
 var path = require('path')
 
 var conf = path.resolve(__dirname, 'fixtures', 'npmrc')

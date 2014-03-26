@@ -17,7 +17,7 @@ var cwd = path.dirname(__dirname)
 var conf = path.resolve(__dirname, 'fixtures', 'couch.ini')
 var pidfile = path.resolve(__dirname, 'fixtures', 'pid')
 var logfile = path.resolve(__dirname, 'fixtures', 'couch.log')
-var started = /Apache CouchDB has started on http:\/\/127\.0\.0\.1:15984\/\n$/
+var started = /Apache CouchDB has started on http:\/\/127\.0\.0\.1:15986\/\n$/
 
 test('start couch as a zombie child', function (t) {
   var fd = fs.openSync(pidfile, 'wx')
@@ -54,7 +54,7 @@ test('start couch as a zombie child', function (t) {
 })
 
 test('create test db', function(t) {
-  var u = url.parse('http://admin:admin@localhost:15984/registry')
+  var u = url.parse('http://admin:admin@localhost:15986/registry')
   u.method = 'PUT'
   http.request(u, function(res) {
     t.equal(res.statusCode, 201)
@@ -87,7 +87,7 @@ test('get the git-describe output', function(t) {
 
 test('ddoc', function(t) {
   var app = require.resolve('../registry/app.js')
-  var couch = 'http://admin:admin@localhost:15984/registry'
+  var couch = 'http://admin:admin@localhost:15986/registry'
   var c = spawn('couchapp', ['push', app, couch])
   c.stderr.pipe(process.stderr)
   c.stdout.pipe(process.stdout)
@@ -99,7 +99,7 @@ test('ddoc', function(t) {
 
 test('users ddoc', function(t) {
   var app = require.resolve('../registry/_auth.js')
-  var couch = 'http://admin:admin@localhost:15984/_users'
+  var couch = 'http://admin:admin@localhost:15986/_users'
   var c = spawn('couchapp', ['push', app, couch])
   c.stderr.pipe(process.stderr)
   c.stdout.pipe(process.stdout)

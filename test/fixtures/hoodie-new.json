@@ -32,7 +32,7 @@
   "_id": "hoodie-plugin-global-share@1.0.10",
   "dist": {
     "shasum": "baca2c68ad643bd33f96f4cbe2d25984dc8bfb0e",
-    "tarball": "http://127.0.0.1:15984/hoodie-plugin-global-share/-/hoodie-plugin-global-share-1.0.10.tgz"
+    "tarball": "http://127.0.0.1:15986/hoodie-plugin-global-share/-/hoodie-plugin-global-share-1.0.10.tgz"
   },
   "_from": ".",
   "_npmVersion": "1.3.11",

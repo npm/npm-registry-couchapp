@@ -1,11 +1,11 @@
 // npm --userconfig=test/fixtures/npmrc unpublish -f package
-// --registry=http://127.0.0.1:15984; ( echo "now unpublish"; cd
+// --registry=http://127.0.0.1:15986; ( echo "now unpublish"; cd
 // test/fixtures/package/0.2.4/; npm publish
-// --registry=http://127.0.0.1:15984/
+// --registry=http://127.0.0.1:15986/
 // --userconfig=$HOME/dev/npm/npmjs.org/test/fixtures/npmrc3)
 
 var test = require('tap').test
-var reg = 'http://127.0.0.1:15984/'
+var reg = 'http://127.0.0.1:15986/'
 var path = require('path')
 var rimraf = require('rimraf')
 var conf = path.resolve(__dirname, 'fixtures', 'npmrc')

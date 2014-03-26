@@ -1,6 +1,6 @@
 var test = require('tap').test
-var reg = 'http://127.0.0.1:15984/'
-var db = 'http://localhost:15984/registry/'
+var reg = 'http://127.0.0.1:15986/'
+var db = 'http://localhost:15986/registry/'
 var path = require('path')
 var rimraf = require('rimraf')
 var conf = path.resolve(__dirname, 'fixtures', 'npmrc')
@@ -28,7 +28,7 @@ var version002 = {
   "description": "just an npm test",
   "_id": "package@0.0.2",
   "dist": {
-    "tarball": "http://127.0.0.1:15984/package/-/package-0.0.2.tgz"
+    "tarball": "http://127.0.0.1:15986/package/-/package-0.0.2.tgz"
   },
   "_from": ".",
   "_npmUser": {
@@ -50,7 +50,7 @@ var version023a = {
   "description": "just an npm test, but with a **markdown** readme.",
   "_id": "package@0.2.3-alpha",
   "dist": {
-    "tarball": "http://127.0.0.1:15984/package/-/package-0.2.3-alpha.tgz"
+    "tarball": "http://127.0.0.1:15986/package/-/package-0.2.3-alpha.tgz"
   },
   "_from": ".",
   "_npmUser": {
@@ -72,7 +72,7 @@ var version023 = {
   "description": "just an npm test, but with a **markdown** readme.",
   "_id": "package@0.2.3",
   "dist": {
-    "tarball": "http://127.0.0.1:15984/package/-/package-0.2.3.tgz"
+    "tarball": "http://127.0.0.1:15986/package/-/package-0.2.3.tgz"
   },
   "_from": ".",
   "_npmUser": {

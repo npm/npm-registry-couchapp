@@ -1,5 +1,5 @@
 var test = require('tap').test
-var reg = 'http://127.0.0.1:15984/'
+var reg = 'http://127.0.0.1:15986/'
 var path = require('path')
 var rimraf = require('rimraf')
 var conf = path.resolve(__dirname, 'fixtures', 'npmrc')
@@ -50,7 +50,7 @@ test('non-owner can unstar package', function(t) {
 })
 
 test('simulate old-style multi-readme doc', function(t) {
-  http.get('http://localhost:15984/registry/package', function(res) {
+  http.get('http://localhost:15986/registry/package', function(res) {
     var j = ''
     res.setEncoding('utf8')
     res.on('data', function(d) { j += d })
@@ -59,7 +59,7 @@ test('simulate old-style multi-readme doc', function(t) {
       p.versions['0.0.2'].readme = 'foo'
       p.versions['0.2.3-alpha'].readme = 'bar'
       var b = new Buffer(JSON.stringify(p))
-      var u = url.parse('http://admin:admin@localhost:15984/registry/package')
+      var u = url.parse('http://admin:admin@localhost:15986/registry/package')
       u.method = 'PUT'
       u.headers = {
         'content-type': 'application/json',
