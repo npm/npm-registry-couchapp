@@ -163,6 +163,10 @@ test('GET after unpublish', function(t) {
       t.same(Object.keys(c.time).sort().join(","),
              '0.0.2,0.2.3,0.2.3-alpha,0.2.4,created,modified,unpublished')
       t.equal(c.time.unpublished.name, "third")
+      t.equal(c.time.unpublished.description, "just an npm test, but with a **markdown** readme.")
+      t.same(c.time.unpublished.maintainers, [{"name":"third","email":"3@example.com"}])
+      t.same(c.time.unpublished.versions, ["0.2.4"])
+      t.same(c.time.unpublished.tags, { latest: "0.2.4" })
       t.end()
     })
   })

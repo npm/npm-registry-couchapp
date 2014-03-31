@@ -6,11 +6,21 @@ updates.delete = function (doc, req) {
              { error: "method not allowed" } ]
 
   require("monkeypatch").patch(Object, Date, Array, String)
+
+  var dt = doc['dist-tags']
+  var lv = dt && dt.latest
+  var latest = lv && doc.versions && doc.versions[lv]
+
   var t = doc.time || {}
   t.unpublished = {
     name: req.userCtx.name,
-    time: new Date().toISOString()
+    time: new Date().toISOString(),
+    tags: dt || {},
+    maintainers: doc.maintainers,
+    description: latest && latest.description || doc.description,
+    versions: Object.keys(doc.versions || {})
   }
+
   return [ {
     _id: doc._id,
     _rev: doc._rev,
