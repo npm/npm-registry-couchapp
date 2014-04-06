@@ -221,7 +221,11 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx, secObj) {
 }
 
 ddoc.views = {
-  listAll: { map : function (doc) { return emit(doc._id, doc) } },
+  listAll: {
+    map: function (doc) {
+      return emit(doc._id, doc)
+    }
+  },
 
   userByEmail: {
     map: function (doc) {
@@ -232,93 +236,119 @@ ddoc.views = {
     reduce: "_sum"
   },
 
-  invalidUser: { map: function (doc) {
-    var errors = []
-    if (doc.type !== 'user') {
-      errors.push('doc.type must be user')
-    }
+  invalidUser: {
+    map: function (doc) {
+      var errors = []
+      if (doc.type !== 'user') {
+        errors.push('doc.type must be user')
+      }
 
-    if (!doc.name) {
-      errors.push('doc.name is required')
-    }
+      if (!doc.name) {
+        errors.push('doc.name is required')
+      }
 
-    if (doc.roles && !isArray(doc.roles)) {
-      errors.push('doc.roles must be an array')
-    }
+      if (doc.roles && !isArray(doc.roles)) {
+        errors.push('doc.roles must be an array')
+      }
 
-    if (doc._id !== ('org.couchdb.user:' + doc.name)) {
-      errors.push('Doc ID must be of the form org.couchdb.user:name')
-    }
+      if (doc._id !== ('org.couchdb.user:' + doc.name)) {
+        errors.push('Doc ID must be of the form org.couchdb.user:name')
+      }
 
-    if (doc.name !== doc.name.toLowerCase()) {
-      errors.push('Name must be lower-case')
-    }
+      if (doc.name !== doc.name.toLowerCase()) {
+        errors.push('Name must be lower-case')
+      }
 
-    if (doc.name !== encodeURIComponent(doc.name)) {
-      errors.push('Name cannot contain non-url-safe characters')
-    }
+      if (doc.name !== encodeURIComponent(doc.name)) {
+        errors.push('Name cannot contain non-url-safe characters')
+      }
 
-    if (doc.name.charAt(0) === '.') {
-      errors.push('Name cannot start with .')
-    }
+      if (doc.name.charAt(0) === '.') {
+        errors.push('Name cannot start with .')
+      }
 
-    if (!(doc.email && doc.email.match(/^.+@.+\..+$/))) {
-      errors.push('Email must be an email address')
-    }
+      if (!(doc.email && doc.email.match(/^.+@.+\..+$/))) {
+        errors.push('Email must be an email address')
+      }
 
-    if (doc.password_sha && !doc.salt) {
-      errors.push('Users with password_sha must have a salt.')
+      if (doc.password_sha && !doc.salt) {
+        errors.push('Users with password_sha must have a salt.')
+      }
+      if (!errors.length) return
+      emit([doc.name, doc.email], errors)
     }
-    if (!errors.length) return
-    emit([doc.name, doc.email], errors)
-  }},
+  },
 
-  invalid: { map: function (doc) {
-    if (doc.type !== 'user') {
-      return emit(['doc.type must be user', doc.email, doc.name], 1)
-    }
+  invalid: {
+    map: function (doc) {
+      if (doc.type !== 'user') {
+        return emit(['doc.type must be user', doc.email, doc.name], 1)
+      }
 
-    if (!doc.name) {
-      return emit(['doc.name is required', doc.email, doc.name], 1)
-    }
+      if (!doc.name) {
+        return emit(['doc.name is required', doc.email, doc.name], 1)
+      }
 
-    if (doc.roles && !isArray(doc.roles)) {
-      return emit(['doc.roles must be an array', doc.email, doc.name], 1)
-    }
+      if (doc.roles && !isArray(doc.roles)) {
+        return emit(['doc.roles must be an array', doc.email, doc.name], 1)
+      }
 
-    if (doc._id !== ('org.couchdb.user:' + doc.name)) {
-      return emit(['Doc ID must be of the form org.couchdb.user:name', doc.email, doc.name], 1)
-    }
+      if (doc._id !== ('org.couchdb.user:' + doc.name)) {
+        return emit(['Doc ID must be of the form org.couchdb.user:name', doc.email, doc.name], 1)
+      }
 
-    if (doc.name !== doc.name.toLowerCase()) {
-      return emit(['Name must be lower-case', doc.email, doc.name], 1)
-    }
+      if (doc.name !== doc.name.toLowerCase()) {
+        return emit(['Name must be lower-case', doc.email, doc.name], 1)
+      }
 
-    if (doc.name !== encodeURIComponent(doc.name)) {
-      return emit(['Name cannot contain non-url-safe characters', doc.email, doc.name], 1)
-    }
+      if (doc.name !== encodeURIComponent(doc.name)) {
+        return emit(['Name cannot contain non-url-safe characters', doc.email, doc.name], 1)
+      }
 
-    if (doc.name.charAt(0) === '.') {
-      return emit(['Name cannot start with .', doc.email, doc.name], 1)
-    }
+      if (doc.name.charAt(0) === '.') {
+        return emit(['Name cannot start with .', doc.email, doc.name], 1)
+      }
 
-    if (!(doc.email && doc.email.match(/^.+@.+\..+$/))) {
-      return emit(['Email must be an email address', doc.email, doc.name], 1)
-    }
+      if (!(doc.email && doc.email.match(/^.+@.+\..+$/))) {
+        return emit(['Email must be an email address', doc.email, doc.name], 1)
+      }
 
-    if (doc.password_sha && !doc.salt) {
-      return emit(['Users with password_sha must have a salt.', doc.email, doc.name], 1)
-    }
-  }, reduce: '_sum'}
-}
+      if (doc.password_sha && !doc.salt) {
+        return emit(['Users with password_sha must have a salt.', doc.email, doc.name], 1)
+      }
+    },
+    reduce: '_sum'
+  },
 
-ddoc.views.conflicts = { map: function (doc) {
-  if (doc._conflicts) {
-    for (var i = 0; i < doc._conflicts.length; i++) {
-      emit([doc._id, doc._conflicts[i]], 1)
-    }
+  pbkdfsha: {
+    map: function(doc) {
+      if (doc.password_sha && doc.derived_key) {
+        emit([doc._id, doc], 1)
+      }
+    },
+    reduce: "_sum"
+  },
+
+  string_iterations: {
+    map: function(doc) {
+      if (typeof doc.iterations === 'string') {
+        emit([doc._id, doc], 1)
+      }
+    },
+    reduce: "_sum"
+  },
+
+  conflicts: {
+    map: function (doc) {
+      if (doc._conflicts) {
+        for (var i = 0; i < doc._conflicts.length; i++) {
+          emit([doc._id, doc._conflicts[i]], 1)
+        }
+      }
+    },
+    reduce: "_sum"
   }
-}, reduce: "_sum" }
+}
 
 
 if (require.main === module)
