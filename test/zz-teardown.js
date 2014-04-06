@@ -2,6 +2,7 @@
 // started by the 00-setup.js test
 
 var fs = require('fs')
+var rimraf = require('rimraf')
 var test = require('tap').test
 var path = require('path')
 var pidfile = path.resolve(__dirname, 'fixtures', 'pid')
@@ -9,6 +10,8 @@ var _users = path.resolve(__dirname, 'fixtures', '_users.couch')
 var db = path.resolve(__dirname, 'fixtures', 'registry.couch')
 var log = path.resolve(__dirname, 'fixtures', 'couch.log')
 var repl = path.resolve(__dirname, 'fixtures', '_replicator.couch')
+var rdes = path.resolve(__dirname, 'fixtures', '.registry_design')
+var udes = path.resolve(__dirname, 'fixtures', '._users_design')
 
 test('cleanup', function (t) {
   try {
@@ -22,12 +25,9 @@ test('cleanup', function (t) {
     }
   }
 
-  files = [ pidfile, repl, log, _users, db ]
+  files = [ pidfile, repl, log, _users, db, rdes, udes ]
   files.forEach(function(file) {
-    try { fs.unlinkSync(file) } catch (er) {
-      // ok if gone
-      t.equal(er.code, 'ENOENT')
-    }
+    rimraf.sync(file)
   })
 
   t.pass('couch is no more')

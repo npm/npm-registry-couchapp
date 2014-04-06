@@ -1,5 +1,6 @@
 // sync to $host/_users/_design/_auth
 
+var isArray = Array.isArray
 var ddoc = {_id:"_design/scratch", language:"javascript"}
 
 module.exports = ddoc
@@ -45,7 +46,7 @@ ddoc.lists = {
 ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx, secObj) {
   if (newDoc._deleted === true) {
     // allow deletes by admins
-    if ((userCtx.roles.indexOf('_admin') !== -1)) {
+    if (userCtx && (userCtx.roles.indexOf('_admin') !== -1)) {
       return;
     } else {
       throw({forbidden: 'Only admins may delete user docs.'});
@@ -106,7 +107,7 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx, secObj) {
 
   var is_server_or_database_admin = function(userCtx, secObj) {
     // see if the user is a server admin
-    if(userCtx.roles.indexOf('_admin') !== -1) {
+    if(userCtx && userCtx.roles.indexOf('_admin') !== -1) {
       return true; // a server admin
     }
 
@@ -189,6 +190,33 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx, secObj) {
       throw({forbidden: 'Character `' + badUserNameChars[i] +
           '` is not allowed in usernames.'});
     }
+  }
+
+  if (newDoc.password)
+    throw {forbidden: 'Plain-text passwords may not be stored in the db'}
+
+  if (newDoc.password_scheme === 'pbkdf2') {
+    if (newDoc.password_sha)
+      throw {forbidden: 'may not mix password_sha and pbkdf2'}
+    if (!newDoc.derived_key)
+      throw {forbidden: 'missing pbkdf2 derived_key'}
+    if (typeof newDoc.derived_key !== 'string')
+      throw {forbidden: 'pbkdf2 derived_key must be a string'}
+    if (!newDoc.derived_key.match(/^[a-f0-9]{40}$/))
+      throw {forbidden: 'pbkdf2 derived_key must be 20 hex bytes'}
+    if (!newDoc.salt)
+      throw {forbidden: 'missing pbkdf2 salt'}
+    if (typeof newDoc.iterations !== 'number')
+      throw {forbidden: 'doc.iterations must be a number'}
+    if (newDoc.iterations < 10)
+      throw {forbidden: 'not enough pbkdf2 iterations'}
+    if (newDoc.iterations > 100)
+      throw {forbidden: 'too many pbkdf2 iterations'}
+  } else {
+    if (!newDoc.salt)
+      throw {forbidden: 'missing salt'}
+    if (!newDoc.password_sha)
+      throw {forbidden: 'missing password_sha'}
   }
 }
 
