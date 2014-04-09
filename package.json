@@ -1,7 +1,7 @@
 {
-  "name": "npmjs.org",
+  "name": "npm-registry-couchapp",
   "version": "2.1.4",
-  "description": "The npmjs.org registry couchapp",
+  "description": "The CouchApp implementation of an npm registry",
   "scripts": {
     "start": "./push.sh",
     "load": "bash ./load-views.sh",
@@ -17,5 +17,25 @@
     "parse-json-response": "^1.0.1",
     "rimraf": "~2.2.6",
     "tap": "*"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/npm/npm-registry-couchapp"
+  },
+  "keywords": [
+    "npm",
+    "registry",
+    "couchapp",
+    "design",
+    "doc",
+    "ddoc",
+    "couchdb",
+    "couch"
+  ],
+  "author": "Isaac Z. Schlueter <i@izs.me> (http://blog.izs.me/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/npm/npm-registry-couchapp/issues"
+  },
+  "homepage": "https://github.com/npm/npm-registry-couchapp"
 }

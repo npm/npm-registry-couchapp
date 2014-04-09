@@ -1,4 +1,4 @@
-# npmjs.org
+# npm-registry-couchapp
 
 The design doc for The npm Registry CouchApp
 
@@ -26,8 +26,8 @@ delayed_commits = false
 
 Clone the repository if you haven't already, and cd into it:
 
-    git clone git://github.com/npm/npmjs.org
-    cd npmjs.org
+    git clone git://github.com/npm/npm-registry-couchapp
+    cd npm-registry-couchapp
 
 Now install the stuff:
 
@@ -36,22 +36,22 @@ Now install the stuff:
 Sync the ddoc to `_design/scratch`
 
     npm start \
-      --npmjs.org:couch=http://admin:password@localhost:5984/registry
+      --npm-registry-couchapp:couch=http://admin:password@localhost:5984/registry
 
 Next, make sure that views are loaded:
 
     npm run load \
-      --npmjs.org:couch=http://admin:password@localhost:5984/registry
+      --npm-registry-couchapp:couch=http://admin:password@localhost:5984/registry
 
 And finally, copy the ddoc from `_design/scratch` to `_design/app`
 
     npm run copy \
-      --npmjs.org:couch=http://admin:password@localhost:5984/registry
+      --npm-registry-couchapp:couch=http://admin:password@localhost:5984/registry
 
 Of course, you can avoid the command-line flag by setting it in your
 ~/.npmrc file:
 
-    _npmjs.org:couch=http://admin:password@localhost:5984/registry
+    _npm-registry-couchapp:couch=http://admin:password@localhost:5984/registry
 
 The `_` prevents any other packages from seeing the setting (with a
 password) in their environment when npm runs scripts for those other
