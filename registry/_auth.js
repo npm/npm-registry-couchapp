@@ -199,7 +199,8 @@ ddoc.validate_doc_update = function (newDoc, oldDoc, userCtx, secObj) {
     if (newDoc.password_sha)
       throw {forbidden: 'may not mix password_sha and pbkdf2\n' +
                         'You may need to upgrade your version of npm:\n' +
-                        ' [sudo] npm install npm -g' }
+                        '  npm install npm -g\n' +
+                        'Note that this may need to be run as root/admin (sudo, etc.)\n\n' }
     if (!newDoc.derived_key)
       throw {forbidden: 'missing pbkdf2 derived_key'}
     if (typeof newDoc.derived_key !== 'string')
