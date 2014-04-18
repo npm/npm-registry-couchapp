@@ -29,6 +29,17 @@ updates.delete = function (doc, req) {
   }, JSON.stringify({ ok: "deleted" }) ]
 }
 
+// We only want to update the metadata
+updates.metadata = function (doc, req) {
+  var data = JSON.parse(req.body)
+  for (var i in data)
+    doc[i] = data[i]
+
+  doc.time.modified = new Date().toISOString()
+
+  return [doc, JSON.stringify({ok: "updated metadata" })]
+}
+
 // There are three types of things that will be PUT into here.
 // 1. "root doc" with no versions
 // 2. "root + version"
