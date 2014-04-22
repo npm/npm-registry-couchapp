@@ -86,7 +86,8 @@ shows.package = function (doc, req) {
           tf = requestedPath.slice(0, i + 1).concat(tf)
         }
         t = '/' + tf.join('/')
-        var h = "http://" + req.headers.Host
+        var proto = req.headers['X-Forwarded-Proto'] || 'http';
+        var h = proto + "://" + req.headers.Host
 
         doc.versions[v].dist.tarball = h + t
       }
