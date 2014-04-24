@@ -83,6 +83,8 @@ module.exports =
   , { from: "/:pkg/:version/-tag/:tag/-rev/:rev", to: "_update/package/:pkg"
     , method: "PUT" }
 
+  , { from: "/-metadata/:pkg", to: "_update/metadata/:pkg", method: "PUT" }
+
   , { from: "/:pkg/:version/-pre/:pre", to: "_update/package/:pkg"
     , method: "PUT" }
   , { from: "/:pkg/:version/-pre/:pre/-rev/:rev", to: "_update/package/:pkg"
