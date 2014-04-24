@@ -32,8 +32,14 @@ updates.delete = function (doc, req) {
 // We only want to update the metadata
 updates.metadata = function (doc, req) {
   var data = JSON.parse(req.body)
-  for (var i in data)
-    doc[i] = data[i]
+
+  for (var i in data) {
+    if (i !== '_rev' &&
+        i !== 'maintainers' &&
+        i !== 'versions' &&
+        (typeof data[i] === 'string' || i === 'keywords'))
+      doc[i] = data[i]
+  }
 
   doc.time.modified = new Date().toISOString()
 
