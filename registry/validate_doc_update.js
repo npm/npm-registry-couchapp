@@ -381,6 +381,9 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     assert(version.name === doc._id,
            "version "+ver+" has incorrect name: "+version.name)
 
+    assert(version.version === ver,
+           "Version mismatch: "+JSON.stringify(ver)+
+           " !== "+JSON.stringify(version.version))
 
     depCount = 0
     var types =

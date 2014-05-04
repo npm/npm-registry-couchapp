@@ -89,7 +89,6 @@ updates.unstar = function (doc, req) {
 updates.package = function (doc, req) {
   require("monkeypatch").patch(Object, Date, Array, String)
   var semver = require("semver")
-  var valid = require("valid")
   var README_MAXLEN = 64 * 1024
   var body = JSON.parse(req.body)
   var deep = require("deep")
@@ -310,11 +309,6 @@ updates.package = function (doc, req) {
       if (!semver.valid(v, true))
         return error("Invalid version: "+JSON.stringify(v))
       var p = doc.versions[v]
-      if (p.version !== v)
-        return error("Version mismatch: "+JSON.stringify(v)+
-                     " !== "+JSON.stringify(p.version))
-      if (!valid.name(p.name))
-        return error("Invalid name: "+JSON.stringify(p.name))
       latest = semver.clean(v, true)
     }
     if (!doc['dist-tags']) doc['dist-tags'] = {}
