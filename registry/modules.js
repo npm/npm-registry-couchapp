@@ -72,6 +72,24 @@ exports.deep =
 
 exports.semver = require('fs').readFileSync(require.resolve('semver'), 'utf8')
 
+exports.scope =
+  [ 'exports.parse = parse'
+  , 'exports.isScoped = isScoped'
+  , 'exports.isGlobal = isGlobal'
+  , function parse(name) {
+      var m = name.match(/^(?:@([^\/]+)\/)?([^\/]+)$/)
+      return m ? [m[1], m[2]] : []
+    }
+
+  , function isScoped(name) {
+      return !!(parse(name)[0])
+    }
+
+  , function isGlobal(name) {
+      return !isScoped(name)
+    }
+  ].map(function (s) { return s.toString() }).join("\n")
+
 exports.valid =
   [ 'var semver = require("semver")'
   , 'exports.name = validName'

@@ -30,6 +30,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     var valid = require("valid")
     var deep = require("deep")
     var deepEquals = deep.deepEquals
+    var scope = require("scope")
   } catch (er) {
     assert(false, "failed loading modules")
   }
@@ -225,7 +226,13 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     if ( !oldDoc || !oldDoc.maintainers ) return true
     if (isAdmin()) return true
     if (typeof oldDoc.maintainers !== "object") return true
-    var roles = user.roles
+    var roles = user && user.roles || []
+    var s = scope.parse(doc.name)
+    var entity = s[0]
+    // scoped packages require that the user have the entity name as a role
+    if (entity && roles.indexOf(entity) === -1) {
+      return false
+    }
     for (var i = 0, l = oldDoc.maintainers.length; i < l; i ++) {
       if (oldDoc.maintainers[i].name === user.name) return true
       var role = oldDoc.maintainers[i].role
@@ -284,6 +291,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     return
   }
 
+
   // Now we know that it is not an unpublish.
   assert(typeof doc['dist-tags'] === 'object', 'dist-tags must be object')
   // old crusty npm's would first PUT with dist-tags={} and versions={}
@@ -304,7 +312,10 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   }
 
   // sanity checks.
-  assert(valid.name(doc.name), "name invalid: "+doc.name)
+  var s = scope.parse(doc.name)
+  var entity = s[0]
+  var name = s[1]
+  assert(valid.name(name), "name invalid: "+name)
 
   // New documents may only be created with all lowercase names.
   // At some point, existing docs will be migrated to lowercase names
@@ -330,12 +341,9 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   // Until that time, do this instead:
   var version = versions[latest]
   if (version) {
-    if (!version.dist)
-      assert(false, "no dist object in " + latest + " version")
-    if (!version.dist.tarball)
-      assert(false, "no tarball in " + latest + " version")
-    if (!version.dist.shasum)
-      assert(false, "no shasum in " + latest + " version")
+    assert(version.dist, "no dist object in " + latest + " version")
+    assert(version.dist.tarball, "no tarball in " + latest + " version")
+    assert(version.dist.shasum, "no shasum in " + latest + " version")
   }
 
   for (var v in doc["dist-tags"]) {
@@ -348,6 +356,14 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
   var depCount = 0
   var maxDeps = 1000
+
+  function checkDep(version, dep, t) {
+    ridiculousDeps()
+    if (!entity) {
+      assert(scope.isGlobal(dep),
+             "global packages may only depend on other global packages")
+    }
+  }
 
   function ridiculousDeps() {
     if (++depCount > maxDeps)
@@ -367,9 +383,13 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
 
     depCount = 0
-    for (var dep in version.dependencies || {}) ridiculousDeps()
-    for (var dep in version.devDependencies || {}) ridiculousDeps()
-    for (var dep in version.optionalDependencies || {}) ridiculousDeps()
+    var types =
+      ["dependencies", "devDependencies", "optionalDependencies"]
+    types.forEach(function(t) {
+      for (var dep in version[t] || {}) {
+        checkDep(version, dep, t)
+      }
+    })
 
     // NEW versions must only have strings in the 'scripts' field,
     // and versions that are strictly valid semver 2.0
