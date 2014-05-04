@@ -225,8 +225,13 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     if ( !oldDoc || !oldDoc.maintainers ) return true
     if (isAdmin()) return true
     if (typeof oldDoc.maintainers !== "object") return true
+    var roles = user.roles
     for (var i = 0, l = oldDoc.maintainers.length; i < l; i ++) {
       if (oldDoc.maintainers[i].name === user.name) return true
+      var role = oldDoc.maintainers[i].role
+      if (role && roles && typeof role === "string") {
+        if (roles.indexOf(role) !== -1) return true
+      }
     }
     return false
   }
