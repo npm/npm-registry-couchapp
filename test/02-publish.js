@@ -328,8 +328,11 @@ test('other owner publish', function(t) {
   })
 })
 
-test('get after other publish', function(t) {
-  http.get(reg + 'package', function(res) {
+test('get after other publish (and x-forwarded-proto)', function(t) {
+  var r = url.parse(reg + 'package')
+  r.headers = { 'x-forwarded-proto': 'foobar' }
+
+  http.get(r, function(res) {
     t.equal(res.statusCode, 200)
     var c = ''
     res.setEncoding('utf8')
@@ -355,6 +358,11 @@ test('get after other publish', function(t) {
         "stub" : true
       }
       expect.time['0.2.3'] = c.time['0.2.3']
+      // should get x-forwarded-proto back
+      Object.keys(expect.versions).forEach(function(v) {
+        var tgz = expect.versions[v].dist.tarball
+        expect.versions[v].dist.tarball = tgz.replace(/^https?/, 'foobar')
+      })
       t.has(c, expect)
       t.end()
     })
