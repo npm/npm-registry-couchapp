@@ -19,7 +19,8 @@
     "request": "^2.36.0",
     "rimraf": "~2.2.6",
     "tap": "*",
-    "which": "^1.0.5"
+    "which": "^1.0.5",
+    "registry-replicate": "*"
   },
   "repository": {
     "type": "git",

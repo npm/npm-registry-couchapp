@@ -4,3 +4,5 @@ couch.log
 test/fixtures/npmrc*
 .*.swp
 node_modules
+.idea
+.vagrant
