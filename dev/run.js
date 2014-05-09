@@ -1,4 +1,3 @@
-var touch = require('touch')
 var spawn = require('child_process').spawn
 var once = require('once')
 
