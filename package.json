@@ -6,7 +6,8 @@
     "start": "./push.sh",
     "load": "bash ./load-views.sh",
     "copy": "bash ./copy.sh",
-    "test": "tap test/*.js"
+    "test": "tap test/*.js",
+    "dev": "node dev/run.js"
   },
   "dependencies": {
     "couchapp": "~0.11.0",
@@ -20,7 +21,9 @@
     "rimraf": "~2.2.6",
     "tap": "*",
     "which": "^1.0.5",
-    "registry-replicate": "*"
+    "registry-replicate": "*",
+    "touch": "0.0.3",
+    "once": "^1.3.0"
   },
   "repository": {
     "type": "git",

@@ -6,3 +6,4 @@ test/fixtures/npmrc*
 node_modules
 .idea
 .vagrant
+node_modules
