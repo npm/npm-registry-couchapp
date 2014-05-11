@@ -132,6 +132,24 @@ test('first publish', function(t) {
   })
 })
 
+var urls = [
+  'package/-/package-0.0.2.tgz',
+  'npm/public/registry/package/_attachments/package-0.0.2.tgz',
+  'npm/public/registry/p/package/_attachments/package-0.0.2.tgz'
+]
+
+urls.forEach(function(u) {
+  test('attachment: ' + u, function(t) {
+    r = url.parse(reg + u)
+    r.method = 'HEAD'
+    r.headers = {connection: 'close'}
+    http.request(r, function(res) {
+      t.equal(res.statusCode, 200)
+      t.end()
+    }).end()
+  })
+})
+
 test('GET after publish', function(t) {
   expect = {
     "_id": "package",
