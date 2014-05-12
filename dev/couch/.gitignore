@@ -3,3 +3,4 @@ _users.couch
 couch.log
 registry.couch
 sequence
+.registry_design
