@@ -449,7 +449,7 @@ test('try to attach a new tarball (and fail)', function(t) {
       var rev = doc._rev
       var p = url.parse(db + 'package/package-0.2.3.tgz?rev=' + rev)
       body = new Buffer("this is the attachment data")
-      p.auth = 'other:pass'
+      p.auth = 'other:pass@:!%\''
       p.headers = {
         'content-type': 'application/octet-stream',
         'content-length': body.length,

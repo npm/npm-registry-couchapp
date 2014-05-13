@@ -13,9 +13,9 @@ try { fs.unlinkSync(conf) } catch (er) {}
 try { fs.unlinkSync(conf2) } catch (er) {}
 try { fs.unlinkSync(conf3) } catch (er) {}
 
-var u = { u: 'user', p: 'pass', e: 'email@example.com' }
-var o = { u: 'other', p: 'pass', e: 'other@example.com' }
-var t = { u: 'third', p: 'pass', e: '3@example.com' }
+var u = { u: 'user', p: 'pass@:!%\'', e: 'email@example.com' }
+var o = { u: 'other', p: 'pass@:!%\'', e: 'other@example.com' }
+var t = { u: 'third', p: 'pass@:!%\'', e: '3@example.com' }
 
 test('adduser', fn.bind(null, conf, u))
 test('adduser again', fn.bind(null, conf, u))
