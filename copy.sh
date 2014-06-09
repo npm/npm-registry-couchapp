@@ -34,14 +34,14 @@ c=${c// /%20}
 c="$(node -p 'process.argv[1].replace(/\/$/, "")' "$c")"
 u="$(node -p 'require("url").resolve(process.argv[1], "_users")' "$c")"
 
-echo "Did you already run the load-views.sh script? (type 'yes')"
-read didLoad
-if ! [ "$didLoad" == "yes" ]; then
-  echo "do that first."
-  exit 1
+if [ "$NO_PROMPT" == "" ]; then
+  echo "Did you already run the load-views.sh script? (type 'yes')"
+  read didLoad
+  if ! [ "$didLoad" == "yes" ]; then
+    echo "do that first."
+    exit 1
+  fi
 fi
-
-
 
 rev=$(curl -k "$c"/_design/app | json _rev)
 if [ "$rev" != "" ]; then

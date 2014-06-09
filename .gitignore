@@ -3,3 +3,5 @@ couch.log
 .delete
 test/fixtures/npmrc*
 .*.swp
+node_modules
+test/fixtures
