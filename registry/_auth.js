@@ -353,6 +353,27 @@ ddoc.views = {
   }
 }
 
+ddoc.updates = {
+  profile: function (doc, req) {
+    if (req.method !== "POST")
+      return [ { _id: ".error.", forbidden: "Method not allowed" },
+               { error: "method not allowed" } ]
+
+    var WHITELISTED = [ 'appdotnet', 'avatar', 'avatarMedium', 'avatarLarge',
+                      'date', 'email', 'fields', 'freenode', 'fullname',
+                      'github', 'homepage', 'name', 'roles', 'twitter', 'type' ]
+
+    var data = JSON.parse(req.body)
+
+    for (var i in data) {
+      if (WHITELISTED.indexOf(i) !== -1) {
+        doc[i] = data[i]
+      }
+    }
+
+    return [doc, JSON.stringify({ok: "updated profile"})]
+  }
+}
 
 if (require.main === module)
   console.log(JSON.stringify(ddoc, function (k, v) {
