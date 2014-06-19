@@ -94,18 +94,41 @@ exports.valid =
   [ 'var semver = require("semver")'
   , 'exports.name = validName'
   , 'exports.package = validPackage'
+  , function validNameComponent(n) {
+      if (!n || n.charAt(0) === "."
+        || !n.match(/^[a-zA-Z0-9]/)
+        || n.match(/[\/\(\)&\?#\|<>@:%\s\\\*'"!~`]/)
+        || n.toLowerCase() === "node_modules"
+        || n !== encodeURIComponent(n)
+        || n.toLowerCase() === "favicon.ico") {
+        return false
+      }
+      return true
+    }
   , function validName (name) {
-     if (!name) return false
-     var n = name.replace(/^\s+|\s+$/g, '')
-     if (!n || n.charAt(0) === "."
-         || !n.match(/^[a-zA-Z0-9]/)
-         || n.match(/[\/\(\)&\?#\|<>@:%\s\\\*'"!~`]/)
-         || n.toLowerCase() === "node_modules"
-         || n !== encodeURIComponent(n)
-         || n.toLowerCase() === "favicon.ico") {
-       return false
-     }
-     return n
+      if (!name) return false;
+      var n = name.replace(/^\s+|\s+$/g, '')
+      var nameParts = n.split('/')
+      if (nameParts.length == 1) {
+        // package name only
+        if(validNameComponent(nameParts[0])) {
+          return n
+        }
+      } else if (nameParts.length == 2) {
+        // org and package name, no extra parts
+        var orgName = nameParts[0]
+        var packageName = nameParts[1]
+        // orgname must start with @
+        if (orgName.indexOf('@') !== 0) return false
+        orgName = orgName.substr(1)
+        // org and package names otherwise follow the same rules
+        if(validNameComponent(orgName)) {
+          if (validNameComponent(packageName)) {
+            return n
+          }
+        }
+      }
+      return false
     }
   , function validPackage (pkg) {
       return validName(pkg.name) && semver.valid(pkg.version)
