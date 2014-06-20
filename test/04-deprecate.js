@@ -1,3 +1,4 @@
+var common = require('./common.js')
 var test = require('tap').test
 var reg = 'http://127.0.0.1:15986/'
 var path = require('path')
@@ -13,7 +14,7 @@ var http = require('http')
 var env = { PATH: process.env.PATH }
 
 test('deprecate', function (t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--color=always',
     '--registry=' + reg,
     '--userconf=' + conf,

@@ -1,3 +1,4 @@
+var common = require('./common.js')
 var test = require('tap').test
 var reg = 'http://127.0.0.1:15986/'
 var path = require('path')
@@ -27,7 +28,7 @@ test('adduser 3', fn.bind(null, conf3, t))
 test('adduser 3 again', fn.bind(null, conf3, t))
 
 function fn(conf, u, t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf,
     'adduser'

@@ -1,3 +1,4 @@
+var common = require('./common.js')
 var test = require('tap').test
 var reg = 'http://127.0.0.1:15986/'
 var db = 'http://localhost:15986/registry/'
@@ -97,7 +98,7 @@ var npmVersion = null
 var env = { PATH: process.env.PATH }
 
 test('get npm version', function(t) {
-  var c = spawn('npm', [ '--version' ], { env: env })
+  var c = common.npm([ '--version' ], { env: env })
   var v = ''
   c.stdout.on('data', function(d) {
     v += d
@@ -114,7 +115,7 @@ test('get npm version', function(t) {
 
 
 test('first publish', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf,
     'publish'
@@ -194,7 +195,7 @@ test('GET after publish', function(t) {
 })
 
 test('fail to clobber', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf,
     'publish'
@@ -206,7 +207,7 @@ test('fail to clobber', function(t) {
 })
 
 test('fail to publish as other user', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf2,
     'publish'
@@ -218,7 +219,7 @@ test('fail to publish as other user', function(t) {
 })
 
 test('publish update as non-latest', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf,
     '--tag=alpha',
@@ -288,7 +289,7 @@ test('GET after update', function(t) {
 })
 
 test('add second publisher', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf,
     'owner',
@@ -328,7 +329,7 @@ test('get after owner add', function(t) {
 })
 
 test('other owner publish', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf2,
     'publish'
@@ -389,7 +390,7 @@ test('get after other publish (and x-forwarded-proto)', function(t) {
 
 test('install the thing we published', function(t) {
   rimraf.sync(path.resolve(inst, 'node_modules'))
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     'install'
   ], { env: env, cwd: inst })

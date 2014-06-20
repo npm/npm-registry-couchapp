@@ -1,3 +1,4 @@
+var common = require('./common.js')
 var test = require('tap').test
 var reg = 'http://127.0.0.1:15986/'
 var path = require('path')
@@ -12,7 +13,7 @@ var env = { PATH: process.env.PATH }
 var url = require('url')
 
 test('non-owner can star package', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf3,
     'star', 'package'
@@ -31,7 +32,7 @@ test('non-owner can star package', function(t) {
 })
 
 test('non-owner can unstar package', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf3,
     'unstar', 'package'
@@ -76,7 +77,7 @@ test('simulate old-style multi-readme doc', function(t) {
 })
 
 test('non-owner can star package', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf3,
     'star', 'package'
@@ -95,7 +96,7 @@ test('non-owner can star package', function(t) {
 })
 
 test('non-owner can unstar package', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf3,
     'unstar', 'package'

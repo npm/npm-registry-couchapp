@@ -4,6 +4,7 @@
 // --registry=http://127.0.0.1:15986/
 // --userconfig=$HOME/dev/npm/npmjs.org/test/fixtures/npmrc3)
 
+var common = require('./common.js')
 var test = require('tap').test
 var reg = 'http://127.0.0.1:15986/'
 var path = require('path')
@@ -19,7 +20,7 @@ var http = require('http')
 var env = { PATH: process.env.PATH }
 
 test('unpublish', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf,
     'unpublish', '-f', 'package'
@@ -77,7 +78,7 @@ test('GET after unpublish', function(t) {
 })
 
 test('fail to clobber', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf3,
     '--force',
@@ -90,7 +91,7 @@ test('fail to clobber', function(t) {
 })
 
 test('publish new version as new user', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf3,
     '--force',
@@ -110,7 +111,7 @@ test('publish new version as new user', function(t) {
 })
 
 test('now unpublish the new version', function(t) {
-  var c = spawn('npm', [
+  var c = common.npm([
     '--registry=' + reg,
     '--userconf=' + conf3,
     'unpublish', 'package@0.2.4'
