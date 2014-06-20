@@ -1,6 +1,6 @@
 {
   "name": "npm-registry-couchapp",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "The CouchApp implementation of an npm registry",
   "scripts": {
     "start": "./push.sh",
