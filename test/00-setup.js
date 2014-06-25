@@ -14,6 +14,7 @@ require('./zz-teardown.js')
 // run with the cwd of the main program.
 var cwd = path.dirname(__dirname)
 
+var timeout = process.env.TRAVIS ? 20000 : 5000
 var conf = path.resolve(__dirname, 'fixtures', 'couch.ini')
 var pidfile = path.resolve(__dirname, 'fixtures', 'pid')
 var logfile = path.resolve(__dirname, 'fixtures', 'couch.log')
@@ -41,7 +42,7 @@ test('start couch as a zombie child', function (t) {
     if (!er && !log.match(started))
       er = new Error('not started yet')
     if (er) {
-      if (Date.now() - start < 5000)
+      if (Date.now() - start < timeout)
         return setTimeout(function () {
           fs.readFile(logfile, R)
         }, 100)
