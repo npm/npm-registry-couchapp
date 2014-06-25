@@ -17,7 +17,7 @@ var pkg002 = path.resolve(pkg, '0.0.2')
 var pkg024 = path.resolve(pkg, '0.2.4')
 var inst = path.resolve(__dirname, 'fixtures/install')
 var http = require('http')
-var env = { PATH: process.env.PATH }
+var env = { PATH: process.env.PATH, npm_config_loglevel: "error" }
 
 test('unpublish', function(t) {
   var c = common.npm([

@@ -30,13 +30,12 @@ for (var i in cases) (function(i) {
     } catch (er) {
       if (c.throw)
         t.same(er, c.throw, "got expected error")
-      else {
+      else
         t.notOk(er, JSON.stringify(er))
-      }
     } finally {
       if (c.throw)
         t.ok(threw, "Expected throw:\n" + JSON.stringify(c.throw))
-      else if (threw)
+      else
         t.notOk(threw, "should not throw")
     }
     t.end()

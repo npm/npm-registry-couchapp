@@ -86,11 +86,14 @@ updates.package = function (doc, req) {
       process.env === 'object')
     DEBUG = true
 
-  var d
   var output = []
-  if (typeof console === 'object')
+  var d
+  if (typeof console === "object" &&
+      typeof process === "object" &&
+      typeof process.env === "object" &&
+      /\bvdu\b/.test(process.env.NODE_DEBUG)) {
     d = console.error
-  else if (DEBUG)
+  } else if (DEBUG)
     d = function() { output.push([].slice.apply(arguments)) }
   else
     d = function() {}

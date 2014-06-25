@@ -95,7 +95,7 @@ var version023 = {
 
 var time = {}
 var npmVersion = null
-var env = { PATH: process.env.PATH }
+var env = { PATH: process.env.PATH, npm_config_loglevel: "error" }
 
 test('get npm version', function(t) {
   var c = common.npm([ '--version' ], { env: env })
@@ -429,7 +429,10 @@ test('remove all the tarballs', function(t) {
       }
       p.method = 'PUT'
       http.request(p, function(res) {
-        res.pipe(process.stderr)
+        if (res.statusCode !== 201)
+          res.pipe(process.stderr)
+        else
+          res.resume()
         t.equal(res.statusCode, 201)
         res.on('end', t.end.bind(t))
       }).end(body)
@@ -458,7 +461,10 @@ test('try to attach a new tarball (and fail)', function(t) {
       }
       p.method = 'PUT'
       http.request(p, function(res) {
-        res.pipe(process.stderr)
+        if (res.statusCode !== 403)
+          res.pipe(process.stderr)
+        else
+          res.resume()
         res.on('end', t.end.bind(t))
         t.equal(res.statusCode, 403)
       }).end(body)

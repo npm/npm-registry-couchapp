@@ -1,8 +1,12 @@
 module.exports = function (doc, oldDoc, user, dbCtx) {
-  if (typeof console === "object") {
-    var d = console.error
+  var d
+  if (typeof console === "object" &&
+      typeof process === "object" &&
+      typeof process.env === "object" &&
+      /\bvdu\b/.test(process.env.NODE_DEBUG)) {
+    d = console.error
   } else {
-    var d = function() {}
+    d = function() {}
   }
 
   function assert (ok, message) {
