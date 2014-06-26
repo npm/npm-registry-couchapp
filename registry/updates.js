@@ -46,6 +46,22 @@ updates.metadata = function (doc, req) {
   return [doc, JSON.stringify({ok: "updated metadata" })]
 }
 
+updates.star = function (doc, req) {
+  var username = req.body
+
+  doc.users[username] = true;
+
+  return [doc, JSON.stringify({ok: username + ' has starred ' + doc.name})]
+}
+
+updates.unstar = function (doc, req) {
+  var username = req.body
+
+  delete doc.users[username];
+
+  return [doc, JSON.stringify({ok: username + ' has unstarred ' + doc.name})]
+}
+
 // There are three types of things that will be PUT into here.
 // 1. "root doc" with no versions
 // 2. "root + version"
