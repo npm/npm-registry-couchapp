@@ -9,7 +9,7 @@
     "test": "tap test/*.js"
   },
   "dependencies": {
-    "couchapp": "~0.10",
+    "couchapp": "~0.11.0",
     "semver": "^2.3.1"
   },
   "devDependencies": {
