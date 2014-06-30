@@ -64,7 +64,7 @@ test('GET after unpublish', function(t) {
     res.on('end', function() {
       c = JSON.parse(c)
       // rev and time will be different
-      t.like(c._rev, /12-[0-9a-f]+$/)
+      t.like(c._rev, /13-[0-9a-f]+$/)
       expect._rev = c._rev
       t.equal(c.name, c._id)
       t.same(Object.keys(c).sort().join(","),
@@ -156,7 +156,7 @@ test('GET after unpublish', function(t) {
     res.on('end', function() {
       c = JSON.parse(c)
       // rev and time will be different
-      t.like(c._rev, /14-[0-9a-f]+$/)
+      t.like(c._rev, /15-[0-9a-f]+$/)
       expect._rev = c._rev
       t.equal(c.name, c._id)
       t.same(Object.keys(c).sort().join(","),
