@@ -433,7 +433,7 @@ updates.package = function (doc, req) {
           return res
       } else if (nv.deprecated) {
         ov.deprecated = nv.deprecated
-      } else if (!deepEquals(nv, ov)) {
+      } else if (!deepEquals(nv, ov, [["deprecated"]])) {
         d('old=%j', ov)
         d('new=%j', nv)
         // Trying to change an existing version!  Shenanigans!
@@ -445,7 +445,10 @@ updates.package = function (doc, req) {
           'cannot modify pre-existing version: ' + v + '\n' +
           'old=' + JSON.stringify(ov) + '\n' +
           'new=' + JSON.stringify(nv))
+      } else if (ov.deprecated && !nv.deprecated) {
+        delete ov.deprecated
       }
+
     }
 
     if (revMatch) {
