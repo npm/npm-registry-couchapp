@@ -65,8 +65,10 @@ attachments for public packages will still be loaded from the public
 location, but anything you publish into your private registry will
 stay private.
 
-To replicate the registry **with attachments**, you can point your
-CouchDB replicator at <https://fullfatdb.npmjs.com/registry>.
+To replicate the registry **with attachments**, consider using
+[npm-fullfat-registry](https://npmjs.org/npm-fullfat-registry).
+The fullfatdb CouchDB instance is
+[deprecated](http://blog.npmjs.org/post/83774616862/deprecating-fullfatdb).
 
 # Using the registry with the npm client
 
