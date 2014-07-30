@@ -6,7 +6,6 @@ var path = require('path')
 var rimraf = require('rimraf')
 var conf = path.resolve(__dirname, 'fixtures', 'npmrc')
 var conf2 = path.resolve(__dirname, 'fixtures', 'npmrc2')
-var spawn = require('child_process').spawn
 var pkg = path.resolve(__dirname, 'fixtures/package')
 var pkg002 = path.resolve(pkg, '0.0.2')
 var pkg023a = path.resolve(pkg, '0.2.3alpha')

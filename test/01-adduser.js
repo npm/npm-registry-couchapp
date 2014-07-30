@@ -7,7 +7,6 @@ var conf = path.resolve(__dirname, 'fixtures', 'npmrc')
 var conf2 = path.resolve(__dirname, 'fixtures', 'npmrc2')
 var conf3 = path.resolve(__dirname, 'fixtures', 'npmrc3')
 
-var spawn = require('child_process').spawn
 var fs = require('fs')
 
 try { fs.unlinkSync(conf) } catch (er) {}

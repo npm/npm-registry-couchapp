@@ -8,14 +8,11 @@ var common = require('./common.js')
 var test = require('tap').test
 var reg = 'http://127.0.0.1:15986/'
 var path = require('path')
-var rimraf = require('rimraf')
 var conf = path.resolve(__dirname, 'fixtures', 'npmrc')
 var conf3 = path.resolve(__dirname, 'fixtures', 'npmrc3')
-var spawn = require('child_process').spawn
 var pkg = path.resolve(__dirname, 'fixtures/package')
 var pkg002 = path.resolve(pkg, '0.0.2')
 var pkg024 = path.resolve(pkg, '0.2.4')
-var inst = path.resolve(__dirname, 'fixtures/install')
 var http = require('http')
 var env = { PATH: process.env.PATH, npm_config_loglevel: "error" }
 
@@ -38,7 +35,7 @@ test('unpublish', function(t) {
 })
 
 test('GET after unpublish', function(t) {
-  expect = {
+  var expect = {
     "_id": "package",
     "name": "package",
     "time": {
@@ -129,7 +126,7 @@ test('now unpublish the new version', function(t) {
 })
 
 test('GET after unpublish', function(t) {
-  expect = {
+  var expect = {
     "_id": "package",
     "name": "package",
     "time": {

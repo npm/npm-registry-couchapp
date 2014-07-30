@@ -12,6 +12,7 @@ var log = path.resolve(__dirname, 'fixtures', 'couch.log')
 var repl = path.resolve(__dirname, 'fixtures', '_replicator.couch')
 var rdes = path.resolve(__dirname, 'fixtures', '.registry_design')
 var udes = path.resolve(__dirname, 'fixtures', '._users_design')
+var dotDelete = path.resolve(__dirname, 'fixtures', '.delete')
 
 test('cleanup', function (t) {
   try {
@@ -24,8 +25,10 @@ test('cleanup', function (t) {
       t.equal(er.code, 'ESRCH')
     }
   }
-
-  files = [ pidfile, repl, log, _users, db, rdes, udes ]
+  var files = [ pidfile, repl, log, _users, db, rdes, dotDelete ]
+  if (!process.env.TRAVIS) {
+      files.push(udes);
+  }
   files.forEach(function(file) {
     rimraf.sync(file)
   })

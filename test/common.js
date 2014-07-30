@@ -4,7 +4,7 @@ exports.npmPath = process.env.npm || which.sync('npm')
 
 var spawn = require('child_process').spawn
 exports.npm = function (args, opts) {
-  cmd = exports.npmPath
+  var cmd = exports.npmPath
   if (exports.npmPath.match(/\.js$/)) {
     args = [exports.npmPath].concat(args)
     cmd = process.execPath
