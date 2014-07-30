@@ -20,12 +20,19 @@ var pidfile = path.resolve(__dirname, 'fixtures', 'pid')
 var logfile = path.resolve(__dirname, 'fixtures', 'couch.log')
 var started = /Apache CouchDB has started on http:\/\/127\.0\.0\.1:15986\/\n$/
 
-test('start couch as a zombie child', function (t) {
+test('start couch as a zombie child',  function (t) {
   var fd = fs.openSync(pidfile, 'wx')
 
   try { fs.unlinkSync(logfile) } catch (er) {}
 
-  var child = spawn('couchdb', ['-a', conf], {
+  var cmd = 'sudo'
+  var args = ['couchdb', '-a', conf]
+
+  if (!process.env.TRAVIS) {
+    cmd = args.shift();
+  }
+
+  var child = spawn(cmd, args, {
     detached: true,
     stdio: 'ignore',
     cwd: cwd
@@ -72,19 +79,22 @@ test('create test db', function(t) {
   }).end()
 })
 
-test('get the git-describe output', function(t) {
-  var c = spawn('git', ['describe', '--tags'])
-  c.stderr.pipe(process.stderr)
-  var desc = ''
-  c.stdout.on('data', function(d) {
-    desc += d
-  })
 
-  c.stdout.on('end', function() {
-    process.env.DEPLOY_VERSION = desc.trim()
-    t.end()
+if (!process.env.TRAVIS) {
+  test('get the git-describe output', function (t) {
+    var c = spawn('git', ['describe', '--tags'])
+    c.stderr.pipe(process.stderr)
+    var desc = ''
+    c.stdout.on('data', function (d) {
+      desc += d
+    })
+
+    c.stdout.on('end', function () {
+      process.env.DEPLOY_VERSION = desc.trim()
+      t.end()
+    })
   })
-})
+}
 
 test('ddoc', function(t) {
   var app = require.resolve('../registry/app.js')
