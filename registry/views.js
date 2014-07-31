@@ -602,14 +602,12 @@ views.devDependedUpon = { map: function (doc) {
   l = doc.versions && doc.versions[l]
   if (!l) return
   var desc = doc.description || l.description || ''
-  var readme = doc.readme || l.readme || ''
   var d = l.devDependencies
   if (!d) return
   for (var dep in d) {
-    emit([dep, doc._id, desc, readme], 1)
+    emit([dep, doc._id, desc], 1)
   }
 }, reduce: '_sum' }
-
 
 views.dependentVersions = { map: function (doc) {
   if (!doc || doc.deprecated) return
