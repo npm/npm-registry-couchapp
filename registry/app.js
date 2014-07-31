@@ -9,5 +9,10 @@ var ddoc = module.exports =
   , language: "javascript"
   }
 
+if (process.env.DEPLOY_VERSION)
+  ddoc.deploy_version = process.env.DEPLOY_VERSION
+else
+  throw new Error('Must set DEPLOY_VERSION env to `git describe` output')
+
 var modules = require("./modules.js")
 for (var i in modules) ddoc[i] = modules[i]

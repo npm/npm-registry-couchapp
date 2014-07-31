@@ -11,6 +11,17 @@ shows.package = function (doc, req) {
 
   delete doc.ctime
   delete doc.mtime
+  if (!doc._attachments) doc._attachments = {}
+
+  if (doc.time && doc.time.unpublished) {
+    delete doc._revisions
+    return {
+      code : 404,
+      body : JSON.stringify(doc),
+      headers : headers
+    }
+  }
+
   if (doc.versions) Object.keys(doc.versions).forEach(function (v) {
     delete doc.versions[v].ctime
     delete doc.versions[v].mtime
@@ -27,6 +38,7 @@ shows.package = function (doc, req) {
       p._id = p.name + '@' + p.version
       doc.versions[clean] = p
     }
+
     if (doc.versions[v].dist.tarball) {
       // if there is an attachment for this tarball, then use that.
       // make it point at THIS registry that is being requested,
@@ -74,11 +86,10 @@ shows.package = function (doc, req) {
           tf = requestedPath.slice(0, i + 1).concat(tf)
         }
         t = '/' + tf.join('/')
-        var h = "http://" + req.headers.Host
+        var proto = req.headers['X-Forwarded-Proto'] || 'http';
+        var h = proto + "://" + req.headers.Host
 
         doc.versions[v].dist.tarball = h + t
-      } else {
-        doc.versions[v].dist.noattachment = true
       }
     }
   }
@@ -88,6 +99,7 @@ shows.package = function (doc, req) {
     else doc["dist-tags"][tag] = clean
   }
   // end kludge
+
 
   if (req.query.version) {
     // could be either one!
@@ -110,19 +122,7 @@ shows.package = function (doc, req) {
     }
   } else {
     body = doc
-    for (var i in body) if (i.charAt(0) === "_" && i !== "_id" && i !== "_rev" && i !== "_attachments") {
-      delete body[i]
-    }
-    for (var i in body.time) {
-      var clean = semver.clean(i, true)
-      if (clean !== i) {
-        body.time[clean] = body.time[i]
-        delete body.time[i]
-        i = clean
-      }
-      if (!body.versions[i]) delete body.time[i]
-      else body.time[i] = new Date(Date.parse(body.time[i])).toISOString()
-    }
+    delete body._revisions
   }
 
   body = req.query.jsonp
@@ -136,3 +136,43 @@ shows.package = function (doc, req) {
   }
 }
 
+
+shows.new_package = function (doc, req) {
+  var semver = require("semver")
+    , code = 200
+    , headers = {"Content-Type":"application/json"}
+    , body = null
+
+  if (!doc._attachments) doc._attachments = {}
+
+  if (req.query.version) {
+    // could be either one!
+    // if it's a fuzzy version or a range, use the max satisfying version
+    var ver = req.query.version
+    var clean = semver.maxSatisfying(Object.keys(doc.versions), ver, true)
+
+    if (clean && clean !== ver && (clean in doc.versions))
+      ver = clean
+
+    // if not a valid version, then treat as a tag.
+    if ((!(ver in doc.versions) && (ver in doc["dist-tags"]))
+        || !semver.valid(ver)) {
+      ver = doc["dist-tags"][ver]
+    }
+    body = doc.versions[ver]
+    if (!body) {
+      code = 404
+      body = {"error" : "version not found: "+req.query.version}
+    }
+  } else {
+    body = doc
+  }
+
+  body = toJSON(body)
+
+  return {
+    code : code,
+    body : body,
+    headers : headers
+  }
+}

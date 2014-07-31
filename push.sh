@@ -4,7 +4,7 @@ c=${npm_package_config_couch}
 
 if [ "$c" == "" ]; then
   cat >&2 <<-ERR
-Please set a valid 'npmjs.org:couch' npm config.
+Please set a valid 'npm-registry-couchapp:couch' npm config.
 
 You can put PASSWORD in the setting somewhere to
 have it prompt you for a password each time, so
@@ -61,9 +61,13 @@ EOF
 
 c=${c/PASSWORD/$PASSWORD}
 c=${c// /%20}
+
+c="$(node -p 'process.argv[1].replace(/\/$/, "")' "$c")"
+u="$(node -p 'require("url").resolve(process.argv[1], "_users")' "$c")"
+
 which couchapp
-couchapp push registry/shadow.js "$c" && \
-couchapp push registry/app.js "$c" && \
+DEPLOY_VERSION=`git describe --tags` couchapp push registry/app.js "$c" && \
+DEPLOY_VERSION=`git describe --tags` couchapp push registry/_auth.js "$u" && \
 scratch_message && \
 exit 0 || \
 ( ret=$?

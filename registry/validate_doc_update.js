@@ -1,11 +1,22 @@
 module.exports = function (doc, oldDoc, user, dbCtx) {
+  var d
+  if (typeof console === "object" &&
+      typeof process === "object" &&
+      typeof process.env === "object" &&
+      /\bvdu\b/.test(process.env.NODE_DEBUG)) {
+    d = console.error
+  } else {
+    d = function() {}
+  }
+
   function assert (ok, message) {
     if (!ok) throw {forbidden:message}
+    d("pass: " + message)
   }
 
   // can't write to the db without logging in.
-  if (!user) {
-    throw { unauthorized: "Please log in before writing to the db" }
+  if (!user || !user.name) {
+    throw { forbidden: "Please log in before writing to the db" }
   }
 
   try {
@@ -23,6 +34,100 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     assert(false, "failed loading modules")
   }
 
+  function descTrim(doc) {
+    if (doc.description && doc.description.length > 255) {
+      doc.description = doc.description.slice(0, 255)
+    }
+    if (doc.versions) {
+      for (var v in doc.versions) {
+        descTrim(doc.versions[v])
+      }
+    }
+  }
+
+  // We always allow anyone to remove extraneous readme data,
+  // and this is done in the process of starring or other non-publish
+  // updates that go through the _update/package function anyway.
+  // Just trim both, and go from that assumption.
+  var README_MAXLEN = 64 * 1024
+  function readmeTrim(doc) {
+    var changed = false
+    var readme = doc.readme || ''
+    var readmeFilename = doc.readmeFilename || ''
+
+    if (doc['dist-tags'] && doc['dist-tags'].latest) {
+      var latest = doc.versions[doc['dist-tags'].latest]
+      if (latest && latest.readme) {
+        readme = latest.readme
+        readmeFilename = latest.readmeFilename || ''
+      }
+    }
+
+    for (var v in doc.versions) {
+      // If we still don't have one, just take the first one.
+      if (doc.versions[v].readme && !readme)
+        readme = doc.versions[v].readme
+      if (doc.versions[v].readmeFilename && !readmeFilename)
+        readmeFilename = doc.versions[v].readmeFilename
+
+      if (doc.versions[v].readme)
+        changed = true
+
+      delete doc.versions[v].readme
+      delete doc.versions[v].readmeFilename
+    }
+
+    if (readme && readme.length > README_MAXLEN) {
+      changed = true
+      readme = readme.slice(0, README_MAXLEN)
+    }
+    doc.readme = readme
+    doc.readmeFilename = readmeFilename
+
+    return changed
+  }
+
+  // Copy relevant properties from the "latest" published version to root
+  function latestCopy(doc) {
+    if (!doc['dist-tags'] || !doc.versions)
+      return
+
+    var copyFields = [
+      "description",
+      "homepage",
+      "keywords",
+      "repository",
+      "contributors",
+      "author",
+      "bugs",
+      "license"
+    ]
+
+    var latest = doc.versions &&
+                 doc['dist-tags'] &&
+                 doc.versions[doc["dist-tags"].latest]
+    if (latest && typeof latest === "object") {
+      copyFields.forEach(function(k) {
+        if (!latest[k])
+          delete doc[k]
+        else
+          doc[k] = latest[k]
+      })
+    }
+  }
+
+  function finishing(doc) {
+    if (doc && doc.versions) {
+      readmeTrim(doc)
+      descTrim(doc)
+      latestCopy(doc)
+    }
+  }
+
+
+  finishing(doc)
+  finishing(oldDoc)
+
   try {
     if (oldDoc) oldDoc.users = oldDoc.users || {}
     doc.users = doc.users || {}
@@ -30,6 +135,17 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     assert(false, "failed checking users")
   }
 
+  // you may not delete the npm document!
+  if ((doc._deleted || (doc.time && doc.time.unpublished))
+      && doc._id === "npm")
+    throw { forbidden: "you may not delete npm!" }
+
+
+  // if the doc is an {error:"blerg"}, then throw that right out.
+  // something detected in the _updates/package script.
+  // XXX: Make this not ever happen ever.  Validation belongs here,
+  // not in the update function.
+  assert(!doc.forbidden, doc.forbidden)
 
   // admins can do ANYTHING (even break stuff)
   try {
@@ -82,26 +198,25 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     return d
   }
 
-  // if the doc is an {error:"blerg"}, then throw that right out.
-  // something detected in the _updates/package script.
-  // XXX: Make this not ever happen ever.  Validation belongs here,
-  // not in the update function.
-  try {
-    assert(!doc.forbidden || doc._deleted, doc.forbidden)
-  } catch (er) {
-    assert(false, "failed checking doc.forbidden or doc._deleted")
-  }
+  assert(!doc._deleted, "deleting docs directly not allowed.\n" +
+                        "Use the _update/delete method.")
+
+  assert(doc.name === doc._id, "name must match _id")
+  assert(doc.name.length < 512, "name is too long")
+  assert(!doc.mtime, "doc.mtime is deprecated")
+  assert(!doc.ctime, "doc.ctime is deprecated")
+  assert(typeof doc.time === "object", "time must be object")
 
   // everyone may alter his "starred" status on any package
-  try {
-    if (oldDoc &&
-        !doc._deleted &&
-        deepEquals(doc, oldDoc,
-                   [["users", user.name], ["time", "modified"]])) {
-      return
+  if (oldDoc &&
+      !doc.time.unpublished &&
+      deepEquals(doc, oldDoc,
+                 [["users", user.name], ["time", "modified"]])) {
+    if (doc.users && (user.name in doc.users)) {
+      assert(typeof doc.users[user.name] === "boolean",
+             "star setting must be a boolean, got " + (typeof doc.users[user.name]))
     }
-  } catch (er) {
-    assert(false, "failed checking starred stuff")
+    return
   }
 
 
@@ -121,9 +236,12 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
         dbCtx.admins) {
       if (dbCtx.admins.names &&
           dbCtx.admins.roles &&
+          Array.isArray(dbCtx.admins.names) &&
           dbCtx.admins.names.indexOf(user.name) !== -1) return true
-      for (var i=0;i<user.roles.length;i++) {
-        if (dbCtx.admins.roles.indexOf(user.roles[i]) !== -1) return true
+      if (Array.isArray(dbCtx.admins.roles)) {
+        for (var i = 0; i < user.roles.length; i++) {
+          if (dbCtx.admins.roles.indexOf(user.roles[i]) !== -1) return true
+        }
       }
     }
     return user && user.roles.indexOf("_admin") >= 0
@@ -141,12 +259,44 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
                         + diffObj(oldDoc, doc).join("\n"))
   }
 
-  // you may not delete the npm document!
-  if (doc._deleted && doc.name === "npm")
-    throw { forbidden: "you may not delete npm!" }
+  // unpublishing.  no sense in checking versions
+  if (doc.time.unpublished) {
+    d(doc)
+    assert(oldDoc, "nothing to unpublish")
+    if (oldDoc.time)
+      assert(!oldDoc.time.unpublished, "already unpublished")
+    var name = user.name
+    var unpublisher = doc.time.unpublished.name
+    assert(name === unpublisher, name + "!==" + unpublisher)
+    var k = []
+    for (var i in doc)
+      if (!i.match(/^_/)) k.push(i)
+    k = k.sort().join(",")
+    var e = "name,time,users"
+    assert(k === e, "must only have " + e + ", has:" + k)
+    assert(JSON.stringify(doc.users) == '{}',
+           'must remove users when unpublishing')
+    return
+  }
 
-  // deleting a document entirely *is* allowed.
-  if (doc._deleted) return
+  // Now we know that it is not an unpublish.
+  assert(typeof doc['dist-tags'] === 'object', 'dist-tags must be object')
+  // old crusty npm's would first PUT with dist-tags={} and versions={}
+  // however, if we HAVE keys in versions, then dist-tags must also have
+  // a "latest" key, and all dist-tags keys must point to extant versions
+  var tags = Object.keys(doc['dist-tags'])
+  var vers = Object.keys(doc.versions)
+  if (vers.length > 0) {
+    assert(tags.length > 0, 'may not remove dist-tags')
+    assert(doc['dist-tags'].latest, 'must have a "latest" dist-tag')
+    for (var i = 0; i < tags.length; i ++) {
+      var tag = tags[i]
+      assert(typeof doc['dist-tags'][tag] === 'string',
+             'dist-tags values must be strings')
+      assert(doc.versions[doc['dist-tags'][tag]],
+             'tag points to invalid version: '+tag)
+    }
+  }
 
   // sanity checks.
   assert(valid.name(doc.name), "name invalid: "+doc.name)
@@ -157,11 +307,6 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   if (!oldDoc && doc.name !== doc.name.toLowerCase()) {
     assert(false, "New packages must have all-lowercase names")
   }
-
-  assert(doc.name === doc._id, "name must match _id")
-  assert(!doc.mtime, "doc.mtime is deprecated")
-  assert(!doc.ctime, "doc.ctime is deprecated")
-  assert(typeof doc.time === "object", "time must be object")
 
   assert(typeof doc["dist-tags"] === "object", "dist-tags must be object")
 
@@ -197,11 +342,13 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   }
 
   var depCount = 0
-  var maxDeps = 5000
+  var maxDeps = 1000
+
   function ridiculousDeps() {
     if (++depCount > maxDeps)
       assert(false, "too many deps.  please be less ridiculous.")
   }
+
   for (var ver in versions) {
     var version = versions[ver]
     assert(semver.valid(ver, true),
@@ -213,10 +360,26 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
     assert(version.name === doc._id,
            "version "+ver+" has incorrect name: "+version.name)
 
+
     depCount = 0
     for (var dep in version.dependencies || {}) ridiculousDeps()
     for (var dep in version.devDependencies || {}) ridiculousDeps()
     for (var dep in version.optionalDependencies || {}) ridiculousDeps()
+
+    // NEW versions must only have strings in the 'scripts' field,
+    // and versions that are strictly valid semver 2.0
+    if (oldDoc && oldDoc.versions && !oldDoc.versions[ver]) {
+      assert(semver.valid(ver), "Invalid SemVer 2.0 version: " + ver)
+
+      if (version.hasOwnProperty('scripts')) {
+        assert(version.scripts && typeof version.scripts === "object",
+               "'scripts' field must be an object")
+        for (var s in version.scripts) {
+          assert(typeof version.scripts[s] === "string",
+                 "Non-string script field: " + s)
+        }
+      }
+    }
   }
 
   assert(Array.isArray(doc.maintainers),
@@ -249,6 +412,12 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
            "you may only alter your own 'star' setting")
   }
 
+  Object.keys(doc.users || {}).forEach(function(u) {
+    d("doc.users[%j] = %j", u, doc.users[u])
+    assert(typeof doc.users[u] === 'boolean',
+           'star settings must be boolean values')
+  })
+
   if (doc.url) {
     assert(false,
            "Package redirection has been removed. "+
@@ -260,98 +429,73 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
            '"description" field must be a string')
   }
 
-  // at this point, we've passed the basic sanity tests.
-  // Time to dig into more details.
-  // Valid operations:
-  // 1. Add a version
-  // 2. Remove a version
-  // 3. Modify a version
-  // 4. Add or remove onesself from the "users" hash (already done)
-  //
-  // If a version is being added or changed, make sure that the
-  // _npmUser field matches the current user, and that the
-  // time object has the proper entry, and that the "maintainers"
-  // matches the current "maintainers" field.
-  //
-  // Things that must not change:
-  //
-  // 1. More than one version being modified.
-  // 2. Removing keys from the "time" hash
-  //
-  // Later, once we are off of the update function 3-stage approach,
-  // these things should also be errors:
-  //
-  // 1. Lacking an attachment for any published version.
-  // 2. Having an attachment for any version not published.
-
   var oldVersions = oldDoc ? oldDoc.versions || {} : {}
   var oldTime = oldDoc ? oldDoc.time || {} : {}
 
-  var versions = Object.keys(doc.versions)
-    , modified = null
+  var versions = Object.keys(doc.versions || {})
+    , allowedChange = [["directories"], ["deprecated"]]
 
   for (var i = 0, l = versions.length; i < l; i ++) {
     var v = versions[i]
     if (!v) continue
     assert(doc.time[v], "must have time entry for "+v)
 
-    if (!deepEquals(doc.versions[v], oldVersions[v], [["directories"], ["deprecated"]]) &&
-        doc.versions[v]) {
-      // this one was modified
-      // if it's more than a few minutes off, then something is wrong.
-      var t = Date.parse(doc.time[v])
-        , n = Date.now()
-      // assert(doc.time[v] !== oldTime[v] &&
-      //        Math.abs(n - t) < 1000 * 60 * 60,
-      //        v + " time needs to be updated\n" +
-      //        "new=" + JSON.stringify(doc.versions[v]) + "\n" +
-      //        "old=" + JSON.stringify(oldVersions[v]))
+    // new npm's "fix" the version
+    // but that makes it look like it's been changed.
+    if (doc && doc.versions[v] && oldDoc && oldVersions[v]) {
+      doc.versions[v].version = oldVersions[v].version
 
-      // var mt = Date.parse(doc.time.modified).getTime()
-      //   , vt = t.getTime()
-      // assert(Math.abs(mt - vt) < 1000 * 60 * 60,
-      //        v + " is modified, should match modified time")
+      // *removing* a readme is fine, too
+      if (!doc.versions[v].readme && oldVersions[v].readme)
+        doc.versions[v].readme = oldVersions[v].readme
+    }
 
-      // XXX Remove the guard these once old docs have been found and
-      // fixed.  It's too big of a pain to have to manually fix
-      // each one every time someone complains.
-      if (typeof doc.versions[v]._npmUser !== "object") continue
-
-
+    if (doc.versions[v] && oldDoc && oldVersions[v]) {
+      // Pre-existing version
+      assert(deepEquals(doc.versions[v], oldVersions[v], allowedChange),
+             "Changing published version metadata is not allowed")
+    } else {
+      // New version
       assert(typeof doc.versions[v]._npmUser === "object",
-             "_npmUser field must be object\n"+
-             "(You probably need to upgrade your npm version)")
+             "_npmUser must be object: " + v)
       assert(doc.versions[v]._npmUser.name === user.name,
-             "_npmUser.name must === user.name")
-      assert(deepEquals(doc.versions[v].maintainers,
-                        doc.maintainers),
-             "modified version 'maintainers' must === doc.maintainers")
-
-      // make sure that the _npmUser is one of the maintainers
-      var found = false
-      for (var j = 0, lm = doc.maintainers.length; j < lm; j ++) {
-        var m = doc.maintainers[j]
-        if (m.name === doc.versions[v]._npmUser.name) {
-          found = true
-          break
-        }
-      }
-      assert(found, "_npmUser must be a current maintainer.\n"+
-                    "maintainers=" + JSON.stringify(doc.maintainers)+"\n"+
-                    "current user=" + JSON.stringify(doc.versions[v]._npmUser))
-
-    } else if (oldTime[v]) {
-      assert(oldTime[v] === doc.time[v],
-             v + " time should not be modified 1")
+             "_npmUser.name must match user.name: " + v)
     }
   }
 
   // now go through all the time settings that weren't covered
   for (var v in oldTime) {
-    if (doc.versions[v] || !oldVersions[v]) continue
+    if (v === "modified" || v === "unpublished") continue
     assert(doc.time[v] === oldTime[v],
-           v + " time should not be modified 2")
+           "Cannot replace previously published version: "+v)
+  }
+
+  // Do not allow creating a NEW attachment for a version that
+  // already had an attachment in its metadata.
+  // All this can do is corrupt things.
+  // doc, oldDoc
+  var newAtt = doc._attachments || {}
+  var oldAtt = oldDoc && oldDoc._attachments || {}
+  var oldVersions = oldDoc && oldDoc.versions
+  for (var f in newAtt) {
+    if (oldAtt[f]) {
+      // Same bits are ok.
+      assert(oldAtt[f].digest === newAtt[f].digest &&
+             oldAtt[f].length === newAtt[f].length,
+             "Cannot replace existing tarball attachment")
+    } else {
+      // see if any version was using that version already
+      for (var v in oldVersions) {
+        var ver = oldVersions[v]
+        var tgz = ver.dist && ver.dist.tarball
+        var m = tgz.match(/[^\/]+$/)
+        if (!m) {
+          continue
+        }
+        var tf = m[0]
+        assert(tf !== f, 'Cannot replace existing tarball attachment')
+      }
+    }
   }
 
 }
-

@@ -1,47 +1,74 @@
-# Project layout
+# npm-registry-couchapp
 
-registry/ is the JSON API for the package registry.
-
-www/ is the code for search.npmjs.org, eventually maybe www.npmjs.org
+The design doc for The npm Registry CouchApp
 
 # Installing
 
-You'll need CouchDB version 1.1.0 or higher.  We're using some newish features.
-I recommend getting one from http://iriscouch.com/
+You need CouchDB version 1.4.0 or higher.  1.5.0 or higher is best.
 
 Once you have CouchDB installed, create a new database:
 
     curl -X PUT http://localhost:5984/registry
 
+You'll need the following entries added in your `local.ini`
+
+```ini
+[couch_httpd_auth]
+public_fields = appdotnet, avatar, avatarMedium, avatarLarge, date, email, fields, freenode, fullname, github, homepage, name, roles, twitter, type, _id, _rev
+users_db_public = true
+
+[httpd]
+secure_rewrites = false
+
+[couchdb]
+delayed_commits = false
+```
+
 Clone the repository if you haven't already, and cd into it:
 
-    git clone https://github.com/isaacs/npmjs.org.git
-    cd npmjs.org
+    git clone git://github.com/npm/npm-registry-couchapp
+    cd npm-registry-couchapp
 
-Now install couchapp and semver:
+Now install the stuff:
 
-    [sudo] npm install couchapp -g
-    npm install couchapp
-    npm install semver
+    npm install
 
-Sync the registry and search:
+Sync the ddoc to `_design/scratch`
 
-    couchapp push registry/app.js http://localhost:5984/registry
-    couchapp push www/app.js http://localhost:5984/registry
+    npm start \
+      --npm-registry-couchapp:couch=http://admin:password@localhost:5984/registry
 
-You may need to put a username and password in the URL:
+Next, make sure that views are loaded:
 
-    couchapp push www/app.js http://user:pass@localhost:5984/registry
-    couchapp push registry/app.js http://user:pass@localhost:5984/registry
+    npm run load \
+      --npm-registry-couchapp:couch=http://admin:password@localhost:5984/registry
 
-To synchronize from the public npm registry to your private registry,
-create a replication task from http://isaacs.ic.ht/registry --> local
-database registry. This can be done through Futon (the CouchDB administrative
-UI) or via an HTTP call to '/_replicate like so:
+And finally, copy the ddoc from `_design/scratch` to `_design/app`
 
-    curl -X POST -H "Content-Type:application/json" \
-        http://localhost:5984/_replicate -d \
-        '{"source":"http://isaacs.iriscouch.com/registry/", "target":"registry"}'
+    npm run copy \
+      --npm-registry-couchapp:couch=http://admin:password@localhost:5984/registry
+
+Of course, you can avoid the command-line flag by setting it in your
+~/.npmrc file:
+
+    _npm-registry-couchapp:couch=http://admin:password@localhost:5984/registry
+
+The `_` prevents any other packages from seeing the setting (with a
+password) in their environment when npm runs scripts for those other
+packages.
+
+# Replicating the Registry
+
+To replicate the registry **without attachments**, you can point your
+CouchDB replicator at <https://skimdb.npmjs.com/registry>.  Note that
+attachments for public packages will still be loaded from the public
+location, but anything you publish into your private registry will
+stay private.
+
+To replicate the registry **with attachments**, consider using
+[npm-fullfat-registry](https://npmjs.org/npm-fullfat-registry).
+The fullfatdb CouchDB instance is
+[deprecated](http://blog.npmjs.org/post/83774616862/deprecating-fullfatdb).
 
 # Using the registry with the npm client
 
@@ -52,11 +79,14 @@ putting this in your ~/.npmrc file:
 
 You can also set the npm registry config property like:
 
-    npm config set registry http://localhost:5984/registry/_design/app/_rewrite
+    npm config set \
+      registry=http://localhost:5984/registry/_design/app/_rewrite
 
 Or you can simple override the registry config on each call:
 
-    npm --registry http://localhost:5984/registry/_design/app/_rewrite install <package>
+    npm \
+      --registry=http://localhost:5984/registry/_design/app/_rewrite \
+      install <package>
 
 # Optional: top-of-host urls
 
@@ -64,89 +94,11 @@ To be snazzier, add a vhost config:
 
     [vhosts]
     registry.mydomain.com:5984 = /registry/_design/app/_rewrite
-    search.mydomain.com:5984 = /registry/_design/ui/_rewrite
 
-
-Where `registry.mydomain.com` and `search.mydomain.com` are
-the hostnames where you're running the thing, and `5984` is the
-port that CouchDB is running on. If you're running on port 80,
-then omit the port altogether.
+Where `registry.mydomain.com` is the hostname where you're running the
+thing, and `5984` is the port that CouchDB is running on. If you're
+running on port 80, then omit the port altogether.
 
 Then for example you can reference the repository like so:
 
     npm config set registry http://registry.mydomain.com:5984
-
-# API
-
-### GET /packagename
-
-Returns the JSON document for this package. Includes all known dists
-and metadata. Example:
-
-    {
-      "name": "foo",
-      "dist-tags": { "latest": "0.1.2" },
-      "_id": "foo",
-      "versions": {
-        "0.1.2": {
-          "name": "foo",
-          "_id": "foo",
-          "version": "0.1.2",
-          "dist": { "tarball": "http:\/\/domain.com\/0.1.tgz" },
-          "description": "A fake package"
-        }
-      },
-      "description": "A fake package."
-    }
-
-### GET /packagename/0.1.2
-
-Returns the JSON object for a specified release. Example:
-
-    {
-      "name": "foo",
-      "_id": "foo",
-      "version": "0.1.2",
-      "dist": { "tarball": "http:\/\/domain.com\/0.1.tgz" },
-      "description": "A fake package"
-    }
-
-### GET /packagename/latest
-
-Returns the JSON object for the specified tag.
-
-    {
-      "name": "foo",
-      "_id": "foo",
-      "version": "0.1.2",
-      "dist": { "tarball": "http:\/\/domain.com\/0.1.tgz" },
-      "description": "A fake package"
-    }
-
-### PUT /packagename
-
-Create or update the entire package info.
-
-MUST include the JSON body of the entire document. Must have
-`content-type:application/json`.
-
-If updating this must include the latest _rev.
-
-This method can also remove previous versions and distributions if necessary.
-
-### PUT /packagename/0.1.2
-
-Create a new release version. 
-
-MUST include all the metadata from package.json along with dist information
-as the JSON body of the request. MUST have `content-type:application/json`
-
-### PUT /packagename/latest
-
-Link a distribution tag (ie. "latest") to a specific version string.
-
-MUST be a JSON string as the body. Example:
-
-    "0.1.2"
-
-Must have `content-type:application/json`.
