@@ -9,6 +9,12 @@ views.norevs = { map: function (doc) {
   }
 }, reduce: "_sum" }
 
+views.mixedcase = { map: function (doc) { 
+  if (doc.name.toLowerCase() !== doc.name) {
+    emit(doc._id, doc.author)
+  }
+} }
+
 views.conflicts = { map: function (doc) {
   if (doc._conflicts) {
     for (var i = 0; i < doc._conflicts.length; i++) {
