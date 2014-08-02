@@ -354,6 +354,18 @@ ddoc.views = {
 }
 
 ddoc.updates = {
+  email: function (doc, req) {
+    if (req.method !== "POST")
+      return [ { _id: ".error.", forbidden: "Method not allowed" },
+               { error: "method not allowed" } ]
+
+    var data = JSON.parse(req.body)
+
+    doc.email = data.email
+
+    return [doc, JSON.stringify({ok: "updated email address"})]
+  },
+
   profile: function (doc, req) {
     if (req.method !== "POST")
       return [ { _id: ".error.", forbidden: "Method not allowed" },

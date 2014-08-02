@@ -2,7 +2,6 @@ var test = require('tap').test
 var request = require('request')
 var parse = require('parse-json-response')
 
-
 test('update profile', function (t) {
 
   var id = 'org.couchdb.user:user'
@@ -29,6 +28,37 @@ test('update profile', function (t) {
 
         t.same(body.github, prof.github)
         t.same(body.homepage, prof.homepage)
+        t.end()
+      })
+    })
+  })
+})
+
+test('update email', function (t) {
+
+  var id = 'org.couchdb.user:user'
+  var u = 'http://admin:admin@localhost:15986/_users/' + id
+
+  request.get({
+    url: u
+  , json: true
+  }, function (err, res, prof) {
+    console.log(err, prof)
+    prof.email = 'new@email.com'
+
+    request.post({
+      url: 'http://admin:admin@localhost:15986/_users/_design/scratch/_update/email/' + id
+    , body: prof
+    , json: true
+    }, function (err, res, body) {
+      if (err) throw err
+
+      request.get({
+        url: u
+      , json: true
+      }, function (err, res, body) {
+        console.log(body)
+        t.same(body.email, prof.email)
         t.end()
       })
     })
