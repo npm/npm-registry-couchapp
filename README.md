@@ -1,5 +1,7 @@
 # npm-registry-couchapp
 
+[![Build Status](https://img.shields.io/travis/npm/npm-registry-couchapp/master.svg)](https://travis-ci.org/npm/npm-registry-couchapp)
+
 The design doc for The npm Registry CouchApp
 
 # Installing
