@@ -87,7 +87,7 @@ shows.package = function (doc, req) {
         }
         t = '/' + tf.join('/')
         var proto = req.headers['X-Forwarded-Proto'] || 'http';
-        var h = proto + "://" + req.headers.Host
+        var h = proto + "://" + ( req.headers['X-Forwarded-Host'] || req.headers.Host );
 
         doc.versions[v].dist.tarball = h + t
       }
