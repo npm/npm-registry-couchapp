@@ -59,6 +59,8 @@ module.exports =
   , { from: "/:pkg/:version/-/jsonp/:jsonp", to: "_show/package/:pkg"
     , method: "GET" }
 
+  , { from: "/-/ping", to: "/_show/ping", method: "GET" }
+
   , { from: "/npm/public/registry/:firstletter/:pkg/_attachments/:att", to: "../../:pkg/:att", method: "GET" }
   , { from: "/npm/public/registry/:firstletter/:pkg/_attachments/:att/:rev", to: "../../:pkg/:att", method: "PUT" }
   , { from: "/npm/public/registry/:firstletter/:pkg/_attachments/:att/-rev/:rev", to: "../../:pkg/:att", method: "PUT" }
