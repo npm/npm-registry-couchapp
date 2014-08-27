@@ -422,7 +422,23 @@ views.byUser = { map : function (doc) {
   })
 }}
 
-
+views.byUserLatest = { map: function(doc) {
+  if (!doc || !doc.maintainers || !doc['dist-tags'] || !doc['dist-tags'].latest) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
+  Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
+      for (var i = 0, l = this.length; i < l; i ++) {
+        if (this.hasOwnProperty(i)) {
+          fn(this[i], i, this)
+        }
+      }
+    }
+  doc.maintainers.forEach(function (m) {
+    emit([m.name, doc._id, doc['dist-tags'].latest], 1)
+  })
+}, reduce: '_sum' }
 
 views.browseAuthorsRecent = { map: function (doc) {
   Array.prototype.forEach = Array.prototype.forEach || function forEach (fn) {
