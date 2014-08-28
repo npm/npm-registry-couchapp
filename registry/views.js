@@ -443,11 +443,16 @@ views.browseAuthorsRecent = { map: function (doc) {
   var t = doc.time && doc.time[l.version]
   if (!t) return
   var desc = doc.description || l.description || ''
-  doc.maintainers.forEach(function (m) {
-    // Have to sum it up by the author name in the app.
-    // couchdb makes me sad sometimes.
+  if (l._npmUser) {
+    // emit the user who published most recently.
+    var m = l._npmUser
     emit([t, m.name, doc._id, desc], 1)
-  })
+  } else {
+    // just emit all maintainers, since we don't know who published last
+    doc.maintainers.forEach(function (m) {
+      emit([t, m.name, doc._id, desc], 1)
+    })
+  }
 }, reduce: "_sum" }
 
 views.browseAuthors = views.npmTop = { map: function (doc) {
