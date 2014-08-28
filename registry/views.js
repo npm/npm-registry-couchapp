@@ -439,7 +439,7 @@ views.browseAuthorsRecent = { map: function (doc) {
     return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   l = l && doc.versions && doc.versions[l]
-  if (!l) return
+  if (!l || l.deprecated) return
   var t = doc.time && doc.time[l.version]
   if (!t) return
   var desc = doc.description || l.description || ''
@@ -465,7 +465,7 @@ views.browseAuthors = views.npmTop = { map: function (doc) {
     return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   l = l && doc.versions && doc.versions[l]
-  if (!l) return
+  if (!l || l.deprecated) return
   var t = doc.time && doc.time[l.version]
   if (!t) return
   var desc = doc.description || l.description || ''
@@ -501,7 +501,7 @@ views.browseUpdated = { map: function (doc) {
       doc.maintainers[0].name === 'isaacs')
     return
   var l = doc['dist-tags'] && doc['dist-tags'].latest
-  if (!l) return
+  if (!l || l.deprecated) return
   var t = doc.time && doc.time[l]
   if (!t) return
   var v = doc.versions[l]
@@ -534,7 +534,7 @@ views.browseAll = { map: function (doc) {
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
-  if (!l) return
+  if (!l || l.deprecated) return
   var desc = doc.description || l.description || ''
   emit([doc.name, desc], 1)
 }, reduce: '_sum' }
@@ -588,7 +588,7 @@ views.dependedUpon = { map: function (doc) {
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
-  if (!l) return
+  if (!l || l.deprecated) return
   var desc = doc.description || l.description || ''
   var d = l.dependencies
   if (!d) return
@@ -606,7 +606,7 @@ views.dependentVersions = { map: function (doc) {
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
-  if (!l) return
+  if (!l || l.deprecated) return
   var deps = l.dependencies
   if (!deps) return
   for (var dep in deps)
@@ -622,7 +622,7 @@ views.browseStarUser = { map: function (doc) {
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
-  if (!l) return
+  if (!l || l.deprecated) return
   var desc = doc.description || l.description || ''
   var d = doc.users
   if (!d) return
@@ -640,7 +640,7 @@ views.browseStarPackage = { map: function (doc) {
   var l = doc['dist-tags'] && doc['dist-tags'].latest
   if (!l) return
   l = doc.versions && doc.versions[l]
-  if (!l) return
+  if (!l || l.deprecated) return
   var desc = doc.description || l.description || ''
   var d = doc.users
   if (!d) return
