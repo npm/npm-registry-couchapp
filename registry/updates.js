@@ -49,7 +49,9 @@ updates.metadata = function (doc, req) {
 updates.star = function (doc, req) {
   var username = req.body
 
-  doc.users[username] = true;
+  if (!doc.users) doc.users = {}
+
+  doc.users[username] = true
 
   return [doc, JSON.stringify({ok: username + ' has starred ' + doc.name})]
 }
@@ -57,7 +59,9 @@ updates.star = function (doc, req) {
 updates.unstar = function (doc, req) {
   var username = req.body
 
-  delete doc.users[username];
+  if (!doc.users) return [doc, JSON.stringify({ok: doc.name + ' has no users'})]
+
+  delete doc.users[username]
 
   return [doc, JSON.stringify({ok: username + ' has unstarred ' + doc.name})]
 }
