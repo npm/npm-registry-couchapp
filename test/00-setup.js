@@ -14,7 +14,7 @@ require('./zz-teardown.js')
 // run with the cwd of the main program.
 var cwd = path.dirname(__dirname)
 
-var timeout = process.env.TRAVIS ? 20000 : 5000
+var timeout = 300000; // 5 minutes
 var conf = path.resolve(__dirname, 'fixtures', 'couch.ini')
 var pidfile = path.resolve(__dirname, 'fixtures', 'pid')
 var logfile = path.resolve(__dirname, 'fixtures', 'couch.log')
