@@ -25,6 +25,8 @@ test('start couch as a zombie child',  function (t) {
 
   try { fs.unlinkSync(logfile) } catch (er) {}
 
+
+  // Without this sudo, Travis will timeout when trying to start couchdb (why?!)
   var cmd = 'sudo'
   var args = ['couchdb', '-a', conf]
 
