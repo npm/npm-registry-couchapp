@@ -11,7 +11,7 @@
   "dependencies": {
     "couchapp": "~0.11.0",
     "request": "^2.42.0",
-    "semver": "^2.3.1 || 3"
+    "semver": "^2.3.1 || 3 || 4"
   },
   "devDependencies": {
     "jsontool": "~7.0.1",
