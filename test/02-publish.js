@@ -193,6 +193,30 @@ test('GET after publish', function(t) {
   })
 })
 
+test('GET with x-forwarded-for', function (t) {
+  var wanted = 'http://fooblz/registry/_design/scratch/_rewrite/package/-/package-0.0.2.tgz'
+
+  var g = url.parse('http://localhost:15986/registry/_design/scratch/_rewrite/package')
+  g.headers = {
+    'x-forwarded-host': 'fooblz'
+  }
+
+  http.get(g, function(res) {
+    t.equal(res.statusCode, 200)
+    var c = ''
+    res.setEncoding('utf8')
+    res.on('data', function(d) {
+      c += d
+    })
+    res.on('end', function() {
+      c = JSON.parse(c)
+      var actual = c.versions[c['dist-tags'].latest].dist.tarball
+      t.equal(actual, wanted)
+      t.end()
+    })
+  })
+})
+
 test('fail to clobber', function(t) {
   var c = common.npm([
     '--registry=' + reg,
