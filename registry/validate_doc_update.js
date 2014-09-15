@@ -495,8 +495,12 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
   for (var v in oldTime) {
     if (v === "modified" || v === "unpublished") continue
     assert(doc.time[v] === oldTime[v],
-           "Cannot replace previously published version: "+v)
+           "Attempting to modify version " + v + ",\n" +
+           "which was previously published on " + oldTime[v] + ".\n" +
+           "This is forbidden, to maintain package integrity.\n" +
+           "Please update the version number and try again.")
   }
+
 
   // Do not allow creating a NEW attachment for a version that
   // already had an attachment in its metadata.
