@@ -176,3 +176,23 @@ shows.new_package = function (doc, req) {
     headers : headers
   }
 }
+
+shows.ping = function (doc, req) {
+  var code = 200
+    , headers = {"Content-Type":"application/json"}
+
+  var body = {
+    host: req.headers["Host"]
+  , ok: true
+  , username: req.userCtx.name
+  , peer: req.peer
+  }
+
+  body = toJSON(body)
+
+  return {
+    code : code
+  , body : body
+  , headers : headers
+  }
+}
