@@ -7,6 +7,9 @@ module.exports =
   , { from: "/_session", to: "../../../_session", method: "DELETE" }
   , { from: "/_session", to: "../../../_session", method: "HEAD" }
 
+  , { from: "/-/ping", to: "/_show/ping", method: "GET" }
+  , { from: "/-/ping/*", to: "/_show/ping", method: "GET" }
+
   , { from: "/-/all/since", to:"_list/index/modified", method: "GET" }
 
   , { from: "/-/rss", to: "_list/rss/modified"
@@ -58,8 +61,6 @@ module.exports =
   , { from: "/:pkg/:version", to: "_show/package/:pkg", method: "GET" }
   , { from: "/:pkg/:version/-/jsonp/:jsonp", to: "_show/package/:pkg"
     , method: "GET" }
-
-  , { from: "/-/ping", to: "/_show/ping", method: "GET" }
 
   , { from: "/npm/public/registry/:firstletter/:pkg/_attachments/:att", to: "../../:pkg/:att", method: "GET" }
   , { from: "/npm/public/registry/:firstletter/:pkg/_attachments/:att/:rev", to: "../../:pkg/:att", method: "PUT" }
