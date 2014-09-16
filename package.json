@@ -3,7 +3,7 @@
   "version": "2.6.0",
   "description": "The CouchApp implementation of an npm registry",
   "scripts": {
-    "start": "./push.sh",
+    "start": "bash ./push.sh",
     "load": "bash ./load-views.sh",
     "copy": "bash ./copy.sh",
     "test": "tap test/*.js"

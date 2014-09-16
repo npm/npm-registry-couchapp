@@ -1,4 +1,5 @@
 #!/bin/bash
+export NODE_TLS_REJECT_UNAUTHORIZED=0
 
 c=${npm_package_config_couch}
 
