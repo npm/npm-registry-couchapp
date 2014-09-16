@@ -43,7 +43,7 @@ if [ "$NO_PROMPT" == "" ]; then
   fi
 fi
 
-rev=$(curl -k "$c"/_design/app | json _rev)
+rev=$(curl -k "$c"/_design/app | ./node_modules/.bin/json _rev)
 if [ "$rev" != "" ]; then
   rev="?rev=$rev"
 fi
@@ -57,7 +57,7 @@ curl "$url/_design/scratch" \
 
 
 
-rev=$(curl -k "$u"/_design/_auth | json _rev)
+rev=$(curl -k "$u"/_design/_auth | ./node_modules/.bin/json _rev)
 if [ "$rev" != "" ]; then
   rev="?rev=$rev"
 fi

@@ -1,0 +1,6 @@
+_replicator.couch
+_users.couch
+couch.log
+registry.couch
+sequence
+.registry_design
