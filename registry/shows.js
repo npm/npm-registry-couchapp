@@ -80,7 +80,7 @@ shows.package = function (doc, req) {
         // .../_rewrite/pkg/-/pkg-version.tgz
         // or: /pkg/-/pkg-version.tgz
         // depending on what requested path is.
-        var tf = [doc.name, '-', f]
+        var tf = [doc.name.replace(/\//g, '%2f'), '-', f.replace(/\//g, '%2f')]
         var i = requestedPath.indexOf('_rewrite')
         if (i !== -1) {
           tf = requestedPath.slice(0, i + 1).concat(tf)
