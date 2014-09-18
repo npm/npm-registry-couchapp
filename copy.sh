@@ -34,7 +34,7 @@ c=${c// /%20}
 c="$(node -p 'process.argv[1].replace(/\/$/, "")' "$c")"
 u="$(node -p 'require("url").resolve(process.argv[1], "_users")' "$c")"
 
-if [ "$NO_PROMPT" == "" ]; then
+if [ "$NO_PROMPT" == "" ] && [ "$1" != "--no-prompt" ]; then
   echo "Did you already run the load-views.sh script? (type 'yes')"
   read didLoad
   if ! [ "$didLoad" == "yes" ]; then
