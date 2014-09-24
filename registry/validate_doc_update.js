@@ -223,23 +223,35 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
   // check if the user is allowed to write to this package.
   function validUser () {
-    if ( !oldDoc || !oldDoc.maintainers ) return true
+    // Admins can edit any packages
     if (isAdmin()) return true
-    if (typeof oldDoc.maintainers !== "object") return true
+
+    // scoped packages require that the user have the entity name as a role
+    // They must ALSO be in the "maintainers" list by role or name.
     var roles = user && user.roles || []
     var s = scope.parse(doc.name)
     var entity = s[0]
-    // scoped packages require that the user have the entity name as a role
     if (entity && roles.indexOf(entity) === -1) {
       return false
     }
+
+    // At this point, they can publish if either the thing doesn't exist,
+    // or they are one of the maintainers.
+    // Unpublished packages don't have a "maintainers" property.
+    if ( !oldDoc || !oldDoc.maintainers ) return true
+
     for (var i = 0, l = oldDoc.maintainers.length; i < l; i ++) {
+      // In the maintainer list by name.
       if (oldDoc.maintainers[i].name === user.name) return true
+
+      // in the maintainer list by role.
       var role = oldDoc.maintainers[i].role
       if (role && roles && typeof role === "string") {
         if (roles.indexOf(role) !== -1) return true
       }
     }
+
+    // Not an owner, cannot publish.
     return false
   }
 
@@ -267,7 +279,7 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
   if (!vu) {
     assert(vu, "user: " + user.name + " not authorized to modify "
-                        + oldDoc.name + "\n"
+                        + doc.name + "\n"
                         + diffObj(oldDoc, doc).join("\n"))
   }
 
