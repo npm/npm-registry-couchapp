@@ -60,7 +60,6 @@ curl "$url/_design/scratch" \
   -H destination:'_design/app'$rev
 
 
-
 rev=$(curl -k "$u"/_design/_auth | json _rev)
 if [ "$rev" != "" ]; then
   rev="?rev=$rev"
