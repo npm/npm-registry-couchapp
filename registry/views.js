@@ -9,7 +9,7 @@ views.norevs = { map: function (doc) {
   }
 }, reduce: "_sum" }
 
-views.mixedcase = { map: function (doc) { 
+views.mixedcase = { map: function (doc) {
   if (doc.name.toLowerCase() !== doc.name) {
     emit(doc._id, doc.author)
   }
@@ -53,7 +53,7 @@ views.oddhost = { map: function (doc) {
 views.updated = {map: function (doc) {
   var l = doc["dist-tags"].latest
     , t = doc.time && doc.time[l]
-  if (t) emit(t, 1)
+  if (t) emit([t, l], 1)
 }}
 
 views.listAll = {
@@ -189,9 +189,10 @@ views.byKeyword = {
         doc.maintainers[0].name === 'isaacs')
       return
     var v = doc.versions[doc['dist-tags'].latest]
+    var t = doc.time[doc['dist-tags'].latest]
     if (!v || !v.keywords || !Array.isArray(v.keywords)) return
     v.keywords.forEach(function (kw) {
-      emit([kw.toLowerCase(), doc.name, doc.description], 1)
+      emit([kw.toLowerCase(), doc.name, doc.description, t, v], 1)
     })
   }, reduce: "_sum"
 }
@@ -527,7 +528,7 @@ views.browseUpdated = { map: function (doc) {
 
   emit([ d.toISOString(),
          doc._id,
-         v.description ], 1)
+         v ], 1)
 }, reduce: "_sum" }
 
 views.browseAll = { map: function (doc) {
@@ -540,8 +541,9 @@ views.browseAll = { map: function (doc) {
   if (!l) return
   l = doc.versions && doc.versions[l]
   if (!l || l.deprecated) return
+  var t = doc.time[l]
   var desc = doc.description || l.description || ''
-  emit([doc.name, desc], 1)
+  emit([doc.name, desc, t, l], 1)
 }, reduce: '_sum' }
 
 views.analytics = { map: function (doc) {
@@ -596,9 +598,10 @@ views.dependedUpon = { map: function (doc) {
   if (!l || l.deprecated) return
   var desc = doc.description || l.description || ''
   var d = l.dependencies
+  var t = doc.time && doc.time[l]
   if (!d) return
   for (var dep in d) {
-    emit([dep, doc._id, desc], 1)
+    emit([dep, doc._id, desc, t, l], 1)
   }
 }, reduce: '_sum' }
 
@@ -631,8 +634,9 @@ views.browseStarUser = { map: function (doc) {
   var desc = doc.description || l.description || ''
   var d = doc.users
   if (!d) return
+  var t = doc.time[l]
   for (var user in d) {
-    emit([user, doc._id, desc], 1)
+    emit([user, doc._id, desc, t, l], 1)
   }
 }, reduce: '_sum' }
 
@@ -649,6 +653,7 @@ views.browseStarPackage = { map: function (doc) {
   var desc = doc.description || l.description || ''
   var d = doc.users
   if (!d) return
+  var t = doc.time[l]
   for (var user in d) {
     emit([doc._id, desc, user], 1)
   }
