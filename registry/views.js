@@ -53,7 +53,7 @@ views.oddhost = { map: function (doc) {
 views.updated = {map: function (doc) {
   var l = doc["dist-tags"].latest
     , t = doc.time && doc.time[l]
-  if (t) emit([t, l], 1)
+  if (t) emit(t, 1)
 }}
 
 views.listAll = {
@@ -192,7 +192,7 @@ views.byKeyword = {
     var t = doc.time[doc['dist-tags'].latest]
     if (!v || !v.keywords || !Array.isArray(v.keywords)) return
     v.keywords.forEach(function (kw) {
-      emit([kw.toLowerCase(), doc.name, doc.description, t, v], 1)
+      emit([kw.toLowerCase(), doc.name, doc.description, t, v.version, v._npmUser], 1)
     })
   }, reduce: "_sum"
 }
@@ -528,7 +528,9 @@ views.browseUpdated = { map: function (doc) {
 
   emit([ d.toISOString(),
          doc._id,
-         v ], 1)
+         v.description,
+         v.version,
+         v._npmUser ], 1)
 }, reduce: "_sum" }
 
 views.browseAll = { map: function (doc) {
@@ -543,7 +545,7 @@ views.browseAll = { map: function (doc) {
   if (!l || l.deprecated) return
   var t = doc.time[l]
   var desc = doc.description || l.description || ''
-  emit([doc.name, desc, t, l], 1)
+  emit([doc.name, desc, t, l.version, l._npmUser], 1)
 }, reduce: '_sum' }
 
 views.analytics = { map: function (doc) {
@@ -601,7 +603,7 @@ views.dependedUpon = { map: function (doc) {
   var t = doc.time && doc.time[l]
   if (!d) return
   for (var dep in d) {
-    emit([dep, doc._id, desc, t, l], 1)
+    emit([dep, doc._id, desc, t, l.version, l._npmUser], 1)
   }
 }, reduce: '_sum' }
 
@@ -636,7 +638,7 @@ views.browseStarUser = { map: function (doc) {
   if (!d) return
   var t = doc.time[l]
   for (var user in d) {
-    emit([user, doc._id, desc, t, l], 1)
+    emit([user, doc._id, desc, t, l.version, l._npmUser], 1)
   }
 }, reduce: '_sum' }
 
