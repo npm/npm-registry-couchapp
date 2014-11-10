@@ -476,7 +476,7 @@ views.browseAuthors = views.npmTop = { map: function (doc) {
   if (!t) return
   var desc = doc.description || l.description || ''
   doc.maintainers.forEach(function (m) {
-    emit([m.name, doc._id, desc, t], 1)
+    emit([m.name, doc._id, desc, t, l.version, l._npmUser], 1)
   })
 }, reduce: "_sum" }
 
