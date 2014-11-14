@@ -1,7 +1,9 @@
 var common = require('./common.js')
 var test = require('tap').test
 var reg = 'http://127.0.0.1:15986/'
+var request = require('request')
 var db = 'http://localhost:15986/registry/'
+var fs = require('fs')
 var path = require('path')
 var rimraf = require('rimraf')
 var conf = path.resolve(__dirname, 'fixtures', 'npmrc')
@@ -492,5 +494,19 @@ test('try to attach a new tarball (and fail)', function(t) {
         t.equal(res.statusCode, 403)
       }).end(body)
     })
+  })
+})
+
+test('admin user can publish scoped package', function(t) {
+  var packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'fixtures', 'scoped-package.json'), 'utf-8'))
+  var url = 'http://admin:admin@localhost:15986/registry/_design/scratch/_update/package/' + packageJson.name
+
+  request.put({
+    url: url,
+    body: packageJson,
+    json: true
+  }, function(err, resp, body) {
+    t.equal(body.ok, "created new entry")
+    t.end()
   })
 })
