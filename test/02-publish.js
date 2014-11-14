@@ -10,6 +10,7 @@ var pkg = path.resolve(__dirname, 'fixtures/package')
 var pkg002 = path.resolve(pkg, '0.0.2')
 var pkg023a = path.resolve(pkg, '0.2.3alpha')
 var pkg023 = path.resolve(pkg, '0.2.3')
+var scopedPkg = path.resolve(__dirname, 'fixtures/scoped-package')
 var inst = path.resolve(__dirname, 'fixtures/install')
 var http = require('http')
 var maintainers = [
@@ -491,6 +492,42 @@ test('try to attach a new tarball (and fail)', function(t) {
         res.on('end', t.end.bind(t))
         t.equal(res.statusCode, 403)
       }).end(body)
+    })
+  })
+})
+
+test('scoped tarball rewrites', function(t) {
+  var c = common.npm([
+    '--registry=' + reg,
+    '--userconf=' + conf,
+    'publish'
+  ], { cwd: scopedPkg, env: env })
+  c.stderr.pipe(process.stderr)
+  var out = ''
+  c.stdout.setEncoding('utf8')
+  c.stdout.on('data', function(d) {
+    out += d
+  })
+  c.on('close', function(code) {
+    t.notOk(code)
+    t.equal(out, "+ @scoped/package@1.2.3\n")
+
+    var r = url.parse('http://localhost:15986/registry/_design/scratch/_rewrite/@scoped%2fpackage')
+    r.headers = { 'host': 'foobar' }
+
+    http.get(r, function(res) {
+      t.equal(res.statusCode, 200)
+      var c = ''
+      res.setEncoding('utf8')
+      res.on('data', function(d) {
+        c += d
+      })
+      res.on('end', function() {
+        c = JSON.parse(c)
+
+        t.equal(c.versions['1.2.3'].dist.tarball, 'http://foobar/registry/_design/scratch/_rewrite/@scoped%2fpackage/-/@scoped%2fpackage-1.2.3.tgz')
+        t.end()
+      })
     })
   })
 })

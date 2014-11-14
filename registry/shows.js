@@ -47,7 +47,7 @@ shows.package = function (doc, req) {
 
       var t = doc.versions[v].dist.tarball
       t = t.replace(/^https?:\/\/[^\/:]+(:[0-9]+)?/, '')
-      var f = t.match(/[^\/]+$/)[0]
+      var f = t.match(/(?:@([^\/]+)\/)?[^\/]+$/)[0]
       var requestedPath = req.requested_path
       if (doc._attachments && doc._attachments[f]) {
         // workaround for old couch versions that didn't
@@ -80,7 +80,7 @@ shows.package = function (doc, req) {
         // .../_rewrite/pkg/-/pkg-version.tgz
         // or: /pkg/-/pkg-version.tgz
         // depending on what requested path is.
-        var tf = [doc.name, '-', t.split('/').pop()]
+        var tf = [doc.name.replace(/\//g, '%2f'), '-', f.replace(/\//g, '%2f')]
         var i = requestedPath.indexOf('_rewrite')
         if (i !== -1) {
           tf = requestedPath.slice(0, i + 1).concat(tf)
