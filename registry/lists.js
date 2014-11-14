@@ -113,8 +113,11 @@ lists.index = function (head, req) {
     if (!row.id) continue
 
     var doc = row.value
+
+    // .replace('/', '%2F').replace('@', '%40')
+    // handles @scoped/modules.
     if (!doc.name || !doc._id ||
-        encodeURIComponent(doc._id) !== doc._id) continue
+        encodeURIComponent(doc._id) !== doc._id.replace('/', '%2F').replace('@', '%40')) continue
 
     var p = {}
 
