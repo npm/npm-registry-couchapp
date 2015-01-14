@@ -9,6 +9,7 @@ module.exports =
 
   , { from: "/-/ping", to: "/_show/ping", method: "GET" }
   , { from: "/-/ping/*", to: "/_show/ping", method: "GET" }
+  , { from: "/-/whoami", to: "/_show/whoami", method: "GET" }
 
   , { from: "/-/all/since", to:"_list/index/modified", method: "GET" }
 
