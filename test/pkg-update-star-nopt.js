@@ -41,7 +41,7 @@ test("atomic put for star", function (t) {
   var req = {
     method: 'PUT',
     query: {},
-    body: 'testuser',
+    body: '"testuser"',
     userCtx: { name: 'testuser', roles: [] }
   }
 
@@ -60,7 +60,7 @@ test("atomic put for unstar", function (t) {
   var req = {
     method: 'PUT',
     query: {},
-    body: 'testuser',
+    body: '"testuser"',
     userCtx: { name: 'testuser', roles: [] }
   }
 

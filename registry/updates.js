@@ -47,7 +47,7 @@ updates.metadata = function (doc, req) {
 }
 
 updates.star = function (doc, req) {
-  var username = req.body
+  var username = JSON.parse(req.body)
 
   if (!doc.users) doc.users = {}
 
@@ -57,7 +57,7 @@ updates.star = function (doc, req) {
 }
 
 updates.unstar = function (doc, req) {
-  var username = req.body
+  var username = JSON.parse(req.body)
 
   if (!doc.users) return [doc, JSON.stringify({ok: doc.name + ' has no users'})]
 
