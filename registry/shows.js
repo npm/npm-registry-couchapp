@@ -1,6 +1,18 @@
 
 var shows = exports
 
+shows.whoami = function (doc, req) {
+  return {
+    code: 200,
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify({
+      username: req.userCtx.name
+    })
+  }
+}
+
 shows.package = function (doc, req) {
   require("monkeypatch").patch(Object, Date, Array, String)
 
