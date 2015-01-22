@@ -13,6 +13,16 @@ shows.whoami = function (doc, req) {
   }
 }
 
+shows.distTags = function (doc, req) {
+  return {
+    code: 200,
+    headers: {
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(doc["dist-tags"])
+  }
+}
+
 shows.package = function (doc, req) {
   require("monkeypatch").patch(Object, Date, Array, String)
 

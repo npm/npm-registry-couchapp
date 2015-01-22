@@ -11,6 +11,14 @@ module.exports =
   , { from: "/-/ping/*", to: "/_show/ping", method: "GET" }
   , { from: "/-/whoami", to: "/_show/whoami", method: "GET" }
 
+
+  , { from: "/-/package/:pkg/dist-tags", to: "/_show/distTags/:pkg", method: "GET" }
+  , { from: "/-/package/:pkg/dist-tags/:tag", to: "/_update/distTags/:pkg", method: "DELETE" }
+  , { from: "/-/package/:pkg/dist-tags/:tag", to: "/_update/distTags/:pkg", method: "PUT" }
+  , { from: "/-/package/:pkg/dist-tags/:tag", to: "/_update/distTags/:pkg", method: "POST" }
+  , { from: "/-/package/:pkg/dist-tags", to: "/_update/distTags/:pkg", method: "PUT" }
+  , { from: "/-/package/:pkg/dist-tags", to: "/_update/distTags/:pkg", method: "POST" }
+
   , { from: "/-/all/since", to:"_list/index/modified", method: "GET" }
 
   , { from: "/-/rss", to: "_list/rss/modified"
