@@ -12,10 +12,7 @@ module.exports =
   , { from: "/-/whoami", to: "/_show/whoami", method: "GET" }
 
   // Stuff to support restricted-access modules, which this couchapp doesn't
-  , { from: "/-/package/:pkg/access", to: "/_show/notImplemented", method: "GET" }
-  , { from: "/-/package/:pkg/access", to: "/_show/notImplemented", method: "POST" }
-  , { from: "/-/package/:pkg/access", to: "/_show/notImplemented", method: "PUT" }
-  , { from: "/-/package/:pkg/access", to: "/_show/notImplemented", method: "DELETE" }
+  , { from: "/-/package/:pkg/access", to: "/_show/notImplemented"}
 
   , { from: "/-/package/:pkg/dist-tags", to: "/_show/distTags/:pkg", method: "GET" }
   , { from: "/-/package/:pkg/dist-tags/:tag", to: "/_update/distTags/:pkg", method: "DELETE" }
