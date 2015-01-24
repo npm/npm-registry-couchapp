@@ -9,3 +9,5 @@ before_install:
 env:
   - DEPLOY_VERSION=testing
 script: "npm test"
+notifications:
+  email: false
