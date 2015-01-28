@@ -16,6 +16,7 @@ var doc =
   "name": "video.js",
   "description": "foo",
   "readme": "Blerg.",
+  "access": "public",
   "repository": {
     "url": "git://bliorasdf"
   },
