@@ -114,10 +114,12 @@ lists.index = function (head, req) {
 
     var doc = row.value
 
-    // .replace('/', '%2F').replace('@', '%40')
-    // handles @scoped/modules.
+    // We are intentionally not showing scoped modules in this list.
+    // Since they may potentially be user-restricted, showing them
+    // in the search endpoint leaks information.  They get left out
+    // by the fact that their _id is equal to the uri-encoded _id
     if (!doc.name || !doc._id ||
-        encodeURIComponent(doc._id) !== doc._id.replace('/', '%2F').replace('@', '%40')) continue
+        encodeURIComponent(doc._id) !== doc._id) continue
 
     var p = {}
 
