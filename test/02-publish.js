@@ -427,7 +427,7 @@ test('install the thing we published', function(t) {
   })
   c.on('close', function(code) {
     t.notOk(code)
-    t.equal(out, "package@0.2.3 node_modules/package\n")
+    t.similar(out, /^([+] )?package@0.2.3 node_modules[/]package\n$/)
     rimraf.sync(path.resolve(inst, 'node_modules'))
     t.end()
   })
