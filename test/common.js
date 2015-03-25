@@ -9,6 +9,9 @@ exports.npm = function (args, opts) {
     args = [exports.npmPath].concat(args)
     cmd = process.execPath
   }
+  if (!opts) opts = {}
+  if (!opts.env) opts.env = {}
+  opts.env.LC_CTYPE = 'UTF-8'
   return spawn(cmd, args, opts)
 }
 
