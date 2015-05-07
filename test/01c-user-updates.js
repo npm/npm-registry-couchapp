@@ -43,7 +43,7 @@ test('update email', function (t) {
     url: u
   , json: true
   }, function (err, res, prof) {
-    console.log(err, prof)
+    t.ifError(err, 'user metadata fetched')
     prof.email = 'new@email.com'
 
     request.post({
@@ -51,13 +51,13 @@ test('update email', function (t) {
     , body: prof
     , json: true
     }, function (err, res, body) {
-      if (err) throw err
+      t.ifError(err, 'user email address changed')
 
       request.get({
         url: u
       , json: true
       }, function (err, res, body) {
-        console.log(body)
+        t.ifError(err, 'user record updated on second fetch')
         t.same(body.email, prof.email)
         t.end()
       })

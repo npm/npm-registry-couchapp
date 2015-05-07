@@ -12,6 +12,7 @@ exports.npm = function (args, opts) {
   return spawn(cmd, args, opts)
 }
 
-
-if (module === require.main)
-  console.log('ok')
+if (module === require.main) {
+  console.log('1..1')
+  console.log('ok - nothing to see here')
+}
