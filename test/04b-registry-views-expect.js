@@ -619,3 +619,8 @@ module.exports =
     ]
   }
 }
+
+if (module === require.main) {
+  console.log('1..1')
+  console.log('ok - just setting things up for other tests')
+}
