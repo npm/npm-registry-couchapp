@@ -10,7 +10,7 @@ exports.npm = function (args, opts) {
     cmd = process.execPath
   }
   if (!opts) opts = {}
-  if (!opts.env) opts.env = {}
+  if (!opts.env) opts.env = process.env
   opts.env.LC_CTYPE = 'UTF-8'
   return spawn(cmd, args, opts)
 }
