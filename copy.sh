@@ -50,12 +50,11 @@ fi
 auth="$(node -pe 'require("url").parse(process.argv[1]).auth || ""' "$c")"
 url="$(node -pe 'u=require("url");p=u.parse(process.argv[1]);delete p.auth;u.format(p)' "$c")"
 if [ "$auth" != "" ]; then
-  auth=(-u "$auth")
+  auth=(-u "$auth" )
 fi
 
 curl "$url/_design/scratch" \
-  "${auth[@]}" \
-  -k \
+  "${auth[@]}"-k \
   -X COPY \
   -H destination:'_design/app'$rev
 
@@ -68,11 +67,10 @@ fi
 auth="$(node -pe 'require("url").parse(process.argv[1]).auth || ""' "$u")"
 url="$(node -pe 'u=require("url");p=u.parse(process.argv[1]);delete p.auth;u.format(p)' "$u")"
 if [ "$auth" != "" ]; then
-  auth=(-u "$auth")
+  auth=(-u "$auth" )
 fi
 
 curl "$url/_design/scratch" \
-  "${auth[@]}" \
-  -k \
+  "${auth[@]}"-k \
   -X COPY \
   -H destination:'_design/_auth'$rev
