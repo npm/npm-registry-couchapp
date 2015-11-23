@@ -9,10 +9,3 @@ test('lists global packages', function(t) {
     t.end()
   }))
 })
-
-test('hides scoped packages', function(t) {
-  http.get(u + 'index/listAll' , parse(function(er, data, res) {
-    t.notOk(data['@npm/package'], 'scoped package listed')
-    t.end()
-  }))
-})

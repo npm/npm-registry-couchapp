@@ -114,12 +114,12 @@ lists.index = function (head, req) {
 
     var doc = row.value
 
-    // We are intentionally not showing scoped modules in this list.
-    // Since they may potentially be user-restricted, showing them
-    // in the search endpoint leaks information.  They get left out
-    // by the fact that their _id is equal to the uri-encoded _id
+    // in the npm On-Site branch of npm-registry-couchapp
+    // we return scoped modules (@foo/bar) in search results
+    // see https://github.com/npm/issue-tracker/issues/294
+    // this should never be the case in the production registry.
     if (!doc.name || !doc._id ||
-        encodeURIComponent(doc._id) !== doc._id) continue
+        encodeURIComponent(doc._id) !== doc._id.replace('/', '%2F').replace('@', '%40')) continue
 
     var p = {}
 
