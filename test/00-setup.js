@@ -34,13 +34,18 @@ test('start couch as a zombie child',  function (t) {
     cmd = args.shift();
   }
 
+  console.log('# spawning: ', cmd, args)
   var child = spawn(cmd, args, {
     detached: true,
     stdio: 'ignore',
     cwd: cwd
   })
   child.unref()
-  t.ok(child.pid)
+  child.on('close', function (code, signal) {
+    console.error('Couch exited unexpectedly with a code of', code, 'and a signal of', signal)
+    t.bailout()
+  })
+  t.ok(child.pid, 'got child pid from spawn')
   fs.writeSync(fd, child.pid + '\n')
   fs.closeSync(fd)
 
