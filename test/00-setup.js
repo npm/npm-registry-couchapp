@@ -2,6 +2,7 @@
 // the zz-teardown.js test kills it.
 
 var spawn = require('child_process').spawn
+var exec = require('child_process').exec
 var test = require('tap').test
 var path = require('path')
 var fs = require('fs')
@@ -19,6 +20,22 @@ var conf = path.resolve(__dirname, 'fixtures', 'couch.ini')
 var pidfile = path.resolve(__dirname, 'fixtures', 'pid')
 var logfile = path.resolve(__dirname, 'fixtures', 'couch.log')
 var started = /Apache CouchDB has started on http:\/\/127\.0\.0\.1:15986\/\n$/
+var configFiles
+
+test('setup', function (t) {
+  exec('couchdb -c', function (_, stdout) {
+    configFiles = stdout.trim().split(/\n/).filter(function (file) {
+      try {
+        return fs.readFileSync(file)
+      } catch (e) {
+        console.error('#', "Couldn't read", file)
+        return false
+      }
+    })
+    configFiles.push(conf)
+    t.end()
+  })
+})
 
 test('start couch as a zombie child',  function (t) {
   var fd = fs.openSync(pidfile, 'wx')
@@ -28,11 +45,15 @@ test('start couch as a zombie child',  function (t) {
 
   // Without this sudo, Travis will timeout when trying to start couchdb (why?!)
   var cmd = 'sudo'
-  var args = ['couchdb', '-a', conf]
+  var args = ['couchdb', '-n']
 
   if (!process.env.TRAVIS) {
     cmd = args.shift();
   }
+
+  configFiles.forEach(function (file) {
+    args.push('-a', file)
+  })
 
   console.log('# spawning: ', cmd, args)
   var child = spawn(cmd, args, {
