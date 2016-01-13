@@ -13,6 +13,7 @@ var repl = path.resolve(__dirname, 'fixtures', '_replicator.couch')
 var rdes = path.resolve(__dirname, 'fixtures', '.registry_design')
 var udes = path.resolve(__dirname, 'fixtures', '._users_design')
 var dotDelete = path.resolve(__dirname, 'fixtures', '.delete')
+var urifile = path.resolve(__dirname, 'fixtures', 'couch.uri')
 
 if (process.env.TRAVIS) {
   test('nocleanup', function (t) {
@@ -32,7 +33,7 @@ else {
         t.equal(er.code, 'ESRCH')
       }
     }
-    var files = [ pidfile, repl, log, _users, db, rdes, dotDelete ]
+    var files = [ pidfile, repl, log, _users, db, rdes, dotDelete, urifile ]
     if (!process.env.TRAVIS) {
         files.push(udes);
     }
