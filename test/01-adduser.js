@@ -41,13 +41,13 @@ function fn(conf, u, t) {
       console.log(buf)
       switch (buf.split(':')[0]) {
         case 'Username':
-          c.stdin.write(u.u + '\r')
+          c.stdin.write(u.u + '\r\n')
           break
         case 'Password':
-          c.stdin.write(u.p + '\r')
+          c.stdin.write(u.p + '\r\n')
           break
         case 'Email':
-          c.stdin.end(u.e + '\r')
+          c.stdin.end(u.e + '\r\n')
           break
         default:
           throw 'wtf: ' + JSON.stringify(buf)
