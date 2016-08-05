@@ -13,7 +13,7 @@
   font-family: 'Merriweather';
   font-style: normal;
   font-weight: normal;
-  src: local('Merriweather'), url('http://themes.googleusercontent.com/font?kit=RFda8w1V0eDZheqfcyQ4EInF5uFdDttMLvmWuJdhhgs') format('truetype');
+  src: local('Merriweather'), url('//themes.googleusercontent.com/font?kit=RFda8w1V0eDZheqfcyQ4EInF5uFdDttMLvmWuJdhhgs') format('truetype');
 }
 
 html {
