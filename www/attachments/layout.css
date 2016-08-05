@@ -84,6 +84,16 @@ div#results {
 div.result {
   width:100%;
 }
+div.result-meta {
+  margin-bottom: 10px;
+}
+span.result-count {
+  font-size: 14px; margin-right: 5px;
+  font-weight: bold;
+}
+span.result-search-link {
+  font-size: 12px;
+}
 div.result-container {
   padding-bottom:6px;
 }
