@@ -602,6 +602,24 @@ views.dependedUpon = { map: function (doc) {
   }
 }, reduce: '_sum' }
 
+views.devDependedUpon = { map: function (doc) {
+  if (!doc || doc.deprecated) return
+  if (doc._id.match(/^npm-test-.+$/) &&
+      doc.maintainers &&
+      doc.maintainers[0].name === 'isaacs')
+    return
+  var l = doc['dist-tags'] && doc['dist-tags'].latest
+  if (!l) return
+  l = doc.versions && doc.versions[l]
+  if (!l) return
+  var desc = doc.description || l.description || ''
+  var d = l.devDependencies
+  if (!d) return
+  for (var dep in d) {
+    emit([dep, doc._id, desc], 1)
+  }
+}, reduce: '_sum' }
+
 views.dependentVersions = { map: function (doc) {
   if (!doc || doc.deprecated) return
   if (doc._id.match(/^npm-test-.+$/) &&
