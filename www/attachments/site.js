@@ -440,7 +440,7 @@ app.showPackage = function () {
         $('div#version-info').append(
           '<div class="version-info-cell">' +
             '<div class="version-info-key">Homepage</div>' +
-            '<div class="version-info-value">' + escapeHTML(v.homepage) + '</div>' +
+            '<div class="version-info-value"><a href="' + escapeHTML(v.homepage) + '">' + escapeHTML(v.homepage) + '</a></div>' +
           '</div>' +
           '<div class="spacer"></div>'
         )
