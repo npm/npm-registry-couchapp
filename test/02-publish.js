@@ -32,7 +32,6 @@ var version002 = {
   "dist": {
     "tarball": "http://127.0.0.1:15986/package/-/package-0.0.2.tgz"
   },
-  "_from": ".",
   "_npmUser": {
     "name": "user",
     "email": "email@example.com"
@@ -54,7 +53,6 @@ var version023a = {
   "dist": {
     "tarball": "http://127.0.0.1:15986/package/-/package-0.2.3-alpha.tgz"
   },
-  "_from": ".",
   "_npmUser": {
     "name": "user",
     "email": "email@example.com"
@@ -76,7 +74,6 @@ var version023 = {
   "dist": {
     "tarball": "http://127.0.0.1:15986/package/-/package-0.2.3.tgz"
   },
-  "_from": ".",
   "_npmUser": {
     "name": "other",
     "email": "other@example.com"
@@ -419,17 +416,21 @@ test('install the thing we published', function(t) {
     '--registry=' + reg,
     'install'
   ], { env: env, cwd: inst })
-  c.stderr.pipe(process.stderr)
-  var out = ''
-  c.stdout.setEncoding('utf8')
-  c.stdout.on('data', function(d) {
-    out += d
-  })
   c.on('close', function(code) {
-    t.notOk(code)
-    t.similar(out, /(└── )?package@0.2.3/)
-    rimraf.sync(path.resolve(inst, 'node_modules'))
-    t.end()
+    t.is(code, 0)
+    c = common.npm(['--registry=' + reg, 'ls'], {env: env, cwd: inst})
+    c.stderr.pipe(process.stderr)
+    var out = ''
+    c.stdout.setEncoding('utf8')
+    c.stdout.on('data', function(d) {
+      out += d
+    })
+    c.on('close', function(code) {
+      t.notOk(code)
+      t.similar(out, /package@0.2.3/)
+      rimraf.sync(path.resolve(inst, 'node_modules'))
+      t.end()
+    })
   })
 })
 
