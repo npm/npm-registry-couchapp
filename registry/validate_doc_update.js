@@ -371,10 +371,6 @@ module.exports = function (doc, oldDoc, user, dbCtx) {
 
   function checkDep(version, dep, t) {
     ridiculousDeps()
-    if (!entity) {
-      assert(scope.isGlobal(dep),
-             "global packages may only depend on other global packages")
-    }
   }
 
   function ridiculousDeps() {
