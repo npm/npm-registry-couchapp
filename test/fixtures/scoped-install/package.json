@@ -1,0 +1,7 @@
+{
+  "name": "scoped-install",
+  "version": "1.2.3",
+  "dependencies": {
+    "@scoped/package": "0.2"
+  }
+}
