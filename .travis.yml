@@ -12,6 +12,3 @@ before_install:
   - "npm install -g npm"
 env:
   - DEPLOY_VERSION=testing
-script: "npm test"
-notifications:
-  email: false
