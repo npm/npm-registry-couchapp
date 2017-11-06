@@ -10,12 +10,12 @@
   },
   "dependencies": {
     "couchapp": "~0.11.0",
-    "json": "~9.0.2",
+    "json": "^9.0.2",
     "semver": "4"
   },
   "devDependencies": {
     "request": "~2.42.0",
-    "parse-json-response": "~1.0.1",
+    "parse-json-response": "^1.0.1",
     "rimraf": "~2.2.6",
     "tap": "*",
     "which": "~1.0.5"
