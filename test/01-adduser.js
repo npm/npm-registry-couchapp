@@ -6,16 +6,19 @@ var path = require('path')
 var conf = path.resolve(__dirname, 'fixtures', 'npmrc')
 var conf2 = path.resolve(__dirname, 'fixtures', 'npmrc2')
 var conf3 = path.resolve(__dirname, 'fixtures', 'npmrc3')
+var conf4 = path.resolve(__dirname, 'fixtures', 'npmrc4')
 
 var fs = require('fs')
 
 try { fs.unlinkSync(conf) } catch (er) {}
 try { fs.unlinkSync(conf2) } catch (er) {}
 try { fs.unlinkSync(conf3) } catch (er) {}
+try { fs.unlinkSync(conf4) } catch (er) {}
 
 var u = { u: 'user', p: 'pass@:!%\'', e: 'email@example.com' }
 var o = { u: 'other', p: 'pass@:!%\'', e: 'other@example.com' }
 var t = { u: 'third', p: 'pass@:!%\'', e: '3@example.com' }
+var v = { u: 'admin', p: 'admin', e: 'x@x.com' }
 
 test('adduser', fn.bind(null, conf, u))
 test('adduser again', fn.bind(null, conf, u))
@@ -25,6 +28,8 @@ test('adduser 2 again', fn.bind(null, conf2, o))
 
 test('adduser 3', fn.bind(null, conf3, t))
 test('adduser 3 again', fn.bind(null, conf3, t))
+
+test('adduser admin', fn.bind(null, conf4, v))
 
 function fn(conf, u, t) {
   var c = common.npm([
@@ -38,7 +43,6 @@ function fn(conf, u, t) {
   c.stdout.on('data', function(d) {
     buf += d
     if (buf.match(/: /)) {
-      console.log(buf)
       switch (buf.split(':')[0]) {
         case 'Username':
           c.stdin.write(u.u + '\r\n')

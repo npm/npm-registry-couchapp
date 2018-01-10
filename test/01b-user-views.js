@@ -21,6 +21,13 @@ var expect = {
           "other"
         ],
         "value": 1
+      },
+      {
+        "key": [
+          "x@x.com",
+          "admin"
+        ],
+        "value": 1
       }
     ]
   },
