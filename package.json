@@ -14,10 +14,10 @@
     "semver": "4"
   },
   "devDependencies": {
-    "request": "~2.42.0",
     "parse-json-response": "~1.0.1",
+    "request": "~2.42.0",
     "rimraf": "~2.2.6",
-    "tap": "*",
+    "tap": "^12.7.0",
     "which": "~1.0.5"
   },
   "repository": {

@@ -1,3 +1,8 @@
+if (process.version.match(/^v[0-9][0-9]\./)) {
+  console.log('1..0 # monkeypatching natives stopped working in node v10')
+  process.exit(0)
+}
+
 var fs = require("fs")
 var cases = {}
 fs.readdirSync(__dirname + "/fixtures/vdu-auth/").forEach(function(d) {

@@ -1,3 +1,7 @@
+if (process.version.match(/^v[0-9][0-9]\./)) {
+  console.log('1..0 # monkeypatching natives stopped working in node v10')
+  process.exit(0)
+}
 var test = require("tap").test
 
 var mod = require("../registry/modules.js")
