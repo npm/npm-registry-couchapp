@@ -416,6 +416,8 @@ test('install the thing we published', function(t) {
     '--registry=' + reg,
     'install'
   ], { env: env, cwd: inst })
+  c.stdout.pipe(process.stderr)
+  c.stderr.pipe(process.stderr)
   c.on('close', function(code) {
     t.is(code, 0)
     c = common.npm(['--registry=' + reg, 'ls'], {env: env, cwd: inst})

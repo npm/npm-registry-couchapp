@@ -29,7 +29,7 @@ test('unpublish', function(t) {
   })
   c.on('close', function(code) {
     t.notOk(code)
-    t.equal(v, '- package\n')
+    t.match(v, /- ?package\n/)
     t.end()
   })
 })
@@ -102,7 +102,7 @@ test('publish new version as new user', function(t) {
   })
   c.on('close', function(code) {
     t.notOk(code)
-    t.equal('+ package@0.2.4\n', v)
+    t.equal(v, '+ package@0.2.4\n')
     t.end()
   })
 })
@@ -120,7 +120,7 @@ test('now unpublish the new version', function(t) {
   })
   c.on('close', function(code) {
     t.notOk(code)
-    t.equal('- package@0.2.4\n', v)
+    t.match(v, /- ?package@0.2.4\n/)
     t.end()
   })
 })
