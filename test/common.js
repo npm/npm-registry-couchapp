@@ -1,12 +1,14 @@
 var which = require('which')
 
 exports.npmPath = process.env.npm || which.sync('npm')
+const cache = require('path').resolve(__dirname, 'fixtures', 'test-cache')
+require('mkdirp').sync(cache)
 
 var spawn = require('child_process').spawn
 exports.npm = function (args, opts) {
   var cmd = exports.npmPath
   if (exports.npmPath.match(/\.js$/)) {
-    args = [exports.npmPath].concat(args)
+    args = [exports.npmPath, `--cache=${cache}`].concat(args)
     cmd = process.execPath
   }
   if (!opts) opts = {}

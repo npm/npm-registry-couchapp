@@ -14,14 +14,14 @@ var rdes = path.resolve(__dirname, 'fixtures', '.registry_design')
 var udes = path.resolve(__dirname, 'fixtures', '._users_design')
 var dotDelete = path.resolve(__dirname, 'fixtures', '.delete')
 var urifile = path.resolve(__dirname, 'fixtures', 'couch.uri')
+const cache = path.resolve(__dirname, 'fixtures', 'test-cache')
 
 if (process.env.TRAVIS) {
   test('nocleanup', function (t) {
     t.pass('No cleanup on travis')
     t.end()
   })
-}
-else {
+} else {
   test('cleanup', function (t) {
     try {
       var pid = fs.readFileSync(pidfile)
@@ -33,7 +33,7 @@ else {
         t.equal(er.code, 'ESRCH')
       }
     }
-    var files = [ pidfile, repl, log, _users, db, rdes, dotDelete, urifile ]
+    var files = [ pidfile, repl, log, _users, db, rdes, dotDelete, urifile, cache ]
     if (!process.env.TRAVIS) {
         files.push(udes);
     }

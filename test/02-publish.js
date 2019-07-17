@@ -412,6 +412,7 @@ test('get after other publish (and x-forwarded-proto)', function(t) {
 
 test('install the thing we published', function(t) {
   rimraf.sync(path.resolve(inst, 'node_modules'))
+  rimraf.sync(path.resolve(inst, 'package-lock.json'))
   var c = common.npm([
     '--registry=' + reg,
     'install'
@@ -431,6 +432,7 @@ test('install the thing we published', function(t) {
       t.notOk(code)
       t.similar(out, /package@0.2.3/)
       rimraf.sync(path.resolve(inst, 'node_modules'))
+      rimraf.sync(path.resolve(inst, 'package-lock.json'))
       t.end()
     })
   })
