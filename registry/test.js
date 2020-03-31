@@ -1,6 +1,5 @@
 var http = require("http"),
-    url = require("url"),
-    sys = require("sys");
+    url = require("url");
 
 function request (path, method, headers, body, callback) {
   if (!headers) {
@@ -14,9 +13,15 @@ function request (path, method, headers, body, callback) {
       body = JSON.stringify(body)
     }
   }
-  
-  var client = http.createClient(5984, "jsregistry");
-  var request = client.request(method, path, headers);  
+
+  var agent = new http.Agent({ host: "jsregistry", port: 5984, maxSockets: 1 });
+  var request = http.request({
+    host: "jsregistry",
+    port: 5984,
+    method: method,
+    path: path,
+    headers: headers
+  });
   request.addListener("response", function (response) {
     var buffer = ''
     response.addListener("data", function (chunk) {
@@ -27,7 +32,7 @@ function request (path, method, headers, body, callback) {
     })
   })
   request.write(body)
-  request.close()
+  request.end()
   
 }
 
@@ -53,10 +58,10 @@ function assertStatus (code) {
   var c = code;
   return function (response, body) {
     if (response.statusCode != c) {
-      sys.puts("Status is not "+c+" it is "+response.statusCode+'. '+body)
+      console.log("Status is not "+c+" it is "+response.statusCode+'. '+body)
       throw "Status is not "+c+" it is "+response.statusCode+'. '+body;
     } else {
-      sys.puts(body);
+      console.log(body);
     }
   }
 }
@@ -88,4 +93,4 @@ requestQueue([
   ["/foo", "GET", undefined, "0.1.0", assertStatus(200)],
   ["/foo/0.1.0", "GET", undefined, "0.1.0", assertStatus(200)],
   ["/foo/stable", "GET", undefined, "0.1.0", assertStatus(200)],
-  ], function () {sys.puts('done')})
+  ], function () {console.log('done')})
