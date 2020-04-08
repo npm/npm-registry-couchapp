@@ -305,8 +305,6 @@ updates.package = function (doc, req) {
   // return ok(result, message) to exit successfully at any point.
   // Does some final data integrity cleanup stuff.
   function ok (doc, message) {
-    // access is handled elsewhere, and should not be stored.
-    delete doc.access
     delete doc.mtime
     delete doc.ctime
     var time = doc.time = doc.time || {}
