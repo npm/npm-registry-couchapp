@@ -28,6 +28,9 @@ case $c in
   *);;
 esac
 
+c=${c/PASSWORD/$PASSWORD}
+c=${c// /%20}
+
 host="$(node -pe 'require("url").parse(process.argv[1]).host' "$c")"
 hostname="$(node -pe 'require("url").parse(process.argv[1]).hostname' "$c")"
 ips=($(dig +short "$hostname" | egrep '^[0-9]'))
