@@ -4,7 +4,7 @@ c=${npm_package_config_couch}
 
 if [ "$c" == "" ]; then
   cat >&2 <<-ERR
-Please set a valid 'npmjs.org:couch' npm config.
+Please set a valid 'npm-registry-couchapp:couch' npm config.
 
 You can put PASSWORD in the setting somewhere to
 have it prompt you for a password each time, so
