@@ -12,7 +12,7 @@ now added to the micro-services that now make up npm. For this reason, we will n
 pull requests, or making any changes to this codebase going forward.__
 
 __For issues with the npmjs.com website, please open an issue on the
-[npm/www](https://github.com/npm/www) repo. For issues wih the registry
+[npm/www](https://github.com/npm/www) repo. For issues with the registry
 service (for example, slow package downloads, or inability to publish a
 package), see the [npm/registry](https://github.com/npm/registry) repo.__
 
