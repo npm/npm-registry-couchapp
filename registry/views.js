@@ -68,26 +68,29 @@ views.allVersions = { map: function(doc) {
 }, reduce: "_sum" }
 
 views.modified = { map: modifiedTimeMap }
-function modifiedTimeMap (doc) {
-  function parse (s) {
-    // s is something like "2010-12-29T07:31:06Z"
-    s = s.split("T")
-    var ds = s[0]
+
+function parseDate (s) {
+  // s is something like "2010-12-29T07:31:06Z"
+  s = s.split("T")
+  var ds = s[0]
       , ts = s[1]
       , d = new Date()
-    ds = ds.split("-")
-    ts = ts.split(":")
-    var tz = ts[2].substr(2)
-    ts[2] = ts[2].substr(0, 2)
-    d.setUTCFullYear(+ds[0])
-    d.setUTCMonth(+ds[1]-1)
-    d.setUTCDate(+ds[2])
-    d.setUTCHours(+ts[0])
-    d.setUTCMinutes(+ts[1])
-    d.setUTCSeconds(+ts[2])
-    d.setUTCMilliseconds(0)
-    return d.getTime()
-  }
+  ds = ds.split("-")
+  ts = ts.split(":")
+  ts[2].substr(2)
+  ts[2] = ts[2].substr(0, 2)
+  d.setUTCFullYear(+ds[0])
+  d.setUTCMonth(+ds[1]-1)
+  d.setUTCDate(+ds[2])
+  d.setUTCHours(+ts[0])
+  d.setUTCMinutes(+ts[1])
+  d.setUTCSeconds(+ts[2])
+  d.setUTCMilliseconds(0)
+  return d;
+}
+
+function modifiedTimeMap (doc) {
+
   if (!doc.versions || doc.deprecated) return
   if (doc._id.match(/^npm-test-.+$/) &&
       doc.maintainers &&
@@ -96,30 +99,11 @@ function modifiedTimeMap (doc) {
   var latest = doc["dist-tags"].latest
   if (!doc.versions[latest]) return
   var time = doc.time && doc.time[latest] || 0
-  var t = new Date(parse(time))
+  var t = parseDate(time)
   emit(t.getTime(), doc)
 }
 
 views.modifiedPackage = { map: function (doc) {
-  function parse (s) {
-    // s is something like "2010-12-29T07:31:06Z"
-    s = s.split("T")
-    var ds = s[0]
-      , ts = s[1]
-      , d = new Date()
-    ds = ds.split("-")
-    ts = ts.split(":")
-    var tz = ts[2].substr(2)
-    ts[2] = ts[2].substr(0, 2)
-    d.setUTCFullYear(+ds[0])
-    d.setUTCMonth(+ds[1]-1)
-    d.setUTCDate(+ds[2])
-    d.setUTCHours(+ts[0])
-    d.setUTCMinutes(+ts[1])
-    d.setUTCSeconds(+ts[2])
-    d.setUTCMilliseconds(0)
-    return d.getTime()
-  }
   if (!doc.versions || doc.deprecated) return
   if (doc._id.match(/^npm-test-.+$/) &&
       doc.maintainers &&
@@ -128,7 +112,7 @@ views.modifiedPackage = { map: function (doc) {
   var latest = doc["dist-tags"].latest
   if (!doc.versions[latest]) return
   var time = doc.time && doc.time[latest] || 0
-  var t = new Date(parse(time))
+  var t = parseDate(time)
   emit([doc._id, t.getTime()], doc)
 }}
 
@@ -480,25 +464,6 @@ views.browseAuthors = views.npmTop = { map: function (doc) {
 }, reduce: "_sum" }
 
 views.browseUpdated = { map: function (doc) {
-  function parse (s) {
-    // s is something like "2010-12-29T07:31:06Z"
-    s = s.split("T")
-    var ds = s[0]
-      , ts = s[1]
-      , d = new Date()
-    ds = ds.split("-")
-    ts = ts.split(":")
-    var tz = ts[2].substr(2)
-    ts[2] = ts[2].substr(0, 2)
-    d.setUTCFullYear(+ds[0])
-    d.setUTCMonth(+ds[1]-1)
-    d.setUTCDate(+ds[2])
-    d.setUTCHours(+ts[0])
-    d.setUTCMinutes(+ts[1])
-    d.setUTCSeconds(+ts[2])
-    d.setUTCMilliseconds(0)
-    return d.getTime()
-  }
 
   if (!doc || !doc.versions || doc.deprecated) return
   if (doc._id.match(/^npm-test-.+$/) &&
@@ -511,7 +476,7 @@ views.browseUpdated = { map: function (doc) {
   if (!t) return
   var v = doc.versions[l]
   if (!v) return
-  var d = new Date(parse(t))
+  var d = parseDate(t)
   if (!d.getTime()) return
 
   function pad(n){return n<10 ? '0'+n : n}
@@ -545,25 +510,7 @@ views.browseAll = { map: function (doc) {
 }, reduce: '_sum' }
 
 views.analytics = { map: function (doc) {
-  function parse (s) {
-    // s is something like "2010-12-29T07:31:06Z"
-    s = s.split("T")
-    var ds = s[0]
-      , ts = s[1]
-      , d = new Date()
-    ds = ds.split("-")
-    ts = ts.split(":")
-    var tz = ts[2].substr(2)
-    ts[2] = ts[2].substr(0, 2)
-    d.setUTCFullYear(+ds[0])
-    d.setUTCMonth(+ds[1]-1)
-    d.setUTCDate(+ds[2])
-    d.setUTCHours(+ts[0])
-    d.setUTCMinutes(+ts[1])
-    d.setUTCSeconds(+ts[2])
-    d.setUTCMilliseconds(0)
-    return d.getTime()
-  }
+
   if (!doc || !doc.time || doc.deprecated) return
   if (doc._id.match(/^npm-test-.+$/) &&
       doc.maintainers &&
@@ -571,7 +518,7 @@ views.analytics = { map: function (doc) {
     return
   for (var i in doc.time) {
     var t = doc.time[i]
-    var d = new Date(parse(t))
+    var d = parseDate(t)
     if (!d.getTime()) return
     var type = i === 'modified' ? 'latest'
              : i === 'created' ? 'created'
