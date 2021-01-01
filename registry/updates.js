@@ -223,6 +223,25 @@ updates.package = function (doc, req) {
     })]
   }
 
+  function conflict (reason) {
+    // return error(reason)
+    if (output.length) {
+      reason += "\n" + output.map(function(n) {
+        return n.map(function(a) {
+          return JSON.stringify(a)
+        }).join(" ")
+      }).join("\n")
+    }
+
+    return [{
+      _id: doc._id,
+      _rev: "0-00000000000000000000000000000000"
+    }, JSON.stringify({
+      "error": "conflict",
+      "reason": reason
+    })]
+  }
+
   // Copy relevant properties from the "latest" published version to root
   function latestCopy(doc) {
     d('latestCopy', doc['dist-tags'], doc)
@@ -401,7 +420,7 @@ updates.package = function (doc, req) {
           (semver.clean(ver, true) in doc.versions)) {
         // attempting to overwrite an existing version.
         // not allowed
-        return error("cannot modify existing version")
+        return conflict("cannot modify existing version")
       }
     }
 
@@ -453,7 +472,10 @@ updates.package = function (doc, req) {
   }
 
   function isError(res) {
-    return res && res[0]._id === '.error.'
+    return res && (
+      res[0]._id === '.error.' ||
+      res[0]._rev === "0-00000000000000000000000000000000"
+    )
   }
 
   function mergeVersions(newdoc, doc) {
